@@ -76,7 +76,7 @@ protected:
   //@{ Strain in direction of crack upon crack initiation
   MaterialProperty<Real> & _crack_initiation_strain;
   ///@}
-
+  const MaterialProperty<Real> & _crack_initiation_strain_old;
   MaterialProperty<int> & _crack_flag;
   MaterialProperty<Real> & _crack_flag0;
   const MaterialProperty<int> & _crack_flag_old;
@@ -84,11 +84,16 @@ protected:
   MaterialProperty<Real> & _cracking_yield_surface;
   const MaterialProperty<Real> & _cracking_yield_surface_old;
   MaterialProperty<Real> & _actual_cracking_stress;
+  const MaterialProperty<Real> & _actual_cracking_stress_old;
   MaterialProperty<Real> & _equivalent_strain;
   const MaterialProperty<Real> & _equivalent_strain_old;
   //@{ Variables used by multiple methods within the calculation for a single material point
   RankFourTensor _local_elasticity_tensor;
   ///@}
+
+  /// Enum defining the damage model
+  const enum class DamageModel { mazar, modifiedvonmises } _damage_model;
+
 };
 
 #endif // ISOTROPICDAMAGE_H

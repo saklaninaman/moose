@@ -36,6 +36,11 @@ validParams<IsotropicDamage>()
      			"The fraction of the cracking stress allowed to be maintained following a crack.");
   params.addParam<Real>("fracture_energy",
 			"The fracture energy of the material");
+  MooseEnum damage_model("mazar modifiedvonmises", "modifiedvonmises");
+  params.addParam<MooseEnum>("damage_model",
+			      damage_model,
+      			     "How damage evolves with strain.  'modifiedvonmises' (default) calculate strain as modified version of Vonmises"
+                             "'mazar' calculates strain as per Mazar model, ");
   return params;
 }
 
@@ -48,6 +53,7 @@ IsotropicDamage::IsotropicDamage(const InputParameters & parameters)
     _crack_damage(declareProperty<Real>(_base_name + "crack_damage")),
     _crack_damage_old(getMaterialPropertyOld<Real>(_base_name + "crack_damage")),
     _crack_initiation_strain(declareProperty<Real>(_base_name + "crack_initiation_strain")),
+    _crack_initiation_strain_old(getMaterialPropertyOld<Real>(_base_name + "crack_initiation_strain")),
     _crack_flag(declareProperty<int>(_base_name+"crack_flag")),
     _crack_flag0(declareProperty<Real>(_base_name+"crack_flag0")),
     _crack_flag_old(getMaterialPropertyOld<int>(_base_name+"crack_flag")),
@@ -55,8 +61,10 @@ IsotropicDamage::IsotropicDamage(const InputParameters & parameters)
     _cracking_yield_surface(declareProperty<Real>(_base_name + "crack_yield_surface")),
     _cracking_yield_surface_old(getMaterialPropertyOld<Real>(_base_name + "crack_yield_surface")),
     _actual_cracking_stress(declareProperty<Real>("actual_cracking_stress")),
+    _actual_cracking_stress_old(getMaterialPropertyOld<Real>(_base_name + "actual_cracking_stress")),
     _equivalent_strain(declareProperty<Real>(_base_name +"equivalent_strain")),
-    _equivalent_strain_old(getMaterialPropertyOld<Real>(_base_name + "equivalent_strain"))
+    _equivalent_strain_old(getMaterialPropertyOld<Real>(_base_name + "equivalent_strain")),
+    _damage_model(getParam<MooseEnum>("damage_model").getEnum<DamageModel>())
 {
 }
 
@@ -150,26 +158,40 @@ IsotropicDamage::updateCrackingStateAndStress()
       std::vector<Real> eigval(3, 0.0);
 	_crack_flag[_qp]=_crack_flag_old[_qp];
 	_crack_flag0[_qp]=_crack_flag0_old[_qp];
+	_crack_initiation_strain[_qp]=_crack_initiation_strain_old[_qp];
+	_actual_cracking_stress[_qp]=_actual_cracking_stress_old[_qp];
+
     _stress[_qp].symmetricEigenvalues(eigval);
     Real max_principal_stress=std::max(std::max(eigval[0],eigval[1]),eigval[2]);
     // Find equivalent strain  
     _elastic_strain[_qp].symmetricEigenvalues(eigval);
 
-    Real k=10;
-    Real eps_xx=_elastic_strain[_qp](0,0);
-    Real eps_yy=_elastic_strain[_qp](1,1);
-    Real eps_zz=_elastic_strain[_qp](2,2);
-    Real eps_xy=_elastic_strain[_qp](0,1);
-    Real eps_xz=_elastic_strain[_qp](0,2);
-    Real eps_yz=_elastic_strain[_qp](1,2);
-    Real I1=eps_xx+eps_yy+eps_zz;
-    Real J2=(eps_xx*eps_xx+eps_yy*eps_yy+eps_zz*eps_zz-eps_xx*eps_yy-eps_xx*eps_zz-eps_yy*eps_zz+3*(eps_xy*eps_xy+eps_xz*eps_xz+eps_yz*eps_yz))/3;
-//    _equivalent_strain[_qp] = (k-1)/(2*k*(1-2*poissons_ratio))*I1+1/(2*k)*std::sqrt(std::pow(((k-1)*I1/(1-2*poissons_ratio)),2)+12*k*J2/(std::pow((1+poissons_ratio),2)));
-    Real eps_x1=std::max(eigval[0],0.0)*std::max(eigval[0],0.0);
-    Real eps_x2=std::max(eigval[1],0.0)*std::max(eigval[1],0.0);
-    Real eps_x3=std::max(eigval[2],0.0)*std::max(eigval[2],0.0);
-    
-    _equivalent_strain[_qp] = std::sqrt(eps_x1+eps_x2+eps_x3);
+
+  switch (_damage_model)
+  {
+    	case DamageModel::modifiedvonmises:
+	{
+    	Real k=10;
+   	Real eps_xx=_elastic_strain[_qp](0,0);
+   	Real eps_yy=_elastic_strain[_qp](1,1);
+    	Real eps_zz=_elastic_strain[_qp](2,2);
+    	Real eps_xy=_elastic_strain[_qp](0,1);
+    	Real eps_xz=_elastic_strain[_qp](0,2);
+    	Real eps_yz=_elastic_strain[_qp](1,2);
+    	Real I1=eps_xx+eps_yy+eps_zz;
+    	Real J2=(eps_xx*eps_xx+eps_yy*eps_yy+eps_zz*eps_zz-eps_xx*eps_yy-eps_xx*eps_zz-eps_yy*eps_zz+3*(eps_xy*eps_xy+eps_xz*eps_xz+eps_yz*eps_yz))/3;
+        _equivalent_strain[_qp] = (k-1)/(2*k*(1-2*poissons_ratio))*I1+1/(2*k)*std::sqrt(std::pow(((k-1)*I1/(1-2*poissons_ratio)),2)+12*k*J2/(std::pow((1+poissons_ratio),2))); 
+        break;
+	}
+	case DamageModel::mazar:
+	{
+   	Real eps_x1=std::max(eigval[0],0.0)*std::max(eigval[0],0.0);
+        Real eps_x2=std::max(eigval[1],0.0)*std::max(eigval[1],0.0);
+        Real eps_x3=std::max(eigval[2],0.0)*std::max(eigval[2],0.0);
+     	_equivalent_strain[_qp] = std::sqrt(eps_x1+eps_x2+eps_x3);
+        break;
+	}
+  }
      	// When the material cracks the first time
 	if (max_principal_stress >= _cracking_yield_surface[_qp] && _crack_flag[_qp] == 0)
 	{
@@ -242,6 +264,7 @@ void IsotropicDamage::computeDamageEvolution
         _crack_damage[_qp]=std::min(std::max(1-residual_stress/youngs_modulus/equivalent_strain,_crack_damage_old[_qp]),1.0);
 
 	_cracking_yield_surface[_qp]=std::max(std::min(cracking_stress*std::exp(-beta*(equivalent_strain-cracking_strain)),cracking_stress),residual_stress);
+	break;
 	}
   }
 }
