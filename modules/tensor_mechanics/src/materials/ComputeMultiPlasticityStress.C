@@ -18,12 +18,11 @@
 
 registerMooseObject("TensorMechanicsApp", ComputeMultiPlasticityStress);
 
-template <>
 InputParameters
-validParams<ComputeMultiPlasticityStress>()
+ComputeMultiPlasticityStress::validParams()
 {
-  InputParameters params = validParams<ComputeStressBase>();
-  params += validParams<MultiPlasticityDebugger>();
+  InputParameters params = ComputeStressBase::validParams();
+  params += MultiPlasticityDebugger::validParams();
   params.addClassDescription("Base class for multi-surface finite-strain plasticity");
   params.addRangeCheckedParam<unsigned int>("max_NR_iterations",
                                             20,

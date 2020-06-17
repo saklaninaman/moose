@@ -1,19 +1,19 @@
 [Mesh]
-  type = GeneratedMesh
-  dim = 2
-  xmin = 0
-  xmax = 1.0
-  ymin = 0
-  ymax = 1.0
-  nx = 64
-  ny = 64
-[]
-
-[MeshModifiers]
+  [gen]
+    type = GeneratedMeshGenerator
+    dim = 2
+    xmin = 0
+    xmax = 1.0
+    ymin = 0
+    ymax = 1.0
+    nx = 64
+    ny = 64
+  []
   [./corner_node]
-    type = AddExtraNodeset
+    type = ExtraNodesetGenerator
     new_boundary = 'pinned_node'
     nodes = '0'
+    input = gen
   [../]
 []
 
@@ -114,7 +114,7 @@
 
 [Materials]
   [./const]
-    type = GenericConstantMaterial
+    type = ADGenericConstantMaterial
     prop_names = 'rho mu'
     prop_values = '1  1'
   [../]
@@ -122,8 +122,6 @@
     type = INSADTauMaterial
     velocity = velocity
     pressure = p
-    transient_term = false
-    integrate_p_by_parts = true
     alpha = .1
   []
 []
@@ -161,10 +159,6 @@
 [Outputs]
   exodus = true
   file_base = lid_driven_stabilized_out
-  [dofmap]
-    type = DOFMap
-    execute_on = 'initial'
-  []
 []
 
 [Postprocessors]

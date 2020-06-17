@@ -4,16 +4,16 @@
 First you need to install the MOOSE framework. To do this, click the link below corresponding to
 your operating system/platform and follow the instructions:
 
-- [getting_started/installation/mac_os.md]
-- [getting_started/installation/ubuntu.md]
-- [getting_started/installation/mint.md]
-- [getting_started/installation/opensuse.md]
-- [getting_started/installation/fedora.md]
-- [getting_started/installation/centos.md]
+- [Linux and MacOS](getting_started/installation/conda.md)
 - [getting_started/installation/windows10.md]
-- [getting_started/installation/hpc_install_moose.md]
-- [getting_started/installation/manual_installation_gcc.md]
-- [getting_started/installation/manual_installation_llvm.md]
+- [getting_started/installation/docker.md]
+- Advanced Instructions:
+
+  - [getting_started/installation/hpc_install_moose.md]
+  - [getting_started/installation/manual_installation_gcc.md]
+  - [getting_started/installation/manual_installation_llvm.md]
+  - [getting_started/installation/manual_installation_linux_lldb.md]
+  - [getting_started/installation/offline_installation.md]
 
 When installation is complete, return to this page to continue.
 
@@ -51,6 +51,25 @@ make -j4
 If your application is working correctly, you should see one passing test. This indicates that
 your application is ready to be further developed.
 
+!include getting_started/installation/update_moose.md
+
 !include getting_started/installation/post_moose_install.md
 
 !include getting_started/installation/installation_troubleshooting.md
+
+## Customizing MOOSE configuration
+
+MOOSE can be customized by running a `configure` script in
+`$MOOSE_DIR/framework`. Below we summarize the configuration options available:
+
+### Automatic differentiation
+
+- `--with-derivative-type`: Specify the derivative storage type to use for
+  MOOSE's `DualReal` object. Options are `sparse` and `nonsparse`. `sparse`
+  selects `SemiDynamicSparseNumberArray` as the derivative storage type;
+  `nonsparse` selects `NumberArray`. A more detailed overview of these storage
+  types can be found in the [`DualReal` documentation](/DualReal.md).
+- `--with-derivative-size=<n>`: Specify the length of the underlying derivative
+  storage array. The default is 50. A smaller number may be chosen for increased
+  speed; a larger number may be required for 3D problems or problems with
+  coupling between many variables.

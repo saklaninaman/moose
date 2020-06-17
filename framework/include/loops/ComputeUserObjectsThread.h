@@ -56,23 +56,17 @@ private:
   template <typename T>
   void querySubdomain(Interfaces iface, std::vector<T> & results)
   {
-    _query.clone()
-        .condition<AttribThread>(_tid)
-        .condition<AttribSubdomains>(_subdomain)
-        .condition<AttribInterfaces>(iface)
-        .queryInto(results);
+    _query_subdomain.queryInto(results, _tid, _subdomain, iface);
   }
   template <typename T>
   void queryBoundary(Interfaces iface, BoundaryID bnd, std::vector<T> & results)
   {
-    _query.clone()
-        .condition<AttribThread>(_tid)
-        .condition<AttribBoundaries>(bnd)
-        .condition<AttribInterfaces>(iface)
-        .queryInto(results);
+    _query_boundary.queryInto(results, _tid, std::make_tuple(bnd, false), iface);
   }
 
   const TheWarehouse::Query _query;
+  TheWarehouse::QueryCache<AttribThread, AttribSubdomains, AttribInterfaces> _query_subdomain;
+  TheWarehouse::QueryCache<AttribThread, AttribBoundaries, AttribInterfaces> _query_boundary;
   std::vector<InternalSideUserObject *> _internal_side_objs;
   std::vector<InterfaceUserObject *> _interface_user_objects;
   std::vector<ElementUserObject *> _element_objs;
@@ -90,26 +84,41 @@ groupUserObjects(TheWarehouse & w,
                  const std::set<std::string> & ic_deps,
                  const std::set<std::string> & aux_deps)
 {
-  // Notes about how this information is used later during the simulation:
-  // We only need to run pre-ic objects for their "initial" exec flag time (not the others).
+  // These flags indicate when a user object will be executed for a given exec flag time.
+  // The attributes are set by this function and their values are queried in
+  // FEProblemBase::computeUserObjectsInternal(). If a UO is found to be in one of the
+  // three groups: PRE_IC, PRE_AUX, or POST_AUX, then that UO is executed with that group.
   //
-  // For pre/post aux objects:
+  // PRE_IC objects are run before initial conditions during the "INITIAL" exec flag time.
+  // On any other exec flag time, they are run along with the POST_AUX group after
+  // AuxKernels have ran.
   //
-  //     If an object was not run as a pre-ic object or it is a pre-ic object and
-  //     shouldDuplicateInitialExecution returns true:
-  //         * run the object at all its exec flag times.
-  //     Else
-  //         * run the object at all its exec flag times *except* "initial"
+  // PRE_AUX objects are run before AuxKernels on any given exec flag time.
+  //
+  // POST_AUX objects are run after AuxKernels on any given exec flag time, and is the
+  // default group for UOs.
+  //
+  // This function attempts to sort a UO based on any ICs or AuxKernels which depend on
+  // it. Alternatively, a user may select which group to execute their object with by
+  // controlling the force_preic and force_preaux input parameters.
   //
   for (const auto obj : objs)
   {
-    if (ic_deps.count(obj->name()) > 0)
-      w.update(obj, AttribPreIC(w, true));
+    // any object shall, by default, be post-aux unless it is assigned to another below
+    w.update(obj, AttribPostAux(w, true));
 
-    if ((obj->isParamValid("force_preaux") && obj->template getParamTempl<bool>("force_preaux")) ||
+    if (ic_deps.count(obj->name()) > 0 ||
+        (obj->isParamValid("force_preic") && obj->template getParam<bool>("force_preic")))
+    {
+      w.update(obj, AttribPreIC(w, true));
+      w.update(obj, AttribPostAux(w, false));
+    }
+
+    if ((obj->isParamValid("force_preaux") && obj->template getParam<bool>("force_preaux")) ||
         aux_deps.count(obj->name()) > 0 || ic_deps.count(obj->name()) > 0)
+    {
       w.update(obj, AttribPreAux(w, true));
-    else
-      w.update(obj, AttribPreAux(w, false));
+      w.update(obj, AttribPostAux(w, false));
+    }
   }
 }

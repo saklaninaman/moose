@@ -40,6 +40,8 @@ template <typename T>
 class InterfaceKernelTempl : public InterfaceKernelBase, public NeighborMooseVariableInterface<T>
 {
 public:
+  static InputParameters validParams();
+
   InterfaceKernelTempl(const InputParameters & parameters);
 
   /// The master variable that this interface kernel operates on
@@ -110,7 +112,7 @@ protected:
   const TemplateVariableTestGradient & _grad_test;
 
   /// Coupled neighbor variable
-  MooseVariableFE<T> & _neighbor_var;
+  const MooseVariableFE<T> & _neighbor_var;
 
   /// Coupled neighbor variable value
   const TemplateVariableValue & _neighbor_value;

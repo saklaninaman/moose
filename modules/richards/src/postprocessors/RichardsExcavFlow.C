@@ -13,11 +13,10 @@
 
 registerMooseObject("RichardsApp", RichardsExcavFlow);
 
-template <>
 InputParameters
-validParams<RichardsExcavFlow>()
+RichardsExcavFlow::validParams()
 {
-  InputParameters params = validParams<SideIntegralVariablePostprocessor>();
+  InputParameters params = SideIntegralVariablePostprocessor::validParams();
   params.addRequiredParam<FunctionName>(
       "excav_geom_function",
       "The function describing the excavation geometry (type RichardsExcavGeom)");

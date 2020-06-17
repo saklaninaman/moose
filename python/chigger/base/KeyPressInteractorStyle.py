@@ -17,7 +17,7 @@ class KeyPressInteractorStyle(vtk.vtkInteractorStyleMultiTouchCamera):
     """
     def __init__(self, parent=None, **kwargs):
         self.AddObserver("KeyPressEvent", self.keyPress)
-        super(KeyPressInteractorStyle, self).__init__(parent, **kwargs)
+        super().__init__(**kwargs)
 
     def keyPress(self, obj, event): #pylint: disable=unused-argument
         """
@@ -28,4 +28,4 @@ class KeyPressInteractorStyle(vtk.vtkInteractorStyleMultiTouchCamera):
         """
         key = obj.GetInteractor().GetKeySym()
         if key == 'c':
-            print '\n'.join(utils.print_camera(self.GetCurrentRenderer().GetActiveCamera()))
+            print('\n'.join(utils.print_camera(self.GetCurrentRenderer().GetActiveCamera())))

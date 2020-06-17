@@ -11,11 +11,6 @@
 
 #include "RichardsRelPerm.h"
 
-class RichardsRelPermPowerGas;
-
-template <>
-InputParameters validParams<RichardsRelPermPowerGas>();
-
 /**
  * PowerGas form of relative permeability
  * Define s = (seff - simm)/(1 - simm).
@@ -24,6 +19,8 @@ InputParameters validParams<RichardsRelPermPowerGas>();
 class RichardsRelPermPowerGas : public RichardsRelPerm
 {
 public:
+  static InputParameters validParams();
+
   RichardsRelPermPowerGas(const InputParameters & parameters);
 
   /**
@@ -51,4 +48,3 @@ protected:
   /// exponent
   Real _n;
 };
-

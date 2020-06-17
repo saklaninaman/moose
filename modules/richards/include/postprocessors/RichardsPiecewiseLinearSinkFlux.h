@@ -16,10 +16,6 @@
 class Function;
 
 // Forward Declarations
-class RichardsPiecewiseLinearSinkFlux;
-
-template <>
-InputParameters validParams<RichardsPiecewiseLinearSinkFlux>();
 
 /**
  * This postprocessor computes the fluid flux to a RichardsPiecewiseLinearSink.
@@ -33,6 +29,8 @@ InputParameters validParams<RichardsPiecewiseLinearSinkFlux>();
 class RichardsPiecewiseLinearSinkFlux : public SideIntegralVariablePostprocessor
 {
 public:
+  static InputParameters validParams();
+
   RichardsPiecewiseLinearSinkFlux(const InputParameters & parameters);
 
 protected:

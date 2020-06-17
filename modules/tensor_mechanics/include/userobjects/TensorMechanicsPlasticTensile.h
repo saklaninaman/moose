@@ -12,11 +12,6 @@
 #include "TensorMechanicsPlasticModel.h"
 #include "TensorMechanicsHardeningModel.h"
 
-class TensorMechanicsPlasticTensile;
-
-template <>
-InputParameters validParams<TensorMechanicsPlasticTensile>();
-
 /**
  * FiniteStrainTensile implements rate-independent associative tensile failure
  * with hardening/softening in the finite-strain framework.
@@ -32,6 +27,8 @@ InputParameters validParams<TensorMechanicsPlasticTensile>();
 class TensorMechanicsPlasticTensile : public TensorMechanicsPlasticModel
 {
 public:
+  static InputParameters validParams();
+
   TensorMechanicsPlasticTensile(const InputParameters & parameters);
 
   virtual std::string modelName() const override;
@@ -103,4 +100,3 @@ protected:
   /// d(tensile strength)/d(internal_param) as a function of residual value, rate, and internal_param
   virtual Real dtensile_strength(const Real internal_param) const;
 };
-

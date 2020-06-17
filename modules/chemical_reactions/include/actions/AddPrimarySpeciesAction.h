@@ -11,14 +11,11 @@
 
 #include "AddVariableAction.h"
 
-class AddPrimarySpeciesAction;
-
-template <>
-InputParameters validParams<AddPrimarySpeciesAction>();
-
 class AddPrimarySpeciesAction : public AddVariableAction
 {
 public:
+  static InputParameters validParams();
+
   AddPrimarySpeciesAction(const InputParameters & params);
 
   virtual void act() override;
@@ -27,6 +24,5 @@ private:
   /// Primary species to add
   const std::vector<NonlinearVariableName> _vars;
   /// Variable scaling
-  const Real _scaling;
+  const std::vector<Real> _scaling;
 };
-

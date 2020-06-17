@@ -12,36 +12,36 @@
 #include "libmesh/quadrature.h"
 #include "libmesh/utility.h"
 
-template <ComputeStage compute_stage>
+registerMooseObject("TensorMechanicsApp", ADComputeFiniteStrain);
+
 MooseEnum
-ADComputeFiniteStrain<compute_stage>::decompositionType()
+ADComputeFiniteStrain::decompositionType()
 {
   return MooseEnum("TaylorExpansion EigenSolution", "TaylorExpansion");
 }
 
-registerADMooseObject("TensorMechanicsApp", ADComputeFiniteStrain);
+InputParameters
+ADComputeFiniteStrain::validParams()
+{
+  InputParameters params = ADComputeIncrementalStrainBase::validParams();
+  params.addClassDescription(
+      "Compute a strain increment and rotation increment for finite strains.");
+  params.addParam<MooseEnum>("decomposition_method",
+                             ADComputeFiniteStrain::decompositionType(),
+                             "Methods to calculate the strain and rotation increments");
+  return params;
+}
 
-defineADValidParams(
-    ADComputeFiniteStrain,
-    ADComputeIncrementalStrainBase,
-    params.addClassDescription(
-        "Compute a strain increment and rotation increment for finite strains.");
-    params.addParam<MooseEnum>("decomposition_method",
-                               ADComputeFiniteStrain<RESIDUAL>::decompositionType(),
-                               "Methods to calculate the strain and rotation increments"););
-
-template <ComputeStage compute_stage>
-ADComputeFiniteStrain<compute_stage>::ADComputeFiniteStrain(const InputParameters & parameters)
-  : ADComputeIncrementalStrainBase<compute_stage>(parameters),
+ADComputeFiniteStrain::ADComputeFiniteStrain(const InputParameters & parameters)
+  : ADComputeIncrementalStrainBase(parameters),
     _Fhat(_fe_problem.getMaxQps()),
     _decomposition_method(
         getParam<MooseEnum>("decomposition_method").template getEnum<DecompMethod>())
 {
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeFiniteStrain<compute_stage>::computeProperties()
+ADComputeFiniteStrain::computeProperties()
 {
   ADRankTwoTensor ave_Fhat;
   for (_qp = 0; _qp < _qrule->n_points(); ++_qp)
@@ -80,13 +80,10 @@ ADComputeFiniteStrain<compute_stage>::computeProperties()
 
     computeQpStrain();
   }
-
-  copyDualNumbersToValues();
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeFiniteStrain<compute_stage>::computeQpStrain()
+ADComputeFiniteStrain::computeQpStrain()
 {
   ADRankTwoTensor total_strain_increment;
 
@@ -117,10 +114,9 @@ ADComputeFiniteStrain<compute_stage>::computeQpStrain()
     _total_strain[_qp] += (*_global_strain)[_qp];
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeFiniteStrain<compute_stage>::computeQpIncrements(ADRankTwoTensor & total_strain_increment,
-                                                          ADRankTwoTensor & rotation_increment)
+ADComputeFiniteStrain::computeQpIncrements(ADRankTwoTensor & total_strain_increment,
+                                           ADRankTwoTensor & rotation_increment)
 {
   switch (_decomposition_method)
   {
@@ -130,7 +126,7 @@ ADComputeFiniteStrain<compute_stage>::computeQpIncrements(ADRankTwoTensor & tota
       const ADRankTwoTensor invFhat = _Fhat[_qp].inverse();
 
       // A = I - _Fhat^-1
-      ADRankTwoTensor A(RankTwoTensorType<compute_stage>::type::initIdentity);
+      ADRankTwoTensor A(ADRankTwoTensor::initIdentity);
       A -= invFhat;
 
       // Cinv - I = A A^T - A - A^T;
@@ -148,9 +144,13 @@ ADComputeFiniteStrain<compute_stage>::computeQpIncrements(ADRankTwoTensor & tota
       const auto p = trFhatinv_1 * trFhatinv_1 / 4.0;
 
       // cos theta_a
-      const auto C1 =
-          std::sqrt(p + 3.0 * Utility::pow<2>(p) * (1.0 - (p + q)) / Utility::pow<2>(p + q) -
-                    2.0 * Utility::pow<3>(p) * (1.0 - (p + q)) / Utility::pow<3>(p + q));
+      const ADReal C1_squared =
+          p + 3.0 * Utility::pow<2>(p) * (1.0 - (p + q)) / Utility::pow<2>(p + q) -
+          2.0 * Utility::pow<3>(p) * (1.0 - (p + q)) / Utility::pow<3>(p + q);
+      mooseAssert(C1_squared >= 0.0,
+                  "Cannot take square root of a negative number. This may happen when elements "
+                  "become heavily distorted.");
+      const ADReal C1 = std::sqrt(C1_squared);
 
       ADReal C2;
       if (q > 0.01)
@@ -166,9 +166,12 @@ ADComputeFiniteStrain<compute_stage>::computeQpIncrements(ADRankTwoTensor & tota
                   5.0 * Utility::pow<4>(p)) /
                  (512.0 * Utility::pow<4>(p));
 
-      const auto C3 =
-          0.5 * std::sqrt((p * q * (3.0 - q) + Utility::pow<3>(p) + Utility::pow<2>(q)) /
-                          Utility::pow<3>(p + q)); // sin theta_a/(2 sqrt(q))
+      const ADReal C3_test =
+          (p * q * (3.0 - q) + Utility::pow<3>(p) + Utility::pow<2>(q)) / Utility::pow<3>(p + q);
+      mooseAssert(C3_test >= 0.0,
+                  "Cannot take square root of a negative number. This may happen when elements "
+                  "become heavily distorted.");
+      const ADReal C3 = 0.5 * std::sqrt(C3_test); // sin theta_a/(2 sqrt(q))
 
       // Calculate incremental rotation. Note that this value is the transpose of that from Rashid,
       // 93, so we transpose it before storing

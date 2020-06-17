@@ -13,11 +13,6 @@
 
 class ReturnMappingModel;
 
-class CombinedCreepPlasticity;
-
-template <>
-InputParameters validParams<CombinedCreepPlasticity>();
-
 /**
  * One or more constitutive models coupled together.
  */
@@ -25,6 +20,8 @@ InputParameters validParams<CombinedCreepPlasticity>();
 class CombinedCreepPlasticity : public ConstitutiveModel
 {
 public:
+  static InputParameters validParams();
+
   CombinedCreepPlasticity(const InputParameters & parameters);
   virtual ~CombinedCreepPlasticity() {}
 
@@ -52,4 +49,3 @@ protected:
 
 private:
 };
-

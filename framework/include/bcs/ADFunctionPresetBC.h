@@ -9,23 +9,22 @@
 
 #pragma once
 
-#include "ADPresetNodalBC.h"
+#include "ADDirichletBCBase.h"
 
 // Forward Declarations
-template <ComputeStage>
-class ADFunctionPresetBC;
 class Function;
-
-declareADValidParams(ADFunctionPresetBC);
 
 /**
  * Defines a boundary condition that forces the value to be a user specified
  * function at the boundary.
+ *
+ * Deprecated: use FunctionDirichletBC with preset = true instead.
  */
-template <ComputeStage compute_stage>
-class ADFunctionPresetBC : public ADPresetNodalBC<compute_stage>
+class ADFunctionPresetBC : public ADDirichletBCBase
 {
 public:
+  static InputParameters validParams();
+
   ADFunctionPresetBC(const InputParameters & parameters);
 
 protected:
@@ -36,6 +35,4 @@ protected:
 
   /// Function being used for evaluation of this BC
   const Function & _func;
-
-  usingPresetNodalBCMembers;
 };

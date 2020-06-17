@@ -12,11 +12,10 @@
 
 registerMooseObject("MooseTestApp", ElementUOAux);
 
-template <>
 InputParameters
-validParams<ElementUOAux>()
+ElementUOAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   params.addRequiredParam<UserObjectName>("element_user_object",
                                           "The ElementUOProvider where this Aux pulls values from");
 
@@ -35,7 +34,9 @@ validParams<ElementUOAux>()
 
 ElementUOAux::ElementUOAux(const InputParameters & params)
   : AuxKernel(params),
+    // doco-get-user-object-begin
     _elem_uo(getUserObject<ElementUOProvider>("element_user_object")),
+    // doco-get-user-object-end
     _field_name(isParamValid("field_name") ? getParam<std::string>("field_name") : "default"),
     _field_type(getParam<MooseEnum>("field_type"))
 {

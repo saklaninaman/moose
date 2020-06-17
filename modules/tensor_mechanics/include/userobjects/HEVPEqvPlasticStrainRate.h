@@ -11,11 +11,6 @@
 
 #include "HEVPInternalVarRateUOBase.h"
 
-class HEVPEqvPlasticStrainRate;
-
-template <>
-InputParameters validParams<HEVPEqvPlasticStrainRate>();
-
 /**
  * This user object classs
  * Computes equivalent plastic strain rate
@@ -23,6 +18,8 @@ InputParameters validParams<HEVPEqvPlasticStrainRate>();
 class HEVPEqvPlasticStrainRate : public HEVPInternalVarRateUOBase
 {
 public:
+  static InputParameters validParams();
+
   HEVPEqvPlasticStrainRate(const InputParameters & parameters);
 
   virtual bool computeValue(unsigned int, Real &) const;
@@ -31,4 +28,3 @@ public:
 protected:
   Real _h;
 };
-

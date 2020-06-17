@@ -22,28 +22,29 @@
 []
 
 [Mesh]
-  type = GeneratedMesh
-  dim = 2
-  nx = 5
-  ny = 5
-  xmin = 0.0
-  xmax = 5.
-  ymin = 0.0
-  ymax = 5.
-  elem_type = QUAD4
   displacements = 'disp_x disp_y'
-[]
-
-[MeshModifiers]
+  [gen]
+    type = GeneratedMeshGenerator
+    dim = 2
+    nx = 5
+    ny = 5
+    xmin = 0.0
+    xmax = 5.
+    ymin = 0.0
+    ymax = 5.
+    elem_type = QUAD4
+  []
   [./left_bottom]
-    type = AddExtraNodeset
+    type = ExtraNodesetGenerator
     new_boundary = 'left_bottom'
     coord = '0.0 0.0'
+    input = gen
   [../]
   [./left_top]
-    type = AddExtraNodeset
+    type = ExtraNodesetGenerator
     new_boundary = 'left_top'
     coord = '0.0 5.'
+    input = left_bottom
   [../]
 []
 
@@ -205,25 +206,25 @@
 
 [BCs]
   [./bottomx]
-    type = PresetBC
+    type = DirichletBC
     boundary = bottom
     variable = disp_x
     value = 0.0
   [../]
   [./bottomy]
-    type = PresetBC
+    type = DirichletBC
     boundary = bottom
     variable = disp_y
     value = 0.0
   [../]
   [./topx]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     boundary = top
     variable = disp_x
     function = 0.03*t
   [../]
   [./topy]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     boundary = top
     variable = disp_y
     function = '0.03*t'

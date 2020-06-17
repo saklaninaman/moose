@@ -12,11 +12,6 @@
 #include "ComputeLinearElasticStress.h"
 #include "LinearViscoelasticityBase.h"
 
-class ComputeLinearViscoelasticStress;
-
-template <>
-InputParameters validParams<ComputeLinearViscoelasticStress>();
-
 /**
  * Computes the stress of a linear viscoelastic material, using total
  * small strains. The mechanical strain is decomposed into the elastic
@@ -30,6 +25,8 @@ InputParameters validParams<ComputeLinearViscoelasticStress>();
 class ComputeLinearViscoelasticStress : public ComputeLinearElasticStress
 {
 public:
+  static InputParameters validParams();
+
   ComputeLinearViscoelasticStress(const InputParameters & parameters);
 
 protected:
@@ -48,4 +45,3 @@ protected:
   /// Instantaneous compliance tensor (extracted from a LinearViscoelasticityBase object)
   const MaterialProperty<RankFourTensor> & _elasticity_tensor_inv;
 };
-

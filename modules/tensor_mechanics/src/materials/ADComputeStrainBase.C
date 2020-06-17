@@ -12,29 +12,30 @@
 #include "MooseMesh.h"
 #include "Assembly.h"
 
-defineADValidParams(
-    ADComputeStrainBase,
-    ADMaterial,
-    params.addRequiredCoupledVar(
-        "displacements",
-        "The displacements appropriate for the simulation geometry and coordinate system");
-    params.addParam<std::string>("base_name",
-                                 "Optional parameter that allows the user to define "
-                                 "multiple mechanics material systems on the same "
-                                 "block, i.e. for multiple phases");
-    params.addParam<bool>("volumetric_locking_correction",
-                          false,
-                          "Flag to correct volumetric locking");
-    params.addParam<std::vector<MaterialPropertyName>>(
-        "eigenstrain_names", "List of eigenstrains to be applied in this strain calculation");
-    params.addParam<MaterialPropertyName>("global_strain",
-                                          "Optional material property holding a global strain "
-                                          "tensor applied to the mesh as a whole");
-    params.suppressParameter<bool>("use_displaced_mesh"););
+InputParameters
+ADComputeStrainBase::validParams()
+{
+  InputParameters params = ADMaterial::validParams();
+  params.addRequiredCoupledVar(
+      "displacements",
+      "The displacements appropriate for the simulation geometry and coordinate system");
+  params.addParam<std::string>("base_name",
+                               "Optional parameter that allows the user to define "
+                               "multiple mechanics material systems on the same "
+                               "block, i.e. for multiple phases");
+  params.addParam<bool>(
+      "volumetric_locking_correction", false, "Flag to correct volumetric locking");
+  params.addParam<std::vector<MaterialPropertyName>>(
+      "eigenstrain_names", "List of eigenstrains to be applied in this strain calculation");
+  params.addParam<MaterialPropertyName>("global_strain",
+                                        "Optional material property holding a global strain "
+                                        "tensor applied to the mesh as a whole");
+  params.suppressParameter<bool>("use_displaced_mesh");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADComputeStrainBase<compute_stage>::ADComputeStrainBase(const InputParameters & parameters)
-  : ADMaterial<compute_stage>(parameters),
+ADComputeStrainBase::ADComputeStrainBase(const InputParameters & parameters)
+  : ADMaterial(parameters),
     _ndisp(coupledComponents("displacements")),
     _disp(3),
     _grad_disp(3),
@@ -63,9 +64,8 @@ ADComputeStrainBase<compute_stage>::ADComputeStrainBase(const InputParameters & 
     paramError("use_displaced_mesh", "The strain calculator needs to run on the undisplaced mesh.");
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeStrainBase<compute_stage>::initialSetup()
+ADComputeStrainBase::initialSetup()
 {
   displacementIntegrityCheck();
   // fetch coupled variables and gradients (as stateful properties if necessary)
@@ -78,14 +78,13 @@ ADComputeStrainBase<compute_stage>::initialSetup()
   // set unused dimensions to zero
   for (unsigned i = _ndisp; i < 3; ++i)
   {
-    _disp[i] = &adZeroValue();
-    _grad_disp[i] = &adZeroGradient();
+    _disp[i] = &_ad_zero;
+    _grad_disp[i] = &_ad_grad_zero;
   }
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeStrainBase<compute_stage>::displacementIntegrityCheck()
+ADComputeStrainBase::displacementIntegrityCheck()
 {
   // Checking for consistency between mesh size and length of the provided displacements vector
   if (_ndisp != _mesh.dimension())
@@ -94,13 +93,9 @@ ADComputeStrainBase<compute_stage>::displacementIntegrityCheck()
         "The number of variables supplied in 'displacements' must match the mesh dimension.");
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeStrainBase<compute_stage>::initQpStatefulProperties()
+ADComputeStrainBase::initQpStatefulProperties()
 {
   _mechanical_strain[_qp].zero();
   _total_strain[_qp].zero();
 }
-
-// explicit instantiation is required for AD base classes
-adBaseClass(ADComputeStrainBase);

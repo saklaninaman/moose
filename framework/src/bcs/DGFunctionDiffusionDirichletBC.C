@@ -21,11 +21,12 @@
 
 registerMooseObject("MooseApp", DGFunctionDiffusionDirichletBC);
 
-template <>
+defineLegacyParams(DGFunctionDiffusionDirichletBC);
+
 InputParameters
-validParams<DGFunctionDiffusionDirichletBC>()
+DGFunctionDiffusionDirichletBC::validParams()
 {
-  InputParameters params = validParams<IntegratedBC>();
+  InputParameters params = IntegratedBC::validParams();
   params.addParam<Real>("value", 0.0, "The value the variable should have on the boundary");
   params.addRequiredParam<FunctionName>("function", "The forcing function.");
   params.addRequiredParam<Real>("epsilon", "Epsilon");
@@ -50,7 +51,7 @@ DGFunctionDiffusionDirichletBC::computeQpResidual()
 {
   const unsigned int elem_b_order = _var.order();
   const double h_elem =
-      _current_elem->volume() / _current_side_elem->volume() * 1. / Utility::pow<2>(elem_b_order);
+      _current_elem_volume / _current_side_volume * 1. / Utility::pow<2>(elem_b_order);
 
   Real fn = _func.value(_t, _q_point[_qp]);
   Real r = 0;
@@ -66,7 +67,7 @@ DGFunctionDiffusionDirichletBC::computeQpJacobian()
 {
   const unsigned int elem_b_order = _var.order();
   const double h_elem =
-      _current_elem->volume() / _current_side_elem->volume() * 1. / Utility::pow<2>(elem_b_order);
+      _current_elem_volume / _current_side_volume * 1. / Utility::pow<2>(elem_b_order);
 
   Real r = 0;
   r -= (_diff[_qp] * _grad_phi[_j][_qp] * _normals[_qp] * _test[_i][_qp]);

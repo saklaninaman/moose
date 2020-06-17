@@ -11,16 +11,15 @@
 
 registerMooseObject("PhaseFieldApp", ForceDensityMaterial);
 
-template <>
 InputParameters
-validParams<ForceDensityMaterial>()
+ForceDensityMaterial::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   params.addClassDescription("Calculating the force density acting on a grain");
   params.addCoupledVar("etas", "Array of coupled order parameters");
   params.addCoupledVar("c", "Concentration field");
   params.addParam<Real>("ceq", 0.9816, "Equilibrium density");
-  params.addParam<Real>("cgb", 0.25, "Thresold Concentration for GB");
+  params.addParam<Real>("cgb", 0.25, "Threshold Concentration for GB");
   params.addParam<Real>("k", 100.0, "stiffness constant");
   return params;
 }

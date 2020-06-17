@@ -27,8 +27,10 @@ public:
    * independent variable while the other should be of the dependent variable.  These values should
    * correspond to one and other in the same position.
    */
-  LinearInterpolationTempl(const std::vector<Real> & X, const std::vector<Real> & Y);
-  LinearInterpolationTempl() : _x(std::vector<Real>()), _y(std::vector<Real>()) {}
+  LinearInterpolationTempl(const std::vector<Real> & X,
+                           const std::vector<Real> & Y,
+                           const bool extrap = false);
+  LinearInterpolationTempl() : _x(std::vector<Real>()), _y(std::vector<Real>()), _extrap(false) {}
 
   virtual ~LinearInterpolationTempl() = default;
 
@@ -75,21 +77,11 @@ private:
   std::vector<Real> _x;
   std::vector<Real> _y;
 
+  bool _extrap;
+
   static int _file_number;
 };
 
-#define ADLinearInterpolation typename LinearInterpolationType<compute_stage>::type
-
 typedef LinearInterpolationTempl<Real> LinearInterpolation;
 typedef LinearInterpolationTempl<DualReal> DualLinearInterpolation;
-
-template <ComputeStage compute_stage>
-struct LinearInterpolationType
-{
-  typedef LinearInterpolation type;
-};
-template <>
-struct LinearInterpolationType<JACOBIAN>
-{
-  typedef DualLinearInterpolation type;
-};
+typedef DualLinearInterpolation ADLinearInterpolation;

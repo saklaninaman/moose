@@ -13,10 +13,6 @@
 #include "DerivativeMaterialInterface.h"
 
 // Forward Declarations
-class ElectricalConductivity;
-
-template <>
-InputParameters validParams<ElectricalConductivity>();
 
 /**
  * Calculates resistivity and electrical conductivity as a function of temperature.
@@ -25,13 +21,14 @@ InputParameters validParams<ElectricalConductivity>();
 class ElectricalConductivity : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   ElectricalConductivity(const InputParameters & parameters);
 
 protected:
   virtual void computeQpProperties();
 
 private:
-  const Real _length_scale;
   const Real _ref_resis;
   const Real _temp_coeff;
   const Real _ref_temp;
@@ -41,4 +38,3 @@ private:
   MaterialProperty<Real> & _electric_conductivity;
   MaterialProperty<Real> & _delectric_conductivity_dT;
 };
-

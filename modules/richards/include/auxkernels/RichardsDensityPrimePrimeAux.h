@@ -14,10 +14,6 @@
 #include "RichardsDensity.h"
 
 // Forward Declarations
-class RichardsDensityPrimePrimeAux;
-
-template <>
-InputParameters validParams<RichardsDensityPrimePrimeAux>();
 
 /**
  * Second derivative of fluid density wrt porepressure
@@ -25,6 +21,8 @@ InputParameters validParams<RichardsDensityPrimePrimeAux>();
 class RichardsDensityPrimePrimeAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   RichardsDensityPrimePrimeAux(const InputParameters & parameters);
 
 protected:
@@ -36,4 +34,3 @@ protected:
   /// userobject that defines density as a fcn of porepressure
   const RichardsDensity & _density_UO;
 };
-

@@ -11,23 +11,21 @@
 
 #include "ElementIntegralVariablePostprocessor.h"
 
-// Forward Declarations
-class Mass;
-
-template <>
-InputParameters validParams<Mass>();
-
 /**
  * This postprocessor computes the mass by integrating the density over the volume.
  */
-
-class Mass : public ElementIntegralVariablePostprocessor
+template <bool is_ad>
+class MassTempl : public ElementIntegralVariablePostprocessor
 {
 public:
-  Mass(const InputParameters & parameters);
+  static InputParameters validParams();
+
+  MassTempl(const InputParameters & parameters);
 
 protected:
   virtual Real computeQpIntegral();
-  const MaterialProperty<Real> & _density;
+  const GenericMaterialProperty<Real, is_ad> & _density;
 };
 
+typedef MassTempl<false> Mass;
+typedef MassTempl<true> ADMass;

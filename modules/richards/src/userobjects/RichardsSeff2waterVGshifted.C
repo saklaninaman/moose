@@ -14,11 +14,10 @@
 
 registerMooseObject("RichardsApp", RichardsSeff2waterVGshifted);
 
-template <>
 InputParameters
-validParams<RichardsSeff2waterVGshifted>()
+RichardsSeff2waterVGshifted::validParams()
 {
-  InputParameters params = validParams<RichardsSeff>();
+  InputParameters params = RichardsSeff::validParams();
   params.addRequiredRangeCheckedParam<Real>(
       "al",
       "al > 0",

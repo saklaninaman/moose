@@ -20,6 +20,8 @@ class Function;
 class AnisoHeatConductionMaterial : public Material
 {
 public:
+  static InputParameters validParams();
+
   AnisoHeatConductionMaterial(const InputParameters & parameters);
 
 protected:
@@ -46,6 +48,3 @@ protected:
   MaterialProperty<Real> & _specific_heat;
   const Function * const _specific_heat_temperature_function;
 };
-
-template <>
-InputParameters validParams<AnisoHeatConductionMaterial>();

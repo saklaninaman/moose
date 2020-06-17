@@ -13,10 +13,6 @@
 #include "RichardsVarNames.h"
 
 // Forward Declarations
-class RichardsMassChange;
-
-template <>
-InputParameters validParams<RichardsMassChange>();
 
 /**
  * Kernel = (mass - mass_old)/dt
@@ -27,6 +23,8 @@ InputParameters validParams<RichardsMassChange>();
 class RichardsMassChange : public TimeDerivative
 {
 public:
+  static InputParameters validParams();
+
   RichardsMassChange(const InputParameters & parameters);
 
 protected:

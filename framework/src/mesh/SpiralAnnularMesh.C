@@ -14,11 +14,12 @@
 
 registerMooseObject("MooseApp", SpiralAnnularMesh);
 
-template <>
+defineLegacyParams(SpiralAnnularMesh);
+
 InputParameters
-validParams<SpiralAnnularMesh>()
+SpiralAnnularMesh::validParams()
 {
-  InputParameters params = validParams<MooseMesh>();
+  InputParameters params = MooseMesh::validParams();
   params.addRequiredRangeCheckedParam<Real>(
       "inner_radius", "inner_radius>0.", "The size of the inner circle.");
   params.addRequiredRangeCheckedParam<Real>("outer_radius",
@@ -236,7 +237,7 @@ SpiralAnnularMesh::buildMesh()
   mesh.boundary_info->sideset_name(_exterior_bid) = "exterior";
 
   // Find neighbors, etc.
-  mesh.prepare_for_use();
+  mesh.prepare_for_use(false, false);
 
   if (_use_tri6)
   {

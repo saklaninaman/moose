@@ -5,7 +5,6 @@
 #
 # "active" and "inactive" cannot be used within the same block
 ##############################################################
-
 [Mesh]
   type = GeneratedMesh
   dim = 2

@@ -10,20 +10,16 @@
 #pragma once
 
 #include "AuxKernel.h"
-#include "InterfaceQpValueUserObject.h"
-
-// Forward Declarations
-class InterfaceValueUserObjectAux;
-
-template <>
-InputParameters validParams<InterfaceValueUserObjectAux>();
+#include "InterfaceQpUserObjectBase.h"
 
 /**
- * AuxKernel creating an AuxVariable from values stored in an InterfaceQpValueUserObject
+ * AuxKernel creating an AuxVariable from values stored in an InterfaceQpUserObjectBase
  */
 class InterfaceValueUserObjectAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   /**
    * Factory constructor, takes parameters so that all derived classes can be built using the same
    * constructor.
@@ -32,6 +28,10 @@ public:
 
 protected:
   virtual Real computeValue() override;
-  const InterfaceQpValueUserObject & _interface_uo;
-};
 
+  /// the coupled interface user object
+  const InterfaceQpUserObjectBase & _interface_uo;
+
+  /// switch asking the user object the return an elment side average value
+  const bool _return_side_average;
+};

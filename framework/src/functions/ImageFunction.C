@@ -12,14 +12,15 @@
 
 registerMooseObject("MooseApp", ImageFunction);
 
-template <>
+defineLegacyParams(ImageFunction);
+
 InputParameters
-validParams<ImageFunction>()
+ImageFunction::validParams()
 {
   // Define the general parameters
-  InputParameters params = validParams<Function>();
-  params += validParams<ImageSampler>();
-  params.addClassDescription("Function with values sampled from a given image stack");
+  InputParameters params = Function::validParams();
+  params += ImageSampler::validParams();
+  params.addClassDescription("Function with values sampled from an image or image stack.");
   return params;
 }
 
@@ -33,7 +34,7 @@ ImageFunction::~ImageFunction() {}
 void
 ImageFunction::initialSetup()
 {
-  FEProblemBase * fe_problem = this->getParamTempl<FEProblemBase *>("_fe_problem_base");
+  FEProblemBase * fe_problem = this->getParam<FEProblemBase *>("_fe_problem_base");
   MooseMesh & mesh = fe_problem->mesh();
   setupImageSampler(mesh);
 }

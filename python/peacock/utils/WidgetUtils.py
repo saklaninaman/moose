@@ -114,7 +114,7 @@ def dumpQObjectTree(qobject, level=0):
     """
 
     if level == 0:
-        print '+ ' + qobject.objectName() + ' (' + str(type(qobject)) + ')'
+        print('+ ' + qobject.objectName() + ' (' + str(type(qobject)) + ')')
 
     children = qobject.children()
     n = len(children)
@@ -122,13 +122,13 @@ def dumpQObjectTree(qobject, level=0):
         child = children[i]
 
         if i == 0:
-            print '|  '*(level+1)
+            print('|  '*(level+1))
             prefix = '|  '*(level) + '+--'
         else:
-            print '|  '*(level+2)
+            print('|  '*(level+2))
             prefix = '|  '*(level+1)
 
-        print prefix + '+ ' + child.objectName() + ' (' + str(type(child)) + ')'
+        print(prefix + '+ ' + child.objectName() + ' (' + str(type(child)) + ')')
         dumpQObjectTree(child, level+1)
 
 def createIcon(name):
@@ -157,7 +157,7 @@ def storeWidget(widget, key, **kwargs):
     debug = kwargs.pop('debug', message.MOOSE_DEBUG_MODE)
 
     # Loop over widget storing pairings
-    for wtype, methods in WIDGET_SETTINGS_CACHE.iteritems():
+    for wtype, methods in WIDGET_SETTINGS_CACHE.items():
         if isinstance(widget, wtype):
 
             # Debugging information

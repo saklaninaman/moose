@@ -9,11 +9,11 @@
 
 #include "FunctionMaterialBase.h"
 
-template <>
+template <bool is_ad>
 InputParameters
-validParams<FunctionMaterialBase>()
+FunctionMaterialBase<is_ad>::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   params.addClassDescription("Material to provide a function (such as a free energy)");
   params.addParam<std::string>(
       "f_name",
@@ -22,10 +22,11 @@ validParams<FunctionMaterialBase>()
   return params;
 }
 
-FunctionMaterialBase::FunctionMaterialBase(const InputParameters & parameters)
+template <bool is_ad>
+FunctionMaterialBase<is_ad>::FunctionMaterialBase(const InputParameters & parameters)
   : DerivativeMaterialInterface<Material>(parameters),
     _F_name(getParam<std::string>("f_name")),
-    _prop_F(&declareProperty<Real>(_F_name))
+    _prop_F(&declareGenericProperty<Real, is_ad>(_F_name))
 {
   // fetch names and numbers of all coupled variables
   _mapping_is_unique = true;
@@ -34,8 +35,7 @@ FunctionMaterialBase::FunctionMaterialBase(const InputParameters & parameters)
        ++it)
   {
     // find the variable in the list of coupled variables
-    std::map<std::string, std::vector<MooseVariableFEBase *>>::iterator vars =
-        _coupled_vars.find(*it);
+    auto vars = _coupled_vars.find(*it);
 
     // no MOOSE variable was provided for this coupling, add to a list of variables set to constant
     // default values
@@ -64,6 +64,10 @@ FunctionMaterialBase::FunctionMaterialBase(const InputParameters & parameters)
       _arg_names.push_back(vars->second[j]->name());
       _arg_numbers.push_back(number);
       _arg_param_names.push_back(*it);
+      if (_mapping_is_unique)
+        _arg_param_numbers.push_back(-1);
+      else
+        _arg_param_numbers.push_back(j);
 
       // populate number -> arg index lookup table
       unsigned int idx = libMeshVarNumberRemap(number);
@@ -73,9 +77,27 @@ FunctionMaterialBase::FunctionMaterialBase(const InputParameters & parameters)
       _arg_index[idx] = _args.size();
 
       // get variable value
-      _args.push_back(&coupledValue(*it, j));
+      _args.push_back(&coupledGenericValue(*it, j));
     }
   }
 
   _nargs = _arg_names.size();
 }
+
+template <bool is_ad>
+const GenericVariableValue<is_ad> &
+FunctionMaterialBase<is_ad>::coupledGenericValue(const std::string & var_name, unsigned int comp)
+{
+  return coupledValue(var_name, comp);
+}
+
+template <>
+const GenericVariableValue<true> &
+FunctionMaterialBase<true>::coupledGenericValue(const std::string & var_name, unsigned int comp)
+{
+  return adCoupledValue(var_name, comp);
+}
+
+// explicit instantiation
+template class FunctionMaterialBase<false>;
+template class FunctionMaterialBase<true>;

@@ -10,36 +10,27 @@
 // Navier-Stokes includes
 #include "INSADTauMaterial.h"
 #include "NonlinearSystemBase.h"
+#include "INSADObjectTracker.h"
 
-registerADMooseObject("NavierStokesApp", INSADTauMaterial);
+registerMooseObject("NavierStokesApp", INSADTauMaterial);
 
-defineADValidParams(
-    INSADTauMaterial,
-    INSADMaterial,
-    params.addClassDescription(
-        "This is the material class used to compute the stabilization parameter tau.");
-    params.addParam<Real>("alpha",
-                          1.,
-                          "Multiplicative factor on the stabilization parameter tau."););
+InputParameters
+INSADTauMaterial::validParams()
+{
+  InputParameters params = INSADMaterial::validParams();
+  params.addClassDescription(
+      "This is the material class used to compute the stabilization parameter tau.");
+  params.addParam<Real>("alpha", 1., "Multiplicative factor on the stabilization parameter tau.");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-INSADTauMaterial<compute_stage>::INSADTauMaterial(const InputParameters & parameters)
-  : INSADMaterial<compute_stage>(parameters),
-    _alpha(getParam<Real>("alpha")),
-    _tau(declareADProperty<Real>("tau"))
+INSADTauMaterial::INSADTauMaterial(const InputParameters & parameters)
+  : INSADMaterial(parameters), _alpha(getParam<Real>("alpha")), _tau(declareADProperty<Real>("tau"))
 {
 }
 
-template <ComputeStage compute_stage>
 void
-INSADTauMaterial<compute_stage>::computeHMax()
-{
-  _hmax = _current_elem->hmax();
-}
-
-template <>
-void
-INSADTauMaterial<JACOBIAN>::computeHMax()
+INSADTauMaterial::computeHMax()
 {
   if (!_displacements.size())
   {
@@ -70,23 +61,21 @@ INSADTauMaterial<JACOBIAN>::computeHMax()
   _hmax = std::sqrt(_hmax);
 }
 
-template <ComputeStage compute_stage>
 void
-INSADTauMaterial<compute_stage>::computeProperties()
+INSADTauMaterial::computeProperties()
 {
   computeHMax();
 
   Material::computeProperties();
 }
 
-template <ComputeStage compute_stage>
 void
-INSADTauMaterial<compute_stage>::computeQpProperties()
+INSADTauMaterial::computeQpProperties()
 {
-  INSADMaterial<compute_stage>::computeQpProperties();
+  INSADMaterial::computeQpProperties();
 
   auto && nu = _mu[_qp] / _rho[_qp];
-  auto && transient_part = _transient_term ? 4. / (_dt * _dt) : 0.;
+  auto && transient_part = _object_tracker->hasTransient() ? 4. / (_dt * _dt) : 0.;
   _tau[_qp] = _alpha / std::sqrt(transient_part +
                                  (2. * _velocity[_qp].norm() / _hmax) *
                                      (2. * _velocity[_qp].norm() / _hmax) +

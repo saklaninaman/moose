@@ -14,13 +14,22 @@
 
 #include "libmesh/quadrature.h"
 
-MooseVariableConstMonomial::MooseVariableConstMonomial(unsigned int var_num,
-                                                       const FEType & fe_type,
-                                                       SystemBase & sys,
-                                                       Assembly & assembly,
-                                                       Moose::VarKindType var_kind,
-                                                       THREAD_ID tid)
-  : MooseVariable(var_num, fe_type, sys, assembly, var_kind, tid)
+registerMooseObject("MooseApp", MooseVariableConstMonomial);
+
+defineLegacyParams(MooseVariableConstMonomial);
+
+InputParameters
+MooseVariableConstMonomial::validParams()
+{
+  auto params = MooseVariableBase::validParams();
+  params.addClassDescription("Specialization for constant monomials that avoids unnecessary loops");
+  params.set<MooseEnum>("family") = "MONOMIAL";
+  params.set<MooseEnum>("order") = "CONSTANT";
+  return params;
+}
+
+MooseVariableConstMonomial::MooseVariableConstMonomial(const InputParameters & parameters)
+  : MooseVariable(parameters)
 {
 }
 
@@ -31,7 +40,7 @@ MooseVariableConstMonomial::computeElemValues()
 
   // We have not optimized AD calculations for const monomials yet, so we fall back on the
   // non-optimized routine
-  if (_element_data->needsAD() && _subproblem.currentlyComputingJacobian())
+  if (_element_data->needsAD())
     _element_data->computeValues();
   else
     _element_data->computeMonomialValues();
@@ -44,7 +53,7 @@ MooseVariableConstMonomial::computeElemValuesFace()
 
   // We have not optimized AD calculations for const monomials yet, so we fall back on the
   // non-optimized routine
-  if (_element_data->needsAD() && _subproblem.currentlyComputingJacobian())
+  if (_element_data->needsAD())
     _element_data->computeValues();
   else
     _element_data->computeMonomialValues();
@@ -57,7 +66,7 @@ MooseVariableConstMonomial::computeNeighborValues()
 
   // We have not optimized AD calculations for const monomials yet, so we fall back on the
   // non-optimized routine
-  if (_neighbor_data->needsAD() && _subproblem.currentlyComputingJacobian())
+  if (_neighbor_data->needsAD())
     _neighbor_data->computeValues();
   else
     _neighbor_data->computeMonomialValues();
@@ -70,7 +79,7 @@ MooseVariableConstMonomial::computeNeighborValuesFace()
 
   // We have not optimized AD calculations for const monomials yet, so we fall back on the
   // non-optimized routine
-  if (_neighbor_data->needsAD() && _subproblem.currentlyComputingJacobian())
+  if (_neighbor_data->needsAD())
     _neighbor_data->computeValues();
   else
     _neighbor_data->computeMonomialValues();

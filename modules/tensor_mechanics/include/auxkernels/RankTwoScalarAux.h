@@ -12,29 +12,26 @@
 #include "NodalPatchRecovery.h"
 #include "RankTwoTensor.h"
 
-class RankTwoScalarAux;
-
-template <>
-InputParameters validParams<RankTwoScalarAux>();
-
 /**
  * RankTwoScalarAux uses the namespace RankTwoScalarTools to compute scalar
  * values from Rank-2 tensors.
  */
-class RankTwoScalarAux : public NodalPatchRecovery
+template <bool is_ad>
+class RankTwoScalarAuxTempl : public NodalPatchRecovery
 {
 public:
-  RankTwoScalarAux(const InputParameters & parameters);
+  static InputParameters validParams();
+
+  RankTwoScalarAuxTempl(const InputParameters & parameters);
 
 protected:
   virtual Real computeValue();
 
-  const MaterialProperty<RankTwoTensor> & _tensor;
+  const GenericMaterialProperty<RankTwoTensor, is_ad> & _tensor;
 
   /**
    * Determines the information to be extracted from the tensor by using the
-   * RankTwoScalarTools namespace, e.g., vonMisesStress, EquivalentPlasticStrain,
-   * L2norm, MaxPrincipal eigenvalue, etc.
+   * RankTwoScalarTools namespace, e.g., vonMisesStressL2norm, MaxPrincipal eigenvalue, etc.
    */
   MooseEnum _scalar_type;
 
@@ -49,3 +46,5 @@ protected:
   Point _input_direction;
 };
 
+typedef RankTwoScalarAuxTempl<false> RankTwoScalarAux;
+typedef RankTwoScalarAuxTempl<true> ADRankTwoScalarAux;

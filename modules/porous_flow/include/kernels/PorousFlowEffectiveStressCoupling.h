@@ -12,11 +12,6 @@
 #include "Kernel.h"
 #include "PorousFlowDictator.h"
 
-class PorousFlowEffectiveStressCoupling;
-
-template <>
-InputParameters validParams<PorousFlowEffectiveStressCoupling>();
-
 /**
  * PorousFlowEffectiveStressCoupling computes
  * -coefficient*effective_porepressure*grad_component(test)
@@ -26,6 +21,8 @@ InputParameters validParams<PorousFlowEffectiveStressCoupling>();
 class PorousFlowEffectiveStressCoupling : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowEffectiveStressCoupling(const InputParameters & parameters);
 
 protected:
@@ -51,4 +48,3 @@ protected:
   /// Whether an RZ coordinate system is being used
   const bool _rz;
 };
-

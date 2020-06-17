@@ -11,28 +11,21 @@
 
 #include "ADKernelValue.h"
 
-template <ComputeStage>
-class ADGravity;
-
-declareADValidParams(ADGravity);
-
-template <ComputeStage compute_stage>
-class ADGravity : public ADKernelValue<compute_stage>
+class ADGravity : public ADKernelValue
 {
 public:
+  static InputParameters validParams();
+
   ADGravity(const InputParameters & parameters);
 
 protected:
-  ADResidual precomputeQpResidual() override;
+  ADReal precomputeQpResidual() override;
 
 private:
-  const ADMaterialProperty(Real) & _density;
+  const ADMaterialProperty<Real> & _density;
 
   const Real _value;
 
   // _alpha parameter for HHT time integration scheme
   const Real _alpha;
-
-  usingKernelValueMembers;
 };
-

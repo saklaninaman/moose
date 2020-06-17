@@ -12,12 +12,11 @@
 
 registerMooseObject("SolidMechanicsApp", LinearStrainHardening);
 
-template <>
 InputParameters
-validParams<LinearStrainHardening>()
+LinearStrainHardening::validParams()
 {
-  InputParameters params = validParams<SolidModel>();
-  params += validParams<IsotropicPlasticity>();
+  InputParameters params = SolidModel::validParams();
+  params += IsotropicPlasticity::validParams();
 
   return params;
 }

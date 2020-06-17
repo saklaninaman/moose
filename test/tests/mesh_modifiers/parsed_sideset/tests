@@ -1,4 +1,5 @@
 [Tests]
+  deprecated = True
   [./parsed_sideset]
     type = 'Exodiff'
     input = ' parsed_sideset.i'
@@ -6,5 +7,6 @@
     cli_args = '--mesh-only'
     mesh_mode = REPLICATED
     recover = false
+    no_error_deprecated = true
   [../]
 []

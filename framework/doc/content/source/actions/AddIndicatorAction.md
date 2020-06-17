@@ -1,14 +1,7 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # AddIndicatorAction
 
-!alert construction title=Undocumented Class
-The AddIndicatorAction has not been documented. The content contained on this page includes the
-typical automatic documentation associated with an Action; however, what is contained is ultimately
-determined by what is necessary to make the documentation clear for users.
-
-!syntax description /Adaptivity/Indicators/AddIndicatorAction
+The AddIndicatorAction is a [MooseObjectAction.md] that creates the specified Indicator object for
+each block of the `[Adaptivity/Indicators]` block of an input file. See [syntax/Adaptivity/index.md]
+for more information.
 
 !syntax parameters /Adaptivity/Indicators/AddIndicatorAction
-
-!bibtex bibliography

@@ -10,14 +10,7 @@
 #pragma once
 
 #include "Material.h"
-
-class ComputeInterfaceStress;
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-
-template <>
-InputParameters validParams<ComputeInterfaceStress>();
+#include "RankTwoTensorForward.h"
 
 /**
  * Calculates an Extra-Stress tensor that lies in the plane of an interface
@@ -26,6 +19,8 @@ InputParameters validParams<ComputeInterfaceStress>();
 class ComputeInterfaceStress : public Material
 {
 public:
+  static InputParameters validParams();
+
   ComputeInterfaceStress(const InputParameters & parameters);
 
 protected:
@@ -38,4 +33,3 @@ protected:
 
   MaterialProperty<RankTwoTensor> & _planar_stress;
 };
-

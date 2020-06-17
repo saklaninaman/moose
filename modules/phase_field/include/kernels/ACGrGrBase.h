@@ -12,10 +12,6 @@
 #include "ACBulk.h"
 
 // Forward Declarations
-class ACGrGrBase;
-
-template <>
-InputParameters validParams<ACGrGrBase>();
 
 /**
  * This is the base class for kernels that calculate the residual for grain growth.
@@ -25,6 +21,8 @@ InputParameters validParams<ACGrGrBase>();
 class ACGrGrBase : public ACBulk<Real>
 {
 public:
+  static InputParameters validParams();
+
   ACGrGrBase(const InputParameters & parameters);
 
 protected:
@@ -35,4 +33,3 @@ protected:
 
   const MaterialProperty<Real> & _mu;
 };
-

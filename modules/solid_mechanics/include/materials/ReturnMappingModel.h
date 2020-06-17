@@ -12,11 +12,6 @@
 #include "ConstitutiveModel.h"
 #include "SingleVariableReturnMappingSolution.h"
 
-class ReturnMappingModel;
-
-template <>
-InputParameters validParams<ReturnMappingModel>();
-
 /**
  * Base class for models that perform return mapping iterations to compute stress.  This
  * is for a single model to compute inelastic behavior.  This class can be used directly
@@ -26,6 +21,8 @@ InputParameters validParams<ReturnMappingModel>();
 class ReturnMappingModel : public ConstitutiveModel, public SingleVariableReturnMappingSolution
 {
 public:
+  static InputParameters validParams();
+
   ReturnMappingModel(const InputParameters & parameters,
                      const std::string inelastic_strain_name = "");
   virtual ~ReturnMappingModel() {}
@@ -100,4 +97,3 @@ protected:
   const bool _compute_matl_timestep_limit;
   MaterialProperty<Real> * _matl_timestep_limit;
 };
-

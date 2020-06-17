@@ -12,11 +12,6 @@
 #include "TensorMechanicsPlasticJ2.h"
 #include "RankFourTensor.h"
 
-class TensorMechanicsPlasticIsotropicSD;
-
-template <>
-InputParameters validParams<TensorMechanicsPlasticIsotropicSD>();
-
 /**
  * IsotropicSD plasticity model from Yoon (2013)
  * the name of the paper is "Asymmetric yield function based on the
@@ -31,6 +26,8 @@ InputParameters validParams<TensorMechanicsPlasticIsotropicSD>();
 class TensorMechanicsPlasticIsotropicSD : public TensorMechanicsPlasticJ2
 {
 public:
+  static InputParameters validParams();
+
   TensorMechanicsPlasticIsotropicSD(const InputParameters & parameters);
 
 protected:
@@ -85,4 +82,3 @@ protected:
   /// Receives the flag for associative or non-associative and calculates the flow potential accordingly
   RankTwoTensor flowPotential(const RankTwoTensor & stress, Real intnl) const override;
 };
-

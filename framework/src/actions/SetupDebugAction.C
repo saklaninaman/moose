@@ -18,11 +18,12 @@
 
 registerMooseAction("MooseApp", SetupDebugAction, "add_output");
 
-template <>
+defineLegacyParams(SetupDebugAction);
+
 InputParameters
-validParams<SetupDebugAction>()
+SetupDebugAction::validParams()
 {
-  InputParameters params = validParams<Action>();
+  InputParameters params = Action::validParams();
   params.addParam<unsigned int>(
       "show_top_residuals", 0, "The number of top residuals to print out (0 = no output)");
   params.addParam<bool>(
@@ -38,7 +39,7 @@ validParams<SetupDebugAction>()
       "Print out the material properties supplied for each block, face, neighbor, and/or sideset");
 
   params.addClassDescription(
-      "Adds various debugging type Outputters to the simulation system based on user parameters");
+      "Adds various debugging type Output objects to the simulation system.");
 
   return params;
 }

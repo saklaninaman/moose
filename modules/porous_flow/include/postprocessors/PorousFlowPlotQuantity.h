@@ -11,11 +11,7 @@
 
 #include "GeneralPostprocessor.h"
 
-class PorousFlowPlotQuantity;
 class PorousFlowSumQuantity;
-
-template <>
-InputParameters validParams<PorousFlowPlotQuantity>();
 
 /**
  * Extracts the value from PorousFlowSumQuantity userobject
@@ -23,6 +19,8 @@ InputParameters validParams<PorousFlowPlotQuantity>();
 class PorousFlowPlotQuantity : public GeneralPostprocessor
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowPlotQuantity(const InputParameters & parameters);
   virtual ~PorousFlowPlotQuantity();
 
@@ -36,4 +34,3 @@ protected:
   /// The PorousFlowSumQuantity userobject
   const PorousFlowSumQuantity & _total_mass;
 };
-

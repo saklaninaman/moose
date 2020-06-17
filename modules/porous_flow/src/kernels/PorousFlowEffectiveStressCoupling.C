@@ -15,11 +15,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowEffectiveStressCoupling);
 
-template <>
 InputParameters
-validParams<PorousFlowEffectiveStressCoupling>()
+PorousFlowEffectiveStressCoupling::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addClassDescription(
       "Adds $-Bi \\cdot p_s \\cdot \\nabla \\Psi_c$, where the subscript $c$ is the component.");
   params.addRequiredParam<UserObjectName>(

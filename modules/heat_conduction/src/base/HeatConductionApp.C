@@ -12,11 +12,16 @@
 #include "AppFactory.h"
 #include "MooseSyntax.h"
 
-template <>
 InputParameters
-validParams<HeatConductionApp>()
+HeatConductionApp::validParams()
 {
-  InputParameters params = validParams<MooseApp>();
+  InputParameters params = ::validParams<MooseApp>();
+
+  // Do not use legacy DirichletBC, that is, set DirichletBC default for preset = true
+  params.set<bool>("use_legacy_dirichlet_bc") = false;
+
+  params.set<bool>("use_legacy_material_output") = false;
+
   return params;
 }
 
@@ -48,6 +53,11 @@ associateSyntaxInner(Syntax & syntax, ActionFactory & /*action_factory*/)
   registerSyntaxTask("ThermalContactAction", "ThermalContact/*", "add_dirac_kernel");
   registerSyntaxTask("ThermalContactAction", "ThermalContact/*", "add_material");
   registerSyntaxTask("ThermalContactAction", "ThermalContact/*", "add_slave_flux_vector");
+
+  registerSyntaxTask("RadiationTransferAction", "GrayDiffuseRadiation/*", "add_mesh_generator");
+  registerSyntaxTask("RadiationTransferAction", "GrayDiffuseRadiation/*", "setup_mesh_complete");
+  registerSyntaxTask("RadiationTransferAction", "GrayDiffuseRadiation/*", "add_user_object");
+  registerSyntaxTask("RadiationTransferAction", "GrayDiffuseRadiation/*", "add_bc");
 }
 
 void

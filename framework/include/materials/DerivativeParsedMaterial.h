@@ -12,19 +12,21 @@
 #include "DerivativeParsedMaterialHelper.h"
 #include "ParsedMaterialBase.h"
 
-// Forward Declarations
-class DerivativeParsedMaterial;
-
-template <>
-InputParameters validParams<DerivativeParsedMaterial>();
-
 /**
  * DerivativeFunctionMaterialBase child class to evaluate a parsed function (for
  * example a free energy) and automatically provide all derivatives.
  */
-class DerivativeParsedMaterial : public DerivativeParsedMaterialHelper, public ParsedMaterialBase
+template <bool is_ad>
+class DerivativeParsedMaterialTempl : public DerivativeParsedMaterialHelperTempl<is_ad>,
+                                      public ParsedMaterialBase
 {
 public:
-  DerivativeParsedMaterial(const InputParameters & parameters);
+  static InputParameters validParams();
+
+  DerivativeParsedMaterialTempl(const InputParameters & parameters);
+
+  usingDerivativeParsedMaterialHelperMembers(is_ad);
 };
 
+typedef DerivativeParsedMaterialTempl<false> DerivativeParsedMaterial;
+typedef DerivativeParsedMaterialTempl<true> ADDerivativeParsedMaterial;

@@ -11,17 +11,14 @@
 
 #include "Kernel.h"
 
-class PorousFlowExponentialDecay;
-
-template <>
-InputParameters validParams<PorousFlowExponentialDecay>();
-
 /**
  * Kernel = _rate * (variable - reference)
  */
 class PorousFlowExponentialDecay : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowExponentialDecay(const InputParameters & parameters);
 
 protected:
@@ -34,4 +31,3 @@ protected:
   /// The reference
   const VariableValue & _reference;
 };
-

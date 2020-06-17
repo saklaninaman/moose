@@ -11,11 +11,10 @@
 
 registerMooseObject("ChemicalReactionsApp", ChemicalOutFlowBC);
 
-template <>
 InputParameters
-validParams<ChemicalOutFlowBC>()
+ChemicalOutFlowBC::validParams()
 {
-  InputParameters params = validParams<IntegratedBC>();
+  InputParameters params = IntegratedBC::validParams();
   params.addClassDescription("Chemical flux boundary condition");
   return params;
 }

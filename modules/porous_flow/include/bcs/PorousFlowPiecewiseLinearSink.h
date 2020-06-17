@@ -12,11 +12,6 @@
 #include "PorousFlowSinkPTDefiner.h"
 #include "LinearInterpolation.h"
 
-class PorousFlowPiecewiseLinearSink;
-
-template <>
-InputParameters validParams<PorousFlowPiecewiseLinearSink>();
-
 /**
  * Applies a flux sink to a boundary.  The base flux
  * defined by PorousFlowSink is multiplied by a
@@ -27,6 +22,8 @@ InputParameters validParams<PorousFlowPiecewiseLinearSink>();
 class PorousFlowPiecewiseLinearSink : public PorousFlowSinkPTDefiner
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowPiecewiseLinearSink(const InputParameters & parameters);
 
 protected:
@@ -37,4 +34,3 @@ protected:
 
   virtual Real dmultiplier_dvar(unsigned int pvar) const override;
 };
-

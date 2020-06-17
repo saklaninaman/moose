@@ -9,8 +9,8 @@
   nt = 12
   rmin = 0
   rmax = 5
-  tmin = 0.785398163
-  tmax = 2.356194490
+  dmin = 45
+  dmax = 135
   growth_r = 1.3
 []
 
@@ -28,28 +28,28 @@
 
 [BCs]
   [./inner]
-    type = PresetBC
+    type = DirichletBC
     variable = u
     value = -5.0
     boundary = rmin
   [../]
   [./outer]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = u
     function = 0
     boundary = rmax
   [../]
   [./tmin]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = u
     function = '-5.0+sqrt(x*x + y*y)'
-    boundary = tmin
+    boundary = dmin
   [../]
   [./tmax]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = u
     function = '-5.0+pow(x*x + y*y, 2)/125'
-    boundary = tmax
+    boundary = dmax
   [../]
 []
 

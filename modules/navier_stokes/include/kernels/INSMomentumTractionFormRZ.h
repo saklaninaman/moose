@@ -12,10 +12,6 @@
 #include "INSMomentumTractionForm.h"
 
 // Forward Declarations
-class INSMomentumTractionFormRZ;
-
-template <>
-InputParameters validParams<INSMomentumTractionFormRZ>();
 
 /**
  * This class computes additional momentum equation residual and
@@ -25,6 +21,8 @@ InputParameters validParams<INSMomentumTractionFormRZ>();
 class INSMomentumTractionFormRZ : public INSMomentumTractionForm
 {
 public:
+  static InputParameters validParams();
+
   INSMomentumTractionFormRZ(const InputParameters & parameters);
 
   virtual ~INSMomentumTractionFormRZ() {}
@@ -36,4 +34,3 @@ protected:
   virtual Real computeQpJacobian() override;
   virtual Real computeQpOffDiagJacobian(unsigned jvar) override;
 };
-

@@ -1,7 +1,7 @@
 [Tests]
-  [./TerminalTextEdit]
+  [TerminalTextEdit]
     type = PythonUnitTest
     input = test_TerminalTextEdit.py
-    display_required = True
-  [../]
+    display_required = true
+  []
 []

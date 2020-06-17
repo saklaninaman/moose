@@ -11,11 +11,6 @@
 
 #include "PorousFlowCapillaryPressure.h"
 
-class PorousFlowCapillaryPressureVG;
-
-template <>
-InputParameters validParams<PorousFlowCapillaryPressureVG>();
-
 /**
  * van Genuchten form of capillary pressure.
  *
@@ -25,6 +20,8 @@ InputParameters validParams<PorousFlowCapillaryPressureVG>();
 class PorousFlowCapillaryPressureVG : public PorousFlowCapillaryPressure
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowCapillaryPressureVG(const InputParameters & parameters);
 
   virtual Real capillaryPressureCurve(Real saturation, unsigned qp = 0) const override;
@@ -45,4 +42,3 @@ protected:
   /// pc_sscale = f(s_scale), where f is the van Genuchten function
   const Real _pc_sscale;
 };
-

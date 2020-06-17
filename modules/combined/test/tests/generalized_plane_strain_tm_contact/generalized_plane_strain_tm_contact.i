@@ -175,7 +175,7 @@
     value = 0.0
   [../]
   [./tramp]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = temp
     boundary = '6'
     function = tempramp
@@ -196,7 +196,6 @@
     slave = 2
     penalty = 1e+10
     normalize_penalty = true
-    system = Constraint
     tangential_tolerance = .1
     normal_smoothing_distance = .1
     model = frictionless
@@ -209,6 +208,8 @@
     type = GapHeatTransfer
     master = 8
     slave = 2
+    emissivity_master = 0
+    emissivity_slave = 0
     variable = temp
     tangential_tolerance = .1
     normal_smoothing_distance = .1
@@ -248,6 +249,12 @@
     thermal_conductivity = 3.0
     specific_heat = 300.0
     block = '1 2'
+  [../]
+
+  [./density]
+    type = GenericConstantMaterial
+    prop_names = 'density'
+    prop_values = '1'
   [../]
 []
 

@@ -12,11 +12,12 @@
 
 registerMooseAction("MooseApp", AddMaterialAction, "add_material");
 
-template <>
+defineLegacyParams(AddMaterialAction);
+
 InputParameters
-validParams<AddMaterialAction>()
+AddMaterialAction::validParams()
 {
-  return validParams<MooseObjectAction>();
+  return MooseObjectAction::validParams();
 }
 
 AddMaterialAction::AddMaterialAction(InputParameters params) : MooseObjectAction(params) {}
@@ -24,12 +25,8 @@ AddMaterialAction::AddMaterialAction(InputParameters params) : MooseObjectAction
 void
 AddMaterialAction::act()
 {
-  if (Registry::isADObj(_type + "<RESIDUAL>"))
-  {
-    _problem->addADResidualMaterial(_type + "<RESIDUAL>", _name + "_residual", _moose_object_pars);
-    _problem->addADJacobianMaterial(_type + "<JACOBIAN>", _name + "_jacobian", _moose_object_pars);
-    _problem->haveADObjects(true);
-  }
-  else
+  if (!_moose_object_pars.get<bool>("_interface"))
     _problem->addMaterial(_type, _name, _moose_object_pars);
+  else
+    _problem->addInterfaceMaterial(_type, _name, _moose_object_pars);
 }

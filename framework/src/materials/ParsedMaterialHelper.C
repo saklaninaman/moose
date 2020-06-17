@@ -11,20 +11,21 @@
 
 #include "libmesh/quadrature.h"
 
-template <>
+template <bool is_ad>
 InputParameters
-validParams<ParsedMaterialHelper>()
+ParsedMaterialHelper<is_ad>::validParams()
 {
-  InputParameters params = validParams<FunctionMaterialBase>();
-  params += validParams<FunctionParserUtils>();
+  InputParameters params = FunctionMaterialBase<is_ad>::validParams();
+  params += FunctionParserUtils<is_ad>::validParams();
   params.addClassDescription("Parsed Function Material.");
   return params;
 }
 
-ParsedMaterialHelper::ParsedMaterialHelper(const InputParameters & parameters,
-                                           VariableNameMappingMode map_mode)
-  : FunctionMaterialBase(parameters),
-    FunctionParserUtils(parameters),
+template <bool is_ad>
+ParsedMaterialHelper<is_ad>::ParsedMaterialHelper(const InputParameters & parameters,
+                                                  VariableNameMappingMode map_mode)
+  : FunctionMaterialBase<is_ad>(parameters),
+    FunctionParserUtils<is_ad>(parameters),
     _variable_names(_nargs),
     _mat_prop_descriptors(0),
     _tol(0),
@@ -32,17 +33,19 @@ ParsedMaterialHelper::ParsedMaterialHelper(const InputParameters & parameters,
 {
 }
 
+template <bool is_ad>
 void
-ParsedMaterialHelper::functionParse(const std::string & function_expression)
+ParsedMaterialHelper<is_ad>::functionParse(const std::string & function_expression)
 {
   std::vector<std::string> empty_string_vector;
   functionParse(function_expression, empty_string_vector, empty_string_vector);
 }
 
+template <bool is_ad>
 void
-ParsedMaterialHelper::functionParse(const std::string & function_expression,
-                                    const std::vector<std::string> & constant_names,
-                                    const std::vector<std::string> & constant_expressions)
+ParsedMaterialHelper<is_ad>::functionParse(const std::string & function_expression,
+                                           const std::vector<std::string> & constant_names,
+                                           const std::vector<std::string> & constant_expressions)
 {
   std::vector<std::string> empty_string_vector;
   std::vector<Real> empty_real_vector;
@@ -54,16 +57,17 @@ ParsedMaterialHelper::functionParse(const std::string & function_expression,
                 empty_real_vector);
 }
 
+template <bool is_ad>
 void
-ParsedMaterialHelper::functionParse(const std::string & function_expression,
-                                    const std::vector<std::string> & constant_names,
-                                    const std::vector<std::string> & constant_expressions,
-                                    const std::vector<std::string> & mat_prop_expressions,
-                                    const std::vector<std::string> & tol_names,
-                                    const std::vector<Real> & tol_values)
+ParsedMaterialHelper<is_ad>::functionParse(const std::string & function_expression,
+                                           const std::vector<std::string> & constant_names,
+                                           const std::vector<std::string> & constant_expressions,
+                                           const std::vector<std::string> & mat_prop_expressions,
+                                           const std::vector<std::string> & tol_names,
+                                           const std::vector<Real> & tol_values)
 {
   // build base function object
-  _func_F = ADFunctionPtr(new ADFunction());
+  _func_F = std::make_shared<SymFunction>();
 
   // set FParser internal feature flags
   setParserFeatureFlags(_func_F);
@@ -72,7 +76,7 @@ ParsedMaterialHelper::functionParse(const std::string & function_expression,
   addFParserConstants(_func_F, constant_names, constant_expressions);
 
   // add further constants coming from default value coupling
-  if (_map_mode == USE_PARAM_NAMES)
+  if (_map_mode == VariableNameMappingMode::USE_PARAM_NAMES)
     for (const auto & acd : _arg_constant_defaults)
       if (!_func_F->AddConstant(acd, _pars.defaultCoupledValue(acd)))
         mooseError("Invalid constant name in parsed function object");
@@ -80,23 +84,23 @@ ParsedMaterialHelper::functionParse(const std::string & function_expression,
   // set variable names based on map_mode
   switch (_map_mode)
   {
-    case USE_MOOSE_NAMES:
+    case VariableNameMappingMode::USE_MOOSE_NAMES:
       for (unsigned int i = 0; i < _nargs; ++i)
         _variable_names[i] = _arg_names[i];
       break;
 
-    case USE_PARAM_NAMES:
-      // we do not allow vector coupling in this mode
-      if (!_mapping_is_unique)
-        mooseError("Derivative parsed materials must couple exactly one non-linear variable per "
-                   "coupled variable input parameter.");
-
+    case VariableNameMappingMode::USE_PARAM_NAMES:
       for (unsigned i = 0; i < _nargs; ++i)
-        _variable_names[i] = _arg_param_names[i];
+      {
+        if (_arg_param_numbers[i] < 0)
+          _variable_names[i] = _arg_param_names[i];
+        else
+          _variable_names[i] = _arg_param_names[i] + std::to_string(_arg_param_numbers[i]);
+      }
       break;
 
     default:
-      mooseError("Unnknown variable mapping mode.");
+      mooseError("Unknown variable mapping mode.");
   }
 
   // tolerance vectors
@@ -129,7 +133,8 @@ ParsedMaterialHelper::functionParse(const std::string & function_expression,
   for (unsigned int i = 0; i < nmat_props; ++i)
   {
     // parse the material property parameter entry into a FunctionMaterialPropertyDescriptor
-    _mat_prop_descriptors[i] = FunctionMaterialPropertyDescriptor(mat_prop_expressions[i], this);
+    _mat_prop_descriptors[i] =
+        FunctionMaterialPropertyDescriptor<is_ad>(mat_prop_expressions[i], this);
 
     // get the fparser symbol name for the new material property
     variables += "," + _mat_prop_descriptors[i].getSymbolName();
@@ -154,8 +159,9 @@ ParsedMaterialHelper::functionParse(const std::string & function_expression,
   functionsPostParse();
 }
 
+template <bool is_ad>
 void
-ParsedMaterialHelper::functionsPostParse()
+ParsedMaterialHelper<is_ad>::functionsPostParse()
 {
   functionsOptimize();
 
@@ -164,8 +170,9 @@ ParsedMaterialHelper::functionsPostParse()
     mpd.value();
 }
 
+template <>
 void
-ParsedMaterialHelper::functionsOptimize()
+ParsedMaterialHelper<false>::functionsOptimize()
 {
   // base function
   if (!_disable_fpoptimizer)
@@ -174,18 +181,29 @@ ParsedMaterialHelper::functionsOptimize()
     mooseInfo("Failed to JIT compile expression, falling back to byte code interpretation.");
 }
 
+template <>
 void
-ParsedMaterialHelper::initQpStatefulProperties()
+ParsedMaterialHelper<true>::functionsOptimize()
+{
+  // base function
+  if (!_disable_fpoptimizer)
+    _func_F->Optimize();
+  if (!_enable_jit || !_func_F->JITCompile())
+    mooseError("ADParsedMaterials require JIT compilation to be enabled and working.");
+}
+
+template <bool is_ad>
+void
+ParsedMaterialHelper<is_ad>::initQpStatefulProperties()
 {
   if (_prop_F)
     (*_prop_F)[_qp] = 0.0;
 }
 
+template <bool is_ad>
 void
-ParsedMaterialHelper::computeQpProperties()
+ParsedMaterialHelper<is_ad>::computeQpProperties()
 {
-  Real a;
-
   // fill the parameter vector, apply tolerances
   for (unsigned int i = 0; i < _nargs; ++i)
   {
@@ -193,7 +211,7 @@ ParsedMaterialHelper::computeQpProperties()
       _func_params[i] = (*_args[i])[_qp];
     else
     {
-      a = (*_args[i])[_qp];
+      auto a = (*_args[i])[_qp];
       _func_params[i] = a < _tol[i] ? _tol[i] : (a > 1.0 - _tol[i] ? 1.0 - _tol[i] : a);
     }
   }
@@ -207,3 +225,7 @@ ParsedMaterialHelper::computeQpProperties()
   if (_prop_F)
     (*_prop_F)[_qp] = evaluate(_func_F);
 }
+
+// explicit instantiation
+template class ParsedMaterialHelper<false>;
+template class ParsedMaterialHelper<true>;

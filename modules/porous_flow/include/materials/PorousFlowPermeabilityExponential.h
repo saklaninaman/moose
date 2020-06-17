@@ -11,11 +11,6 @@
 
 #include "PorousFlowPermeabilityBase.h"
 
-class PorousFlowPermeabilityExponential;
-
-template <>
-InputParameters validParams<PorousFlowPermeabilityExponential>();
-
 /**
  * Material designed to provide the permeability tensor which is calculated
  * from porosity using the equation:
@@ -32,6 +27,8 @@ InputParameters validParams<PorousFlowPermeabilityExponential>();
 class PorousFlowPermeabilityExponential : public PorousFlowPermeabilityBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowPermeabilityExponential(const InputParameters & parameters);
 
 protected:
@@ -64,4 +61,3 @@ protected:
   /// Empirical constant BB in k = k_ijk * BB * exp(AA * phi)
   Real _BB;
 };
-

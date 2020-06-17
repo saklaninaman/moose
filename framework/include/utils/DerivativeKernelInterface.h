@@ -33,7 +33,7 @@ template <class T>
 DerivativeKernelInterface<T>::DerivativeKernelInterface(const InputParameters & parameters)
   : DerivativeMaterialInterface<T>(parameters),
     _nvar(this->_coupled_moose_vars.size()),
-    _F_name(this->template getParamTempl<std::string>("f_name"))
+    _F_name(this->template getParam<std::string>("f_name"))
 {
 }
 
@@ -41,7 +41,7 @@ template <class T>
 InputParameters
 DerivativeKernelInterface<T>::validParams()
 {
-  InputParameters params = ::validParams<T>();
+  InputParameters params = T::validParams();
   params.addRequiredParam<std::string>(
       "f_name", "Base name of the free energy function F defined in a DerivativeParsedMaterial");
   return params;

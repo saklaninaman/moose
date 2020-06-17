@@ -12,10 +12,6 @@
 #include "NSSUPGBase.h"
 
 // Forward Declarations
-class NSSUPGMomentum;
-
-template <>
-InputParameters validParams<NSSUPGMomentum>();
 
 /**
  * Compute residual and Jacobian terms form the SUPG
@@ -24,6 +20,8 @@ InputParameters validParams<NSSUPGMomentum>();
 class NSSUPGMomentum : public NSSUPGBase
 {
 public:
+  static InputParameters validParams();
+
   NSSUPGMomentum(const InputParameters & parameters);
 
 protected:
@@ -42,4 +40,3 @@ private:
   // variable numbering.
   Real computeJacobianHelper(unsigned int var);
 };
-

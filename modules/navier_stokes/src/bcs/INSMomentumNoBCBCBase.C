@@ -10,11 +10,10 @@
 #include "INSMomentumNoBCBCBase.h"
 #include "MooseMesh.h"
 
-template <>
 InputParameters
-validParams<INSMomentumNoBCBCBase>()
+INSMomentumNoBCBCBase::validParams()
 {
-  InputParameters params = validParams<IntegratedBC>();
+  InputParameters params = IntegratedBC::validParams();
 
   params.addClassDescription("Base class for the 'No BC' boundary condition.");
   // Coupled variables

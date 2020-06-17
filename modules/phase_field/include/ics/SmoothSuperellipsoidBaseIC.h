@@ -13,10 +13,6 @@
 #include "MooseRandom.h"
 
 // Forward Declarations
-class SmoothSuperellipsoidBaseIC;
-
-template <>
-InputParameters validParams<SmoothSuperellipsoidBaseIC>();
 
 /**
  * SmoothSuperellipsoidBaseIC is the base class for all initial conditions that create
@@ -28,6 +24,8 @@ InputParameters validParams<SmoothSuperellipsoidBaseIC>();
 class SmoothSuperellipsoidBaseIC : public InitialCondition
 {
 public:
+  static InputParameters validParams();
+
   SmoothSuperellipsoidBaseIC(const InputParameters & parameters);
 
   virtual Real value(const Point & p);
@@ -65,4 +63,3 @@ protected:
 
   MooseRandom _random;
 };
-

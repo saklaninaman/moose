@@ -15,22 +15,15 @@
 
 #include "StochasticToolsTypes.h"
 
-class SamplerFullSolveMultiApp;
 class Sampler;
 class StochasticToolsTransfer;
-
-template <>
-InputParameters validParams<SamplerFullSolveMultiApp>();
 
 class SamplerFullSolveMultiApp : public FullSolveMultiApp, public SamplerInterface
 {
 public:
-  SamplerFullSolveMultiApp(const InputParameters & parameters);
+  static InputParameters validParams();
 
-  /**
-   * Return the Sampler object for this MultiApp.
-   */
-  Sampler & getSampler() const { return _sampler; }
+  SamplerFullSolveMultiApp(const InputParameters & parameters);
 
   virtual bool solveStep(Real dt, Real target_time, bool auto_advance = true) override;
 
@@ -57,5 +50,12 @@ private:
    * Helper for getting StochasticToolsTransfer objects.
    */
   std::vector<std::shared_ptr<StochasticToolsTransfer>>
-  getActiveStochasticToolsTransfers(MultiAppTransfer::DIRECTION direction);
+  getActiveStochasticToolsTransfers(Transfer::DIRECTION direction);
+
+  ///@{
+  /// PrefGraph timers
+  const PerfID _perf_solve_step;
+  const PerfID _perf_solve_batch_step;
+  const PerfID _perf_command_line_args;
+  ///@}
 };

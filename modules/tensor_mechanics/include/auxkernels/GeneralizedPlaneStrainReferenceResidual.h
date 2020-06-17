@@ -12,15 +12,13 @@
 #include "AuxScalarKernel.h"
 
 // Forward Declarations
-class GeneralizedPlaneStrainReferenceResidual;
 class GeneralizedPlaneStrainUserObject;
-
-template <>
-InputParameters validParams<GeneralizedPlaneStrainReferenceResidual>();
 
 class GeneralizedPlaneStrainReferenceResidual : public AuxScalarKernel
 {
 public:
+  static InputParameters validParams();
+
   GeneralizedPlaneStrainReferenceResidual(const InputParameters & parameters);
 
   virtual Real computeValue() override;

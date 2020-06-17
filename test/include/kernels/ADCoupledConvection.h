@@ -11,26 +11,21 @@
 
 #include "ADKernel.h"
 
-template <ComputeStage compute_stage>
-class ADCoupledConvection;
-
-declareADValidParams(ADCoupledConvection);
-
 /**
  * Define the ADKernel for a convection operator that looks like:
  *
  * grad_some_var dot u'
  */
-template <ComputeStage compute_stage>
-class ADCoupledConvection : public ADKernel<compute_stage>
+class ADCoupledConvection : public ADKernel
 {
 public:
+  static InputParameters validParams();
+
   ADCoupledConvection(const InputParameters & parameters);
 
 protected:
-  virtual ADResidual computeQpResidual() override;
+  virtual ADReal computeQpResidual() override;
 
-  usingKernelMembers;
 
 private:
   const ADVariableGradient & _velocity_vector;

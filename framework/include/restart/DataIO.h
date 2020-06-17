@@ -18,9 +18,12 @@
 #include "RankTwoTensor.h"
 #include "RankThreeTensor.h"
 #include "RankFourTensor.h"
-#include "MooseADWrapper.h"
+#include "ColumnMajorMatrix.h"
 
+#include "libmesh/auto_ptr.h" // libmesh_make_unique
 #include "libmesh/parallel.h"
+#include "libmesh/parameters.h"
+
 #ifdef LIBMESH_HAVE_CXX11_TYPE_TRAITS
 #include <type_traits>
 #endif
@@ -33,11 +36,6 @@
 #include <map>
 #include <unordered_map>
 #include <memory>
-
-// Forward declarations
-template <typename>
-class ColumnMajorMatrixTempl;
-typedef ColumnMajorMatrixTempl<Real> ColumnMajorMatrix;
 
 namespace libMesh
 {
@@ -259,6 +257,24 @@ dataStore(std::ostream & stream, std::list<T> & l, void * context)
   }
 }
 
+template <typename T>
+inline void
+dataStore(std::ostream & stream, std::deque<T> & l, void * context)
+{
+  // First store the size of the container
+  unsigned int size = l.size();
+  stream.write((char *)&size, sizeof(size));
+
+  typename std::deque<T>::iterator it = l.begin();
+  typename std::deque<T>::iterator end = l.end();
+
+  for (; it != end; ++it)
+  {
+    T & x = const_cast<T &>(*it);
+    storeHelper(stream, x, context);
+  }
+}
+
 template <typename T, typename U>
 inline void
 dataStore(std::ostream & stream, std::map<T, U> & m, void * context)
@@ -324,11 +340,9 @@ dataStore(std::ostream & stream, HashMap<T, U> & m, void * context)
 
 // Specializations (defined in .C)
 template <>
-void dataStore(std::ostream & stream, Real & v, void * /*context*/);
+void dataStore(std::ostream & stream, Real & v, void * context);
 template <>
-void dataStore(std::ostream & stream, std::string & v, void * /*context*/);
-template <>
-void dataStore(std::ostream & stream, ColumnMajorMatrix & v, void * /*context*/);
+void dataStore(std::ostream & stream, std::string & v, void * context);
 template <>
 void dataStore(std::ostream & stream, const Elem *& e, void * context);
 template <>
@@ -343,6 +357,12 @@ template <>
 void dataStore(std::ostream & stream, std::stringstream *& s, void * context);
 template <>
 void dataStore(std::ostream & stream, DualReal & dn, void * context);
+template <>
+void dataStore(std::ostream & stream, RealEigenVector & v, void * context);
+template <>
+void dataStore(std::ostream & stream, RealEigenMatrix & v, void * context);
+template <>
+void dataStore(std::ostream & stream, libMesh::Parameters & p, void * context);
 
 template <std::size_t N>
 inline void
@@ -366,6 +386,9 @@ dataStore(std::ostream & stream, NumericVector<T> & v, void * context)
     dataStore(stream, r, context);
   }
 }
+
+template <>
+void dataStore(std::ostream & stream, Vec & v, void * context);
 
 template <typename T>
 void
@@ -411,21 +434,10 @@ dataStore(std::ostream & stream, RankFourTensorTempl<T> & rft, void * context)
 }
 
 template <typename T>
-inline void
-dataStore(std::ostream & stream, MooseADWrapper<T> & dn_wrapper, void * context)
+void
+dataStore(std::ostream & stream, ColumnMajorMatrixTempl<T> & cmm, void * context)
 {
-  dataStore(stream, dn_wrapper.value(), context);
-  if (dn_wrapper._dual_number)
-  {
-    unsigned int m = 1;
-    stream.write((char *)&m, sizeof(m));
-    dataStore(stream, *dn_wrapper._dual_number, context);
-  }
-  else
-  {
-    unsigned int m = 0;
-    stream.write((char *)&m, sizeof(m));
-  }
+  dataStore(stream, cmm._values, context);
 }
 
 // DO NOT MODIFY THE NEXT LINE - It is used by MOOSEDocs
@@ -518,6 +530,22 @@ dataLoad(std::istream & stream, std::list<T> & l, void * context)
   }
 }
 
+template <typename T>
+inline void
+dataLoad(std::istream & stream, std::deque<T> & l, void * context)
+{
+  // First read the size of the container
+  unsigned int size = 0;
+  stream.read((char *)&size, sizeof(size));
+
+  for (unsigned int i = 0; i < size; i++)
+  {
+    T data;
+    loadHelper(stream, data, context);
+    l.push_back(std::move(data));
+  }
+}
+
 template <typename T, typename U>
 inline void
 dataLoad(std::istream & stream, std::map<T, U> & m, void * context)
@@ -582,8 +610,6 @@ void dataLoad(std::istream & stream, Real & v, void * /*context*/);
 template <>
 void dataLoad(std::istream & stream, std::string & v, void * /*context*/);
 template <>
-void dataLoad(std::istream & stream, ColumnMajorMatrix & v, void * /*context*/);
-template <>
 void dataLoad(std::istream & stream, const Elem *& e, void * context);
 template <>
 void dataLoad(std::istream & stream, const Node *& e, void * context);
@@ -597,6 +623,20 @@ template <>
 void dataLoad(std::istream & stream, std::stringstream *& s, void * context);
 template <>
 void dataLoad(std::istream & stream, DualReal & dn, void * context);
+template <>
+void dataLoad(std::istream & stream, RealEigenVector & v, void * context);
+template <>
+void dataLoad(std::istream & stream, RealEigenMatrix & v, void * context);
+template <>
+void dataLoad(std::istream & stream, libMesh::Parameters & p, void * context);
+
+template <std::size_t N>
+inline void
+dataLoad(std::istream & stream, DualReal (&dn)[N], void * context)
+{
+  for (std::size_t i = 0; i < N; ++i)
+    dataLoad(stream, dn[i], context);
+}
 
 template <typename T>
 void
@@ -611,6 +651,9 @@ dataLoad(std::istream & stream, NumericVector<T> & v, void * context)
   }
   v.close();
 }
+
+template <>
+void dataLoad(std::istream & stream, Vec & v, void * context);
 
 template <typename T>
 void
@@ -658,17 +701,10 @@ dataLoad(std::istream & stream, RankFourTensorTempl<T> & rft, void * context)
 }
 
 template <typename T>
-inline void
-dataLoad(std::istream & stream, MooseADWrapper<T> & dn_wrapper, void * context)
+void
+dataLoad(std::istream & stream, ColumnMajorMatrixTempl<T> & cmm, void * context)
 {
-  dataLoad(stream, dn_wrapper.value(), context);
-  unsigned int n = 0;
-  stream.read((char *)&n, sizeof(n));
-  if (n)
-  {
-    dn_wrapper._dual_number = libmesh_make_unique<typename MooseADWrapper<T>::DNType>();
-    dataLoad(stream, *dn_wrapper._dual_number, context);
-  }
+  dataLoad(stream, cmm._values, context);
 }
 
 // Scalar Helper Function
@@ -891,4 +927,3 @@ public:
 } // namespace Parallel
 
 } // namespace libMesh
-

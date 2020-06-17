@@ -9,23 +9,27 @@
 
 #include "PresetBC.h"
 
-registerMooseObject("MooseApp", PresetBC);
+registerMooseObjectDeprecated("MooseApp", PresetBC, "06/30/2020 24:00");
 
-template <>
+defineLegacyParams(PresetBC);
+
 InputParameters
-validParams<PresetBC>()
+PresetBC::validParams()
 {
-  InputParameters p = validParams<NodalBC>();
-  p.addRequiredParam<Real>("value", "Value of the BC");
-  p.declareControllable("value");
-  p.addClassDescription(
-      "Similar to DirichletBC except the value is applied before the solve begins");
-  return p;
+  InputParameters params = DirichletBC::validParams();
+  params.addClassDescription("Similar to DirichletBC except the value is applied before the solve "
+                             "begins. Deprecated: use DirichletBC with preset = true instead.");
+
+  // Utilize the new DirichletBC with preset, set true and don't let the user change it
+  params.set<bool>("preset") = true;
+  params.suppressParameter<bool>("preset");
+
+  return params;
 }
 
-PresetBC::PresetBC(const InputParameters & parameters)
-  : PresetNodalBC(parameters), _value(getParam<Real>("value"))
+PresetBC::PresetBC(const InputParameters & parameters) : DirichletBC(parameters)
 {
+  mooseDeprecated(name(), ": use DirichletBC with preset = true instead of PresetBC");
 }
 
 Real

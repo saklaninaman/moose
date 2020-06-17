@@ -13,11 +13,10 @@
 #include "AppFactory.h"
 #include "MooseSyntax.h"
 
-template <>
 InputParameters
-validParams<SolidMechanicsTestApp>()
+SolidMechanicsTestApp::validParams()
 {
-  InputParameters params = validParams<SolidMechanicsApp>();
+  InputParameters params = SolidMechanicsApp::validParams();
   return params;
 }
 

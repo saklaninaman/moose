@@ -17,11 +17,12 @@
 
 registerMooseObject("MooseApp", SideSetsBetweenSubdomainsGenerator);
 
-template <>
+defineLegacyParams(SideSetsBetweenSubdomainsGenerator);
+
 InputParameters
-validParams<SideSetsBetweenSubdomainsGenerator>()
+SideSetsBetweenSubdomainsGenerator::validParams()
 {
-  InputParameters params = validParams<MeshGenerator>();
+  InputParameters params = MeshGenerator::validParams();
 
   params.addRequiredParam<MeshGeneratorName>("input", "The mesh we want to modify");
   params.addRequiredParam<std::vector<SubdomainName>>(
@@ -30,6 +31,8 @@ validParams<SideSetsBetweenSubdomainsGenerator>()
       "paired_block", "The paired set of blocks for which to draw a sideset between");
   params.addRequiredParam<std::vector<BoundaryName>>("new_boundary",
                                                      "The name of the boundary to create");
+  params.addClassDescription("MeshGenerator that creates a sideset composed of the nodes located "
+                             "between two or more subdomains.");
 
   return params;
 }

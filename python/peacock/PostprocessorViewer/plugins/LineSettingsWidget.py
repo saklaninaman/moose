@@ -131,7 +131,7 @@ class LineSettingsWidget(peacock.base.MooseWidget, QtWidgets.QWidget):
         ax = ['axes0', 'axes1'][settings.pop('axis')]
 
         s = []
-        for key, value in settings.iteritems():
+        for key, value in settings.items():
                 if key == 'color':
                     value = [round(v, 3) for v in value]
                 s += [key + '=' + repr(value)]
@@ -302,8 +302,12 @@ def main(*args):
     """
     Create a LineSettingsWidget for testing.
     """
-    from peacock.PostprocessorViewer.PostprocessorViewer import PostprocessorViewer
-    from FigurePlugin import FigurePlugin
+    from ..PostprocessorViewer import PostprocessorViewer
+    from .FigurePlugin import FigurePlugin
+
+    import matplotlib
+    matplotlib.rcParams["figure.figsize"] = (3.75, 3.75)
+    matplotlib.rcParams["figure.dpi"] = (100)
 
     # Load the viewer
     widget = PostprocessorViewer(plugins=[FigurePlugin])

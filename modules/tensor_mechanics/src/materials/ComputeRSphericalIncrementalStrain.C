@@ -16,11 +16,10 @@
 
 registerMooseObject("TensorMechanicsApp", ComputeRSphericalIncrementalStrain);
 
-template <>
 InputParameters
-validParams<ComputeRSphericalIncrementalStrain>()
+ComputeRSphericalIncrementalStrain::validParams()
 {
-  InputParameters params = validParams<ComputeIncrementalSmallStrain>();
+  InputParameters params = ComputeIncrementalSmallStrain::validParams();
   params.addClassDescription(
       "Compute a strain increment for incremental strains in 1D spherical symmetry problems.");
   return params;

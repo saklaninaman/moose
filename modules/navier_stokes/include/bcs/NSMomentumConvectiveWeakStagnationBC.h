@@ -12,10 +12,6 @@
 #include "NSWeakStagnationBaseBC.h"
 
 // Forward Declarations
-class NSMomentumConvectiveWeakStagnationBC;
-
-template <>
-InputParameters validParams<NSMomentumConvectiveWeakStagnationBC>();
 
 /**
  * The convective part (sans pressure term) of the momentum equation
@@ -25,6 +21,8 @@ InputParameters validParams<NSMomentumConvectiveWeakStagnationBC>();
 class NSMomentumConvectiveWeakStagnationBC : public NSWeakStagnationBaseBC
 {
 public:
+  static InputParameters validParams();
+
   NSMomentumConvectiveWeakStagnationBC(const InputParameters & parameters);
 
 protected:
@@ -35,4 +33,3 @@ protected:
   // Required parameters
   const unsigned int _component;
 };
-

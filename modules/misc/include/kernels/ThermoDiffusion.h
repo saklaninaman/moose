@@ -37,6 +37,8 @@
 class ThermoDiffusion : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   ThermoDiffusion(const InputParameters & parameters);
 
 protected:
@@ -59,7 +61,3 @@ private:
   const Real _gas_constant;
   const unsigned int _temperature_index;
 };
-
-template <>
-InputParameters validParams<ThermoDiffusion>();
-

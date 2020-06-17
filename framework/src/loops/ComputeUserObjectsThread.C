@@ -25,13 +25,21 @@
 ComputeUserObjectsThread::ComputeUserObjectsThread(FEProblemBase & problem,
                                                    SystemBase & sys,
                                                    const TheWarehouse::Query & query)
-  : ThreadedElementLoop<ConstElemRange>(problem), _soln(*sys.currentSolution()), _query(query)
+  : ThreadedElementLoop<ConstElemRange>(problem),
+    _soln(*sys.currentSolution()),
+    _query(query),
+    _query_subdomain(_query),
+    _query_boundary(_query)
 {
 }
 
 // Splitting Constructor
 ComputeUserObjectsThread::ComputeUserObjectsThread(ComputeUserObjectsThread & x, Threads::split)
-  : ThreadedElementLoop<ConstElemRange>(x._fe_problem), _soln(x._soln), _query(x._query)
+  : ThreadedElementLoop<ConstElemRange>(x._fe_problem),
+    _soln(x._soln),
+    _query(x._query),
+    _query_subdomain(x._query_subdomain),
+    _query_boundary(x._query_boundary)
 {
 }
 
@@ -104,9 +112,8 @@ ComputeUserObjectsThread::onElement(const Elem * elem)
   if (_fe_problem.currentlyComputingJacobian() && _shape_element_objs.size() > 0)
   {
     // Prepare shape functions for ShapeElementUserObjects
-    std::vector<MooseVariableFEBase *> jacobian_moose_vars =
-        _fe_problem.getUserObjectJacobianVariables(_tid);
-    for (auto & jvar : jacobian_moose_vars)
+    const auto & jacobian_moose_vars = _fe_problem.getUserObjectJacobianVariables(_tid);
+    for (const auto & jvar : jacobian_moose_vars)
     {
       unsigned int jvar_id = jvar->number();
       auto && dof_indices = jvar->dofIndices();
@@ -143,9 +150,8 @@ ComputeUserObjectsThread::onBoundary(const Elem * elem, unsigned int side, Bound
   if (_fe_problem.currentlyComputingJacobian() && shapers.size() > 0)
   {
     // Prepare shape functions for ShapeSideUserObjects
-    std::vector<MooseVariableFEBase *> jacobian_moose_vars =
-        _fe_problem.getUserObjectJacobianVariables(_tid);
-    for (auto & jvar : jacobian_moose_vars)
+    const auto & jacobian_moose_vars = _fe_problem.getUserObjectJacobianVariables(_tid);
+    for (const auto & jvar : jacobian_moose_vars)
     {
       unsigned int jvar_id = jvar->number();
       auto && dof_indices = jvar->dofIndices();
@@ -207,11 +213,19 @@ ComputeUserObjectsThread::onInterface(const Elem * elem, unsigned int side, Boun
 
   // Set up Sentinels so that, even if one of the reinitMaterialsXXX() calls throws, we
   // still remember to swap back during stack unwinding.
+
   SwapBackSentinel face_sentinel(_fe_problem, &FEProblem::swapBackMaterialsFace, _tid);
   _fe_problem.reinitMaterialsFace(elem->subdomain_id(), _tid);
+  _fe_problem.reinitMaterialsBoundary(bnd_id, _tid);
 
   SwapBackSentinel neighbor_sentinel(_fe_problem, &FEProblem::swapBackMaterialsNeighbor, _tid);
   _fe_problem.reinitMaterialsNeighbor(neighbor->subdomain_id(), _tid);
+
+  // Has to happen after face and neighbor properties have been computed. Note that we don't use
+  // a sentinel here because FEProblem::swapBackMaterialsFace is going to handle face materials,
+  // boundary materials, and interface materials (e.g. it queries the boundary material data
+  // with the current element and side
+  _fe_problem.reinitMaterialsInterface(bnd_id, _tid);
 
   for (const auto & uo : userobjs)
     uo->execute();

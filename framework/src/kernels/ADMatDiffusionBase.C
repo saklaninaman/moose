@@ -8,16 +8,3 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "ADMatDiffusionBase.h"
-
-defineADValidParams(
-    ADMatDiffusionBase,
-    ADKernelGrad,
-    params.addClassDescription("Diffusion kernel with a material property as diffusivity and "
-                               "automatic differentiation to provide perfect Jacobians");
-    params.addParam<MaterialPropertyName>("diffusivity",
-                                          "D",
-                                          "The diffusivity value or material property");
-    params.addCoupledVar("v",
-                         "Coupled concentration variable for kernel to operate on; if this "
-                         "is not specified, the kernel's nonlinear variable will be used as "
-                         "usual"););

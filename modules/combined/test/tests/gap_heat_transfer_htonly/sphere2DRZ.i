@@ -122,6 +122,8 @@
     variable = temp
     master = 3
     slave = 2
+    emissivity_master = 0
+    emissivity_slave = 0
     gap_conductivity = 1
     quadrature = true
     gap_geometry_type = SPHERE
@@ -131,13 +133,13 @@
 
 [BCs]
   [./mid]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     boundary = 1
     variable = temp
     function = temp
   [../]
   [./temp_far_right]
-    type = PresetBC
+    type = DirichletBC
     boundary = 4
     variable = temp
     value = 100

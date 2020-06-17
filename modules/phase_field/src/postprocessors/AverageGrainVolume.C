@@ -17,11 +17,10 @@
 
 registerMooseObject("PhaseFieldApp", AverageGrainVolume);
 
-template <>
 InputParameters
-validParams<AverageGrainVolume>()
+AverageGrainVolume::validParams()
 {
-  InputParameters params = validParams<GeneralPostprocessor>();
+  InputParameters params = GeneralPostprocessor::validParams();
   params.addClassDescription("Calculate average grain area in a polycrystal");
 
   /**

@@ -11,17 +11,13 @@
 
 #include "FunctionDirichletBC.h"
 
-class FXValueBC;
-
-template <>
-InputParameters validParams<FXValueBC>();
-
 /**
  * Defines an FX-based boundary condition that forces the values to match
  */
 class FXValueBC : public FunctionDirichletBC
 {
 public:
+  static InputParameters validParams();
+
   FXValueBC(const InputParameters & parameters);
 };
-

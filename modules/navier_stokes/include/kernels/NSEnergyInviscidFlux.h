@@ -12,14 +12,12 @@
 #include "NSKernel.h"
 
 // Forward Declarations
-class NSEnergyInviscidFlux;
-
-template <>
-InputParameters validParams<NSEnergyInviscidFlux>();
 
 class NSEnergyInviscidFlux : public NSKernel
 {
 public:
+  static InputParameters validParams();
+
   NSEnergyInviscidFlux(const InputParameters & parameters);
 
 protected:
@@ -30,4 +28,3 @@ protected:
   // Coupled variables
   const VariableValue & _enthalpy;
 };
-

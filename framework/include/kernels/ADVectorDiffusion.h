@@ -11,20 +11,13 @@
 
 #include "ADVectorKernel.h"
 
-template <ComputeStage>
-class ADVectorDiffusion;
-
-declareADValidParams(ADVectorDiffusion);
-
-template <ComputeStage compute_stage>
-class ADVectorDiffusion : public ADVectorKernel<compute_stage>
+class ADVectorDiffusion : public ADVectorKernel
 {
 public:
+  static InputParameters validParams();
+
   ADVectorDiffusion(const InputParameters & parameters);
 
 protected:
-  virtual ADResidual computeQpResidual() override;
-
-  usingVectorKernelMembers;
+  virtual ADReal computeQpResidual() override;
 };
-

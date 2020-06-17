@@ -9,19 +9,19 @@
 
 #include "ADValueTest.h"
 
-registerADMooseObject("MooseTestApp", ADValueTest);
+registerMooseObject("MooseTestApp", ADValueTest);
 
-defineADValidParams(ADValueTest, ADKernel, );
-
-template <ComputeStage compute_stage>
-ADValueTest<compute_stage>::ADValueTest(const InputParameters & parameters)
-  : ADKernel<compute_stage>(parameters)
+InputParameters
+ADValueTest::validParams()
 {
+  InputParameters params = ADKernel::validParams();
+  return params;
 }
 
-template <ComputeStage compute_stage>
-ADResidual
-ADValueTest<compute_stage>::computeQpResidual()
+ADValueTest::ADValueTest(const InputParameters & parameters) : ADKernel(parameters) {}
+
+ADReal
+ADValueTest::computeQpResidual()
 {
   return -_u[_qp] * _test[_i][_qp];
 }

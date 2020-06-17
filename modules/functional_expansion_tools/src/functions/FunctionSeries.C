@@ -16,11 +16,10 @@
 
 registerMooseObject("FunctionalExpansionToolsApp", FunctionSeries);
 
-template <>
 InputParameters
-validParams<FunctionSeries>()
+FunctionSeries::validParams()
 {
-  InputParameters params = validParams<MutableCoefficientsFunctionInterface>();
+  InputParameters params = MutableCoefficientsFunctionInterface::validParams();
 
   params.addClassDescription("This function uses a convolution of functional series (functional "
                              "expansion or FX) to create a 1D, 2D, or 3D function");

@@ -11,11 +11,7 @@
 
 #include "AuxKernel.h"
 
-class StagnationTemperatureAux;
 class SinglePhaseFluidProperties;
-
-template <>
-InputParameters validParams<StagnationTemperatureAux>();
 
 /**
  * Compute stagnation temperature from specific volume, specific internal energy, and velocity.
@@ -23,6 +19,8 @@ InputParameters validParams<StagnationTemperatureAux>();
 class StagnationTemperatureAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   StagnationTemperatureAux(const InputParameters & parameters);
 
 protected:
@@ -34,4 +32,3 @@ protected:
 
   const SinglePhaseFluidProperties & _fp;
 };
-

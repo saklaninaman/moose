@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", SimpleCHInterface);
 
-template <>
 InputParameters
-validParams<SimpleCHInterface>()
+SimpleCHInterface::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addClassDescription("Gradient energy for Cahn-Hilliard equation with constant Mobility "
                              "and Interfacial parameter");
   params.addRequiredParam<MaterialPropertyName>(

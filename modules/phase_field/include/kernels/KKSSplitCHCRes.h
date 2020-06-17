@@ -14,10 +14,6 @@
 #include "DerivativeMaterialInterface.h"
 
 // Forward Declarations
-class KKSSplitCHCRes;
-
-template <>
-InputParameters validParams<KKSSplitCHCRes>();
 
 /**
  * SplitCHBulk child class that takes all the necessary data from a
@@ -34,6 +30,8 @@ InputParameters validParams<KKSSplitCHCRes>();
 class KKSSplitCHCRes : public DerivativeMaterialInterface<JvarMapKernelInterface<SplitCHBase>>
 {
 public:
+  static InputParameters validParams();
+
   KKSSplitCHCRes(const InputParameters & parameters);
 
 protected:
@@ -43,34 +41,18 @@ protected:
   virtual void initialSetup();
 
 private:
-  /// Number of coupled variables
-  unsigned int _nvar;
-
-  ///@{
-  /// Phase concnetration variables
+  ///@{ Phase concnetration variable
   unsigned int _ca_var;
   VariableName _ca_name;
-  unsigned int _cb_var;
-  VariableName _cb_name;
   ///@}
 
-  /// Derivatives of \f$ dFa/dca \f$ with respect to all coupled variables
+  /// chemical potential
+  const MaterialProperty<Real> & _dFadca;
+
+  /// Second derivatives of fa with respect to all ca and coupled variables
   std::vector<const MaterialProperty<Real> *> _d2Fadcadarg;
-
-  /// h(eta) material property
-  const MaterialProperty<Real> & _prop_h;
-
-  /// Second derivative \f$ d^2Fa/dca^2 \f$
-  const MaterialProperty<Real> & _first_derivative_Fa;
-
-  /// Second derivative \f$ d^2Fa/dca^2 \f$
-  const MaterialProperty<Real> & _second_derivative_Fa;
-
-  /// Second derivative \f$ d^2Fb/dcb^2 \f$
-  const MaterialProperty<Real> & _second_derivative_Fb;
 
   /// Chemical potential
   unsigned int _w_var;
   const VariableValue & _w;
 };
-

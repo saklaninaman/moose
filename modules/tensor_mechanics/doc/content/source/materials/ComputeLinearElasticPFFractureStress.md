@@ -1,8 +1,8 @@
-# Compute Quasi-birttle Linear Elastic Phase Field Fracture Stress
+# Compute Linear Elastic Phase Field Fracture Stress
 
 ## Description
 
-This material implements the unified phase-field model for mechanics of damage and quasi-brittle failure from Jian-Ying Wu [cite:JYWu2017].
+This material implements the unified phase-field model for mechanics of damage and quasi-brittle failure from Jian-Ying Wu [!cite](JYWu2017). The pressure on the fracture surface can be optionally applied as described in [!cite](CHUKWUDOZIE2019957) and [!cite](Mikelic2019).
 
 ## Crack Surface Energy
 
@@ -35,7 +35,7 @@ The elastic energy is defined as
 \Psi(\varepsilon,d) = \omega(d)\Psi_0(\varepsilon)
 \end{equation}
 
-The monotonically decreasing energetic function $w(d)\in[0,1]$ describes degradation of the initial strain energy $\Psi_0(\varepsilon)$ as the crack phase-field evolves, satisfying the following properties [cite:Miehe2015]
+The monotonically decreasing energetic function $w(d)\in[0,1]$ describes degradation of the initial strain energy $\Psi_0(\varepsilon)$ as the crack phase-field evolves, satisfying the following properties [!cite](Miehe2015)
 \begin{equation}
 \omega'(d) < 0~~~~~\text{and}~~~~~\omega(0)=1,~~~~~\omega(1) = 0,~~~~~\omega'(1)=0
 \end{equation}
@@ -197,7 +197,7 @@ Its derivatives are
 
 To further avoid crack phase-field going to negative, $H$ should overcome a barrier energy. The barrier energy $f_{barrier}$ is determined by
 \begin{equation}
-f_{barrier} = -\frac{f_'{fracture}}{\omega'(d)}~/text{at}~d=0
+f_{barrier} = -\frac{f_{fracture}}{\omega(d)}~/text{at}~d=0
 \end{equation}
 and the $H$ is modified as
 \begin{equation}
@@ -208,22 +208,44 @@ The evolution equation for the damage parameter follows the Allen-Cahn equation
 \begin{equation}
 \dot{d} = -L \frac{\delta F}{\delta d} = -L \left( \frac{\partial f_{loc}}{\partial d} - \nabla \cdot \kappa \nabla d \right),
 \end{equation}
-where $L = (g_c \tilde\eta)^{-1}$ and $\kappa = 2g_cl/c_0$.The $\tilde\eta = \eta/g_c$ is scaled by the $g_c$ which is consistent with the definition given by Miehe at.al [cite:Miehe2015].
+where $L = (g_c \tilde\eta)^{-1}$ and $\kappa = 2g_cl/c_0$.The $\tilde\eta = \eta/g_c$ is scaled by the $g_c$ which is consistent with the definition given by Miehe at.al [!cite](Miehe2015).
 
 This equation follows the standard Allen-Cahn and thus can be implemented in MOOSE using the standard
 Allen-Cahn kernels, TimeDerivative, AllenCahn, and ACInterface. There is now an action that automatically generates these kernels:
 NonconservedAction. See the +PhaseField module documentation+ for more information.
 
+## Pressure on the fracture surface
 
-## Example Input File Syntax
+As suggested by [!cite](CHUKWUDOZIE2019957), the work of pressure forces acting along each side of the cracks that is added to the total free energy can be approximated by
+\begin{equation}
+\int_{\Gamma}p(\mathbf{u}\cdot \mathbf{n})ds \approx \int_{\Omega}p(\mathbf{u}\cdot\nabla d)
+\end{equation}
+
+Integration by parts yields
+\begin{equation}
+-\int_{\Omega}p(\mathbf{u}\cdot\nabla d) = \int_{\Omega}pd\nabla\cdot\mathbf{u}-\int_{\partial{\Omega}}pd(\mathbf{u}\cdot\mathbf{n})
+\end{equation}
+
+The boundary integral term can be neglected as in most applications $d=0$ on $\partial\Omega$. Some authors [!cite](Mikelic2019) have proposed to replace the indicator function $d$ with $d^2$ in the first term in order to make the functional convex. The indicator function is implemented as a generic material object that can be easily provided and modified in an input file.
+The stress equilibrium and damage evolution equations are also modified to account for the pressure contribution.
+
+## PETSc SNES variational inequalities solver option
+
+Alternatively, the damage irreversibility condition can be enforced by using PETSc's SNES variational inequalities (VI) solver. In order to use PETSc's VI solver, upper and lower bounds for damage variable should be provided. Specifically, [`ConstantBoundsAux`](/ConstantBoundsAux.md) can be used to set the upper bound to be 1. [`VariableOldValueBoundsAux`](/VariableOldValueBoundsAux.md) can be used to set the lower bound to be the old value. Note that in order for these bounds to have an effect, the user has to specify the
+PETSc options `-snes_type vinewtonssls` or `-snes_type vinewtonrsls`.
+
+## Example Input File
 
 !listing modules/combined/test/tests/phase_field_fracture/crack2d_iso.i
          block=Materials/damage_stress
 
-!syntax parameters /Materials/ComputeLinearElasticPFFractureStress
+## Example Input File with pressure
 
-!syntax inputs /Materials/ComputeLinearElasticPFFractureStress
+!listing modules/combined/test/tests/phase_field_fracture/crack2d_iso_with_pressure.i
+         block=Materials/damage_stress
 
-!syntax children /Materials/ComputeLinearElasticPFFractureStress
+!listing modules/combined/test/tests/phase_field_fracture/crack2d_iso_with_pressure.i
+				 block=Materials/pfbulkmat
+
 
 !bibtex bibliography

@@ -11,11 +11,10 @@
 
 registerMooseObject("RdgTestApp", TestBoundaryFlux);
 
-template <>
 InputParameters
-validParams<TestBoundaryFlux>()
+TestBoundaryFlux::validParams()
 {
-  InputParameters params = validParams<BoundaryFluxBase>();
+  InputParameters params = BoundaryFluxBase::validParams();
   params.addClassDescription("Boundary flux used for testing");
   return params;
 }

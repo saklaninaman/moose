@@ -14,11 +14,10 @@
 
 registerMooseAction("TensorMechanicsApp", CoupledPressureAction, "add_bc");
 
-template <>
 InputParameters
-validParams<CoupledPressureAction>()
+CoupledPressureAction::validParams()
 {
-  InputParameters params = validParams<Action>();
+  InputParameters params = Action::validParams();
   params.addClassDescription("Set up Coupled Pressure boundary conditions");
 
   params.addRequiredParam<std::vector<BoundaryName>>(

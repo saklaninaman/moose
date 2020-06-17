@@ -23,6 +23,8 @@ InputParameters validParams<ConcentricCircleMeshGenerator>();
 class ConcentricCircleMeshGenerator : public MeshGenerator
 {
 public:
+  static InputParameters validParams();
+
   ConcentricCircleMeshGenerator(const InputParameters & parameters);
 
   std::unique_ptr<MeshBase> generate() override;
@@ -36,9 +38,6 @@ protected:
 
   /// Number of rings in each circle or in the enclosing square
   std::vector<unsigned int> _rings;
-
-  /// Size of inner square in relation to radius of the innermost concentric circle
-  Real _inner_mesh_fraction;
 
   /// Adding the enclosing square is optional
   bool _has_outer_square;

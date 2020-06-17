@@ -11,11 +11,10 @@
 
 registerMooseObject("SolidMechanicsApp", Elastic);
 
-template <>
 InputParameters
-validParams<Elastic>()
+Elastic::validParams()
 {
-  InputParameters params = validParams<SolidModel>();
+  InputParameters params = SolidModel::validParams();
   params.addClassDescription("A simple hypo-elastic model");
   return params;
 }

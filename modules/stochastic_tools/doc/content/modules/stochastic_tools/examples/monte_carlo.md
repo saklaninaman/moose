@@ -10,9 +10,9 @@ The first step is to define the simulation to perform, in this case the simulati
 transient diffusion equation with Dirichlet boundary conditions on each end of the domain: find $u$
 such that
 
-\begin{equation}
+!equation
 \frac{\partial u}{\partial t} + \frac{\partial^2 u}{\partial x^2} = 0 \quad x \in [0,1],
-\end{equation}
+
 where $u(0) = U(0, 0.5)$, $u(1) = U(1,2)$, and $U(a,b)$ defines a
 [continuous uniform distribution](https://en.wikipedia.org/wiki/Uniform_distribution_%28continuous%29)
 with $a$ and $b$ defining the lower and upper limits of the distribution, respectively.
@@ -52,7 +52,7 @@ creates and runs a sub-application for each sample provided by the sampler objec
 
 !listing modules/stochastic_tools/test/tests/transfers/monte_carlo/monte_carlo.i block=MultiApps
 
-Finally, the [SamplerTransfer](/SamplerTransfer.md) is utilized to communicate the
+Finally, the [SamplerParameterTransfer](/SamplerParameterTransfer.md) is utilized to communicate the
 sampler data to the sub-application. The 'parameters' input lists the parameters on the
 sub-applications to perturb and the 'to_control' specifies the
 [SamplerReceiver](/SamplerReceiver.md) object in the sub-application.

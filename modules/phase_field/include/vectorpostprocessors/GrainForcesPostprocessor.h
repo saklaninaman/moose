@@ -12,11 +12,7 @@
 #include "GeneralVectorPostprocessor.h"
 
 // Forward Declarations
-class GrainForcesPostprocessor;
 class GrainForceAndTorqueInterface;
-
-template <>
-InputParameters validParams<GrainForcesPostprocessor>();
 
 /**
  *  GrainForcesPostprocessor is a type of VectorPostprocessor that outputs the
@@ -25,6 +21,8 @@ InputParameters validParams<GrainForcesPostprocessor>();
 class GrainForcesPostprocessor : public GeneralVectorPostprocessor
 {
 public:
+  static InputParameters validParams();
+
   GrainForcesPostprocessor(const InputParameters & parameters);
 
   virtual ~GrainForcesPostprocessor() {}
@@ -44,4 +42,3 @@ protected:
   /// total no. of grains
   unsigned int _grain_num;
 };
-

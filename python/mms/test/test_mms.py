@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -34,6 +34,13 @@ class TestMMS(unittest.TestCase):
                             'p(0)*p(1)*std::sin(p(0)*p(1)*t) - p(0)*t*_u(1)*std::sin(p(0)*p(1)*t) ' \
                             '- std::pow(p(1), 2)*_r*std::pow(t, 2)*std::cos(p(0)*p(1)*t) - ' \
                             'p(1)*t*_u(0)*std::sin(p(0)*p(1)*t)')
+
+    def testCylindricalEvaluate(self):
+        f,_ = mms.evaluate('div(u)', 'r*phi*z*(e_i+e_j+e_k)', transformation='cylindrical',
+                           coordinate_names=('r','phi','z'))
+        s = mms.fparser(f)
+
+        self.assertEqual(s, 'phi*r + 2*phi*z + z')
 
     def testEvaluateWithScalarFunction(self):
         f, _ = mms.evaluate('diff(h*u, t)', 'cos(x*t)', functions=['h'])
@@ -71,26 +78,26 @@ class TestMMS(unittest.TestCase):
         try:
             mms.evaluate('div(h*u)', 'cos(x*t)*e_i', scalars=['R'], h='k*x*x')
         except SyntaxError as e:
-            self.assertIn("name 'R'", e.message)
+            self.assertIn("name 'R'", str(e))
 
         try:
             mms.evaluate('div(h*u)', 'cos(x*t)*e_i', scalars=['x'], h='k*x*x')
         except SyntaxError as e:
-            self.assertIn("name 'x'", e.message)
+            self.assertIn("name 'x'", str(e))
 
         try:
             mms.evaluate('div(h*u)', 'cos(x*t)*e_i', scalars=['t'], h='k*x*x')
         except SyntaxError as e:
-            self.assertIn("name 't'", e.message)
+            self.assertIn("name 't'", str(e))
 
         try:
             mms.evaluate('div(h*u)', 'cos(x*t)*e_i', scalars=['e_k'], h='k*x*x')
         except SyntaxError as e:
-            self.assertIn("name 'e_k'", e.message)
+            self.assertIn("name 'e_k'", str(e))
 
     def testHit(self):
         f,s = mms.evaluate('a*div(k*grad(u))', 'x**3', scalars=['k', 'a'])
-        n = str(mms.build_hit(f, 'force', a=42))
+        n = mms.build_hit(f, 'force', a=42).render()
 
         self.assertIn('[force]', n)
         self.assertIn('type = ParsedFunction', n)

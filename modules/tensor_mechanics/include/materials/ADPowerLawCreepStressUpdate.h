@@ -11,11 +11,6 @@
 
 #include "ADRadialReturnCreepStressUpdateBase.h"
 
-template <ComputeStage compute_stage>
-class ADPowerLawCreepStressUpdate;
-
-declareADValidParams(ADPowerLawCreepStressUpdate);
-
 /**
  * This class uses the stress update material in a radial return isotropic creep
  * model.  This class is one of the basic radial return constitutive models; more complex
@@ -26,11 +21,12 @@ declareADValidParams(ADPowerLawCreepStressUpdate);
  * creep based on stress, temperature, and time effects.  This class also
  * computes the creep strain as a stateful material property.
  */
-template <ComputeStage compute_stage>
-class ADPowerLawCreepStressUpdate : public ADRadialReturnCreepStressUpdateBase<compute_stage>
+class ADPowerLawCreepStressUpdate : public ADRadialReturnCreepStressUpdateBase
 {
 public:
-  ADPowerLawCreepStressUpdate<compute_stage>(const InputParameters & parameters);
+  static InputParameters validParams();
+
+  ADPowerLawCreepStressUpdate(const InputParameters & parameters);
 
 protected:
   virtual void computeStressInitialize(const ADReal & effective_trial_stress,
@@ -66,6 +62,4 @@ protected:
 
   /// Exponential calculated from current time
   Real _exp_time;
-
-  usingRadialReturnCreepStressUpdateBaseMembers;
 };

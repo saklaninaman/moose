@@ -12,11 +12,10 @@
 
 registerMooseObject("PhaseFieldApp", RndBoundingBoxIC);
 
-template <>
 InputParameters
-validParams<RndBoundingBoxIC>()
+RndBoundingBoxIC::validParams()
 {
-  InputParameters params = validParams<InitialCondition>();
+  InputParameters params = InitialCondition::validParams();
   params.addClassDescription(
       "Random noise with different min/max inside/outside of a bounding box");
 

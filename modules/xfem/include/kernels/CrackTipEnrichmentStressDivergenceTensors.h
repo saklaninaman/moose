@@ -16,10 +16,6 @@
 #include "EnrichmentFunctionCalculation.h"
 
 // Forward Declarations
-class CrackTipEnrichmentStressDivergenceTensors;
-
-template <>
-InputParameters validParams<CrackTipEnrichmentStressDivergenceTensors>();
 
 /**
  * CrackTipEnrichmentStressDivergenceTensors implements the residual and jacobian for enrichement
@@ -30,6 +26,8 @@ class CrackTipEnrichmentStressDivergenceTensors : public ALEKernel,
                                                   public EnrichmentFunctionCalculation
 {
 public:
+  static InputParameters validParams();
+
   CrackTipEnrichmentStressDivergenceTensors(const InputParameters & parameters);
 
 protected:
@@ -71,4 +69,3 @@ private:
   /// enrichment function at node J
   std::vector<Real> _BJ;
 };
-

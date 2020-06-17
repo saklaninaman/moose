@@ -9,24 +9,25 @@
 
 #include "ADCoupledTimeDerivative.h"
 
-registerADMooseObject("MooseApp", ADCoupledTimeDerivative);
+registerMooseObject("MooseApp", ADCoupledTimeDerivative);
 
-defineADValidParams(
-    ADCoupledTimeDerivative,
-    ADKernelValue,
-    params.addClassDescription("Time derivative Kernel that acts on a coupled variable. Weak form: "
-                               "$(\\psi_i, \\frac{\\partial v_h}{\\partial t})$.");
-    params.addRequiredCoupledVar("v", "Coupled variable"););
+InputParameters
+ADCoupledTimeDerivative::validParams()
+{
+  auto params = ADKernelValue::validParams();
+  params.addClassDescription("Time derivative Kernel that acts on a coupled variable. Weak form: "
+                             "$(\\psi_i, \\frac{\\partial v_h}{\\partial t})$.");
+  params.addRequiredCoupledVar("v", "Coupled variable");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADCoupledTimeDerivative<compute_stage>::ADCoupledTimeDerivative(const InputParameters & parameters)
-  : ADKernelValue<compute_stage>(parameters), _v_dot(adCoupledDot("v"))
+ADCoupledTimeDerivative::ADCoupledTimeDerivative(const InputParameters & parameters)
+  : ADKernelValue(parameters), _v_dot(adCoupledDot("v"))
 {
 }
 
-template <ComputeStage compute_stage>
 ADReal
-ADCoupledTimeDerivative<compute_stage>::precomputeQpResidual()
+ADCoupledTimeDerivative::precomputeQpResidual()
 {
   return _v_dot[_qp];
 }

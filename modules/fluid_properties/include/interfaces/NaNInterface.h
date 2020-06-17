@@ -12,11 +12,6 @@
 #include "InputParameters.h"
 #include "MooseObject.h"
 
-class NaNInterface;
-
-template <>
-InputParameters validParams<NaNInterface>();
-
 /**
  * Interface class for producing errors, warnings, or just quiet NaNs
  *
@@ -27,6 +22,8 @@ InputParameters validParams<NaNInterface>();
 class NaNInterface
 {
 public:
+  static InputParameters validParams();
+
   NaNInterface(const MooseObject * moose_object);
 
 protected:
@@ -43,10 +40,23 @@ protected:
   const enum NaNMessage _emit_on_nan;
 
   /**
-   * Produces errors, warnings, or just quiet NaNs
+   * Throws an error or returns a NaN with or without a warning, with a default message
    */
   Real getNaN() const { return getNaN("A NaN was produced."); }
 
+  /**
+   * Throws an error or returns NaNs with or without a warning, with a default message
+   *
+   * @param[in] n   Vector size
+   */
+  std::vector<Real> getNaNVector(const unsigned int & n) const
+  {
+    return getNaNVector(n, "A NaN was produced.");
+  }
+
+  /**
+   * Throws an error or returns a NaN with or without a warning
+   */
   template <typename... Args>
   Real getNaN(Args &&... args) const
   {
@@ -64,5 +74,27 @@ protected:
     // return a quiet NaN
     return std::nan("");
   }
-};
 
+  /**
+   * Throws an error or returns NaNs with or without a warning
+   *
+   * @param[in] n   Vector size
+   */
+  template <typename... Args>
+  std::vector<Real> getNaNVector(const unsigned int & n, Args &&... args) const
+  {
+    switch (_emit_on_nan)
+    {
+      case (NAN_MESSAGE_WARNING):
+        mooseWarning(_moose_object->name(), ": ", std::forward<Args>(args)...);
+        break;
+      case (NAN_MESSAGE_ERROR):
+        mooseError(_moose_object->name(), ": ", std::forward<Args>(args)...);
+        break;
+      default:
+        break;
+    }
+    // return quiet NaNs
+    return std::vector<Real>(n, std::nan(""));
+  }
+};

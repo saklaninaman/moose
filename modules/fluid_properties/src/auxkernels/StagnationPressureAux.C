@@ -12,11 +12,10 @@
 
 registerMooseObject("FluidPropertiesApp", StagnationPressureAux);
 
-template <>
 InputParameters
-validParams<StagnationPressureAux>()
+StagnationPressureAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   params.addRequiredCoupledVar("e", "Specific internal energy");
   params.addRequiredCoupledVar("v", "Specific volume");
   params.addRequiredCoupledVar("vel", "Velocity");

@@ -11,11 +11,6 @@
 
 #include "PorousFlowMaterialBase.h"
 
-class PorousFlowRelativePermeabilityBase;
-
-template <>
-InputParameters validParams<PorousFlowRelativePermeabilityBase>();
-
 /**
  * Base class for PorousFlow relative permeability materials. All materials
  * that derive from this class must override relativePermeability() and
@@ -24,6 +19,8 @@ InputParameters validParams<PorousFlowRelativePermeabilityBase>();
 class PorousFlowRelativePermeabilityBase : public PorousFlowMaterialBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowRelativePermeabilityBase(const InputParameters & parameters);
 
 protected:
@@ -71,4 +68,3 @@ protected:
   /// Derivative of effective saturation with respect to saturation
   const Real _dseff_ds;
 };
-

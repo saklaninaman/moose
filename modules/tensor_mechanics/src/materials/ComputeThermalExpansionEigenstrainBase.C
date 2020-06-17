@@ -10,11 +10,10 @@
 #include "ComputeThermalExpansionEigenstrainBase.h"
 #include "RankTwoTensor.h"
 
-template <>
 InputParameters
-validParams<ComputeThermalExpansionEigenstrainBase>()
+ComputeThermalExpansionEigenstrainBase::validParams()
 {
-  InputParameters params = validParams<ComputeEigenstrainBase>();
+  InputParameters params = ComputeEigenstrainBase::validParams();
   params.addCoupledVar("temperature", "Coupled temperature");
   params.addRequiredCoupledVar("stress_free_temperature",
                                "Reference temperature at which there is no "
@@ -37,6 +36,8 @@ void
 ComputeThermalExpansionEigenstrainBase::computeQpEigenstrain()
 {
   Real thermal_strain = 0.0;
+
+  // instantaneous_cte is just the derivative of thermal_strain with respect to temperature
   Real instantaneous_cte = 0.0;
 
   computeThermalStrain(thermal_strain, instantaneous_cte);

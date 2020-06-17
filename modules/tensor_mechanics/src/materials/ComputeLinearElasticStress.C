@@ -11,11 +11,10 @@
 
 registerMooseObject("TensorMechanicsApp", ComputeLinearElasticStress);
 
-template <>
 InputParameters
-validParams<ComputeLinearElasticStress>()
+ComputeLinearElasticStress::validParams()
 {
-  InputParameters params = validParams<ComputeStressBase>();
+  InputParameters params = ComputeStressBase::validParams();
   params.addClassDescription("Compute stress using elasticity for small strains");
   return params;
 }

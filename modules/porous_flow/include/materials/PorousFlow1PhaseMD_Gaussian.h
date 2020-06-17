@@ -11,11 +11,6 @@
 
 #include "PorousFlowVariableBase.h"
 
-class PorousFlow1PhaseMD_Gaussian;
-
-template <>
-InputParameters validParams<PorousFlow1PhaseMD_Gaussian>();
-
 /**
  * Material designed to calculate fluid-phase porepressure and saturation
  * for the single-phase situation, assuming a Gaussian capillary suction
@@ -25,6 +20,8 @@ InputParameters validParams<PorousFlow1PhaseMD_Gaussian>();
 class PorousFlow1PhaseMD_Gaussian : public PorousFlowVariableBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlow1PhaseMD_Gaussian(const InputParameters & parameters);
 
 protected:
@@ -63,4 +60,3 @@ protected:
 
   virtual void buildPS();
 };
-

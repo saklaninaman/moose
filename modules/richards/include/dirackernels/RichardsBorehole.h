@@ -16,11 +16,6 @@
 #include "RichardsRelPerm.h"
 #include "RichardsSeff.h"
 
-class RichardsBorehole;
-
-template <>
-InputParameters validParams<RichardsBorehole>();
-
 /**
  * Approximates a borehole by a sequence of Dirac Points
  */
@@ -36,6 +31,8 @@ public:
    * It also calculates segment-lengths and rotation matrices
    * needed for computing the borehole well constant
    */
+  static InputParameters validParams();
+
   RichardsBorehole(const InputParameters & parameters);
 
   /**
@@ -153,4 +150,3 @@ protected:
    */
   Real jac(unsigned int wrt_num);
 };
-

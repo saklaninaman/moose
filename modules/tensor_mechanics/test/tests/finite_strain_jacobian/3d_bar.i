@@ -1,33 +1,34 @@
 [Mesh]
-  type = GeneratedMesh
-  dim = 3
-  xmin = 0
-  xmax = 2
-  ymin = 0
-  ymax = 2
-  zmin = 0
-  zmax = 10
-  nx = 10
-  ny = 2
-  nz = 2
-  elem_type = HEX8
+  [generated_mesh]
+    type = GeneratedMeshGenerator
+    dim = 3
+    xmin = 0
+    xmax = 2
+    ymin = 0
+    ymax = 2
+    zmin = 0
+    zmax = 10
+    nx = 10
+    ny = 2
+    nz = 2
+    elem_type = HEX8
+  []
+  [corner]
+    type = ExtraNodesetGenerator
+    new_boundary = 101
+    coord = '0 0 0'
+    input = generated_mesh
+  []
+  [side]
+    type = ExtraNodesetGenerator
+    new_boundary = 102
+    coord = '2 0 0'
+    input = corner
+  []
 []
 
 [GlobalParams]
   displacements = 'disp_x disp_y disp_z'
-[]
-
-[MeshModifiers]
-  [./corner]
-    type = AddExtraNodeset
-    new_boundary = 101
-    coord = '0 0 0'
-  [../]
-  [./side]
-    type = AddExtraNodeset
-    new_boundary = 102
-    coord = '2 0 0'
-  [../]
 []
 
 [Modules/TensorMechanics/Master]
@@ -52,31 +53,31 @@
 
 [BCs]
  [./fix_corner_x]
-   type = PresetBC
+   type = DirichletBC
    variable = disp_x
    boundary = 101
    value = 0
  [../]
  [./fix_corner_y]
-   type = PresetBC
+   type = DirichletBC
    variable = disp_y
    boundary = 101
    value = 0
  [../]
  [./fix_side_y]
-   type = PresetBC
+   type = DirichletBC
    variable = disp_y
    boundary = 102
    value = 0
  [../]
  [./fix_z]
-   type = PresetBC
+   type = DirichletBC
    variable = disp_z
    boundary = back
    value = 0
  [../]
  [./move_z]
-   type = FunctionPresetBC
+   type = FunctionDirichletBC
    variable = disp_z
    boundary = front
    function = 't'

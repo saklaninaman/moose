@@ -11,17 +11,14 @@
 
 #include "ElementUserObject.h"
 
-class CrackFrontPointsProvider;
-
-template <>
-InputParameters validParams<CrackFrontPointsProvider>();
-
 /**
  * Base class for crack front points provider
  */
 class CrackFrontPointsProvider : public ElementUserObject
 {
 public:
+  static InputParameters validParams();
+
   CrackFrontPointsProvider(const InputParameters & parameters);
 
   /** get a set of points along a crack front from a XFEM GeometricCutUserObject
@@ -30,4 +27,3 @@ public:
   virtual const std::vector<Point>
   getCrackFrontPoints(unsigned int /*num_crack_front_points*/) const = 0;
 };
-

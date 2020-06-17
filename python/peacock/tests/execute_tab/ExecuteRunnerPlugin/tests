@@ -1,7 +1,7 @@
 [Tests]
-  [./ExecuteRunnerPlugin]
+  [ExecuteRunnerPlugin]
     type = PythonUnitTest
     input = test_ExecuteRunnerPlugin.py
-    display_required = True    
-  [../]
+    display_required = true
+  []
 []

@@ -1,7 +1,7 @@
 [Tests]
-  [./BlockEditor]
+  [BlockEditor]
     type = PythonUnitTest
     input = test_BlockEditor.py
-    display_required = True
-  [../]
+    display_required = true
+  []
 []

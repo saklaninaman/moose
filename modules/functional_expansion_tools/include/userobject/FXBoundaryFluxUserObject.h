@@ -11,17 +11,14 @@
 
 #include "FXBoundaryBaseUserObject.h"
 
-class FXBoundaryFluxUserObject;
-
-template <>
-InputParameters validParams<FXBoundaryFluxUserObject>();
-
 /**
  * This boundary FX evaluator calculates the flux
  */
 class FXBoundaryFluxUserObject final : public FXBoundaryBaseUserObject
 {
 public:
+  static InputParameters validParams();
+
   FXBoundaryFluxUserObject(const InputParameters & parameters);
 
 protected:
@@ -34,4 +31,3 @@ protected:
   /// Value of the diffusivity
   const MaterialProperty<Real> & _diffusivity;
 };
-

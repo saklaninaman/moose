@@ -13,11 +13,6 @@
 #include "DerivativeMaterialInterface.h"
 #include "RankTwoTensor.h"
 
-class StressBasedChemicalPotential;
-
-template <>
-InputParameters validParams<StressBasedChemicalPotential>();
-
 /**
  * StressBasedChemicalPotential computes chemical potential based on stress and
  * a direction tensor
@@ -26,6 +21,8 @@ InputParameters validParams<StressBasedChemicalPotential>();
 class StressBasedChemicalPotential : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   StressBasedChemicalPotential(const InputParameters & parameters);
 
 protected:
@@ -35,10 +32,10 @@ protected:
   MaterialProperty<Real> & _chemical_potential;
   MaterialProperty<Real> * _dchemical_potential;
 
+  /// The old stress tensor
   const MaterialProperty<RankTwoTensor> & _stress_old;
   const MaterialProperty<RealTensorValue> & _direction_tensor;
   const MaterialProperty<Real> & _prefactor;
   const MaterialProperty<Real> * _dprefactor_dc;
   bool _has_coupled_c;
 };
-

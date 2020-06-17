@@ -12,11 +12,7 @@
 #include "NodalBC.h"
 
 // Forward Declarations
-class RichardsExcav;
 class Function;
-
-template <>
-InputParameters validParams<RichardsExcav>();
 
 /**
  * Allows specification of Dirichlet BCs on an evolving boundary
@@ -27,6 +23,8 @@ InputParameters validParams<RichardsExcav>();
 class RichardsExcav : public NodalBC
 {
 public:
+  static InputParameters validParams();
+
   RichardsExcav(const InputParameters & parameters);
 
 protected:

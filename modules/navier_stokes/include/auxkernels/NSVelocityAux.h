@@ -12,10 +12,6 @@
 #include "AuxKernel.h"
 
 // Forward Declarations
-class NSVelocityAux;
-
-template <>
-InputParameters validParams<NSVelocityAux>();
 
 /**
  * Velocity auxiliary value
@@ -27,6 +23,8 @@ public:
    * Factory constructor, takes parameters so that all derived classes can be built using the same
    * constructor.
    */
+  static InputParameters validParams();
+
   NSVelocityAux(const InputParameters & parameters);
 
   virtual ~NSVelocityAux() {}
@@ -37,4 +35,3 @@ protected:
   const VariableValue & _rho;
   const VariableValue & _momentum;
 };
-

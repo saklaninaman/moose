@@ -8,6 +8,7 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 // Moose
+#include "DenseMatrix.h"
 #include "FindContactPoint.h"
 #include "LineSegment.h"
 #include "PenetrationInfo.h"
@@ -18,7 +19,6 @@
 #include "libmesh/elem.h"
 #include "libmesh/plane.h"
 #include "libmesh/fe_interface.h"
-#include "libmesh/dense_matrix.h"
 #include "libmesh/dense_vector.h"
 #include "libmesh/fe_base.h"
 #include "libmesh/vector_value.h"
@@ -74,9 +74,11 @@ findContactPoint(PenetrationInfo & p_info,
     p_info._closest_point_ref =
         master_elem->master_point(master_elem->get_node_index(nearest_node));
     std::vector<Point> elem_points = {p_info._closest_point_ref};
-    fe_elem->reinit(master_elem, &elem_points);
 
     const std::vector<RealGradient> & elem_dxyz_dxi = fe_elem->get_dxyzdxi();
+
+    fe_elem->reinit(master_elem, &elem_points);
+
     p_info._normal = elem_dxyz_dxi[0];
     if (nearest_node->id() == master_elem->node_id(0))
       p_info._normal *= -1.0;

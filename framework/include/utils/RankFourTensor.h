@@ -10,10 +10,13 @@
 #pragma once
 
 #include "Moose.h"
-#include "DualReal.h"
+#include "ADRankTwoTensorForward.h"
+#include "ADRankFourTensorForward.h"
 
 #include "libmesh/libmesh.h"
 #include "libmesh/tuple_of.h"
+
+#include "metaphysicl/raw_type.h"
 
 #include <petscsys.h>
 
@@ -31,11 +34,9 @@ class VectorValue;
 
 // Forward declarations
 class MooseEnum;
-template <typename>
-class RankTwoTensorTempl;
-template <typename>
-class RankFourTensorTempl;
 
+namespace MathUtils
+{
 template <typename T>
 void mooseSetToZero(T & v);
 
@@ -44,9 +45,10 @@ void mooseSetToZero(T & v);
  * Needed by DerivativeMaterialInterface
  */
 template <>
-void mooseSetToZero<RankFourTensorTempl<Real>>(RankFourTensorTempl<Real> & v);
+void mooseSetToZero<RankFourTensor>(RankFourTensor & v);
 template <>
-void mooseSetToZero<RankFourTensorTempl<DualReal>>(RankFourTensorTempl<DualReal> & v);
+void mooseSetToZero<ADRankFourTensor>(ADRankFourTensor & v);
+}
 
 /**
  * RankFourTensorTempl is designed to handle any N-dimensional fourth order tensor, C.
@@ -121,6 +123,9 @@ public:
 
   /// Fill from vector
   RankFourTensorTempl(const std::vector<T> &, FillMethod);
+
+  /// Copy assignment operator must be defined if used
+  RankFourTensorTempl(const RankFourTensorTempl<T> & a) = default;
 
   /**
    * Copy constructor
@@ -413,8 +418,26 @@ protected:
   friend class RankThreeTensorTempl;
 };
 
-typedef RankFourTensorTempl<Real> RankFourTensor;
-typedef RankFourTensorTempl<DualReal> DualRankFourTensor;
+namespace MetaPhysicL
+{
+template <typename T>
+struct RawType<RankFourTensorTempl<T>>
+{
+  typedef RankFourTensorTempl<typename RawType<T>::value_type> value_type;
+
+  static value_type value(const RankFourTensorTempl<T> & in)
+  {
+    value_type ret;
+    for (unsigned int i = 0; i < LIBMESH_DIM; ++i)
+      for (unsigned int j = 0; j < LIBMESH_DIM; ++j)
+        for (unsigned int k = 0; k < LIBMESH_DIM; ++k)
+          for (unsigned int l = 0; l < LIBMESH_DIM; ++l)
+            ret(i, j, k, l) = raw_value(in(i, j, k, l));
+
+    return ret;
+  }
+};
+}
 
 template <typename T1, typename T2>
 inline auto operator*(const T1 & a, const RankFourTensorTempl<T2> & b) ->
@@ -459,7 +482,3 @@ RankFourTensorTempl<T>::operator/(const T2 & b) const ->
     result._vals[i] = _vals[i] / b;
   return result;
 }
-
-typedef RankFourTensorTempl<Real> RankFourTensor;
-typedef RankFourTensorTempl<DualReal> DualRankFourTensor;
-

@@ -11,14 +11,11 @@
 
 #include "MooseApp.h"
 
-class HeatConductionApp;
-
-template <>
-InputParameters validParams<HeatConductionApp>();
-
 class HeatConductionApp : public MooseApp
 {
 public:
+  static InputParameters validParams();
+
   HeatConductionApp(const InputParameters & parameters);
   virtual ~HeatConductionApp();
 
@@ -28,4 +25,3 @@ public:
   static void associateSyntax(Syntax & syntax, ActionFactory & action_factory);
   static void registerExecFlags(Factory & factory);
 };
-

@@ -11,20 +11,13 @@
 
 #include "ADKernelGrad.h"
 
-template <ComputeStage>
-class ADDiffusion;
-
-declareADValidParams(ADDiffusion);
-
-template <ComputeStage compute_stage>
-class ADDiffusion : public ADKernelGrad<compute_stage>
+class ADDiffusion : public ADKernelGrad
 {
 public:
+  static InputParameters validParams();
+
   ADDiffusion(const InputParameters & parameters);
 
 protected:
-  virtual ADVectorResidual precomputeQpResidual() override;
-
-  usingKernelGradMembers;
+  virtual ADRealVectorValue precomputeQpResidual() override;
 };
-

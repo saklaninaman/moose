@@ -12,11 +12,6 @@
 #include "TensorMechanicsPlasticModel.h"
 #include "TensorMechanicsHardeningModel.h"
 
-class TensorMechanicsPlasticWeakPlaneTensile;
-
-template <>
-InputParameters validParams<TensorMechanicsPlasticWeakPlaneTensile>();
-
 /**
  * Rate-independent associative weak-plane tensile failure
  * with hardening/softening of the tensile strength
@@ -24,6 +19,8 @@ InputParameters validParams<TensorMechanicsPlasticWeakPlaneTensile>();
 class TensorMechanicsPlasticWeakPlaneTensile : public TensorMechanicsPlasticModel
 {
 public:
+  static InputParameters validParams();
+
   TensorMechanicsPlasticWeakPlaneTensile(const InputParameters & parameters);
 
   virtual void activeConstraints(const std::vector<Real> & f,
@@ -60,4 +57,3 @@ protected:
   /// d(tensile strength)/d(internal_param) as a function of residual value, rate, and internal_param
   virtual Real dtensile_strength(const Real internal_param) const;
 };
-

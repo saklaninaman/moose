@@ -1,18 +1,18 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # MultiAppPostprocessorTransfer
 
-!alert construction title=Undocumented Class
-The MultiAppPostprocessorTransfer has not been documented. The content contained on this page includes the
-typical automatic documentation associated with a MooseObject; however, what is contained is
-ultimately determined by what is necessary to make the documentation clear for users.
-
 !syntax description /Transfers/MultiAppPostprocessorTransfer
+
+## Example Input File Syntax
+
+The MultiAppPostprocessorTransfer allows for a Postprocessor value to be transfer between the
+master application and sub-application(s). For example, the input file snippet below
+sets up a transfer of a Postprocessor value from the master application to a Postprocessor on
+each of the sub-applications.
+
+!listing multiapp_postprocessor_transfer/master.i block=Transfers
 
 !syntax parameters /Transfers/MultiAppPostprocessorTransfer
 
 !syntax inputs /Transfers/MultiAppPostprocessorTransfer
 
 !syntax children /Transfers/MultiAppPostprocessorTransfer
-
-!bibtex bibliography

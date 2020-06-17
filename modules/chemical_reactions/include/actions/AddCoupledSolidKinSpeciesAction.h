@@ -11,14 +11,11 @@
 
 #include "Action.h"
 
-class AddCoupledSolidKinSpeciesAction;
-
-template <>
-InputParameters validParams<AddCoupledSolidKinSpeciesAction>();
-
 class AddCoupledSolidKinSpeciesAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   AddCoupledSolidKinSpeciesAction(const InputParameters & params);
 
   virtual void act() override;
@@ -59,4 +56,3 @@ private:
   /// Actual system temperature
   const std::vector<VariableName> _sys_temp;
 };
-

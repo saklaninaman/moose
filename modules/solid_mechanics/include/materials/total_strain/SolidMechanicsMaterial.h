@@ -13,11 +13,7 @@
 #include "SymmElasticityTensor.h"
 
 // Forward Declarations
-class SolidMechanicsMaterial;
 class VolumetricModel;
-
-template <>
-InputParameters validParams<SolidMechanicsMaterial>();
 
 /**
  * SolidMechanics material for use in simple applications that don't need material properties.
@@ -25,6 +21,8 @@ InputParameters validParams<SolidMechanicsMaterial>();
 class SolidMechanicsMaterial : public Material
 {
 public:
+  static InputParameters validParams();
+
   SolidMechanicsMaterial(const InputParameters & parameters);
 
 protected:
@@ -68,4 +66,3 @@ protected:
     return getMaterialPropertyOld<T>(name);
   }
 };
-

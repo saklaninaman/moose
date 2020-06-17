@@ -14,10 +14,6 @@
 #include "RichardsDensity.h"
 
 // Forward Declarations
-class RichardsDensityAux;
-
-template <>
-InputParameters validParams<RichardsDensityAux>();
 
 /**
  * Fluid density as a function of porepressure
@@ -25,6 +21,8 @@ InputParameters validParams<RichardsDensityAux>();
 class RichardsDensityAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   RichardsDensityAux(const InputParameters & parameters);
 
 protected:
@@ -36,4 +34,3 @@ protected:
   /// userobject that defines density as a fcn of porepressure
   const RichardsDensity & _density_UO;
 };
-

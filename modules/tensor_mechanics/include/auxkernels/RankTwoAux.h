@@ -12,27 +12,25 @@
 #include "NodalPatchRecovery.h"
 #include "RankTwoTensor.h"
 
-class RankTwoAux;
-
 /**
  * RankTwoAux is designed to take the data in the RankTwoTensor material
  * property, for example stress or strain, and output the value for the
  * supplied indices.
  */
 
-template <>
-InputParameters validParams<RankTwoAux>();
-
-class RankTwoAux : public NodalPatchRecovery
+template <bool is_ad>
+class RankTwoAuxTempl : public NodalPatchRecovery
 {
 public:
-  RankTwoAux(const InputParameters & parameters);
+  static InputParameters validParams();
+
+  RankTwoAuxTempl(const InputParameters & parameters);
 
 protected:
   virtual Real computeValue();
 
 private:
-  const MaterialProperty<RankTwoTensor> & _tensor;
+  const GenericMaterialProperty<RankTwoTensor, is_ad> & _tensor;
   const unsigned int _i;
   const unsigned int _j;
 
@@ -43,3 +41,5 @@ private:
   const unsigned int _selected_qp;
 };
 
+typedef RankTwoAuxTempl<false> RankTwoAux;
+typedef RankTwoAuxTempl<true> ADRankTwoAux;

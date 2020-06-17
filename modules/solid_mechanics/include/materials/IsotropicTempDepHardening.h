@@ -14,14 +14,11 @@
 
 class PiecewiseLinear;
 
-class IsotropicTempDepHardening;
-
-template <>
-InputParameters validParams<IsotropicTempDepHardening>();
-
 class IsotropicTempDepHardening : public IsotropicPlasticity
 {
 public:
+  static InputParameters validParams();
+
   IsotropicTempDepHardening(const InputParameters & parameters);
 
 protected:

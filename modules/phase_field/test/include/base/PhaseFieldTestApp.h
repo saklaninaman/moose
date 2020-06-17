@@ -11,14 +11,11 @@
 
 #include "MooseApp.h"
 
-class PhaseFieldTestApp;
-
-template <>
-InputParameters validParams<PhaseFieldTestApp>();
-
 class PhaseFieldTestApp : public MooseApp
 {
 public:
+  static InputParameters validParams();
+
   PhaseFieldTestApp(InputParameters parameters);
   virtual ~PhaseFieldTestApp();
 
@@ -28,4 +25,3 @@ public:
   static void associateSyntax(Syntax & syntax, ActionFactory & action_factory);
   static void registerExecFlags(Factory & factory);
 };
-

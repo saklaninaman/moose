@@ -12,11 +12,10 @@
 
 registerMooseObject("TensorMechanicsApp", GBRelaxationStrainIncrement);
 
-template <>
 InputParameters
-validParams<GBRelaxationStrainIncrement>()
+GBRelaxationStrainIncrement::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   params.addClassDescription("Compute strain increment based on lattice relaxation at GB");
   params.addParam<MaterialPropertyName>("prefactor_name", "Name of prefactor property");
   params.addParam<MaterialPropertyName>("gb_normal_name", "Name of GB normal property");

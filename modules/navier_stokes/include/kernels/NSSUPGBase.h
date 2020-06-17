@@ -12,10 +12,6 @@
 #include "NSKernel.h"
 
 // Forward Declarations
-class NSSUPGBase;
-
-template <>
-InputParameters validParams<NSSUPGBase>();
 
 /**
  * This class acts as a base class for stabilization kernels.
@@ -25,6 +21,8 @@ InputParameters validParams<NSSUPGBase>();
 class NSSUPGBase : public NSKernel
 {
 public:
+  static InputParameters validParams();
+
   NSSUPGBase(const InputParameters & parameters);
 
 protected:
@@ -70,4 +68,3 @@ protected:
   // Enthalpy aux variable
   const VariableValue & _enthalpy;
 };
-

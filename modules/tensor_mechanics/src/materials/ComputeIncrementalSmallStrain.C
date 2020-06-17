@@ -13,11 +13,10 @@
 
 registerMooseObject("TensorMechanicsApp", ComputeIncrementalSmallStrain);
 
-template <>
 InputParameters
-validParams<ComputeIncrementalSmallStrain>()
+ComputeIncrementalSmallStrain::validParams()
 {
-  InputParameters params = validParams<ComputeIncrementalStrainBase>();
+  InputParameters params = ComputeIncrementalStrainBase::validParams();
   params.addClassDescription(
       "Compute a strain increment and rotation increment for small strains.");
   return params;

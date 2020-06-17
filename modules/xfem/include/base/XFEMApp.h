@@ -11,14 +11,11 @@
 
 #include "MooseApp.h"
 
-class XFEMApp;
-
-template <>
-InputParameters validParams<XFEMApp>();
-
 class XFEMApp : public MooseApp
 {
 public:
+  static InputParameters validParams();
+
   XFEMApp(const InputParameters & parameters);
   virtual ~XFEMApp();
 
@@ -30,4 +27,3 @@ public:
   static void registerExecFlags(Factory & factory);
   static void associateSyntaxDepends(Syntax & syntax, ActionFactory & action_factory);
 };
-

@@ -11,11 +11,10 @@
 
 registerMooseObject("NavierStokesApp", INSMomentumTractionFormRZ);
 
-template <>
 InputParameters
-validParams<INSMomentumTractionFormRZ>()
+INSMomentumTractionFormRZ::validParams()
 {
-  InputParameters params = validParams<INSMomentumTractionForm>();
+  InputParameters params = INSMomentumTractionForm::validParams();
   params.addClassDescription("This class computes additional momentum equation residual and "
                              "Jacobian contributions for the incompressible Navier-Stokes momentum "
                              "equation in RZ (axisymmetric cylindrical) coordinates.");

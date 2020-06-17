@@ -12,11 +12,6 @@
 #include "TimeDerivative.h"
 #include "PorousFlowDictator.h"
 
-class PorousFlowDesorpedMassTimeDerivative;
-
-template <>
-InputParameters validParams<PorousFlowDesorpedMassTimeDerivative>();
-
 /**
  * Kernel = (desorped_mass - desorped_mass_old)/dt
  * It is NOT lumped to the nodes
@@ -24,6 +19,8 @@ InputParameters validParams<PorousFlowDesorpedMassTimeDerivative>();
 class PorousFlowDesorpedMassTimeDerivative : public TimeKernel
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowDesorpedMassTimeDerivative(const InputParameters & parameters);
 
 protected:
@@ -62,4 +59,3 @@ protected:
    */
   Real computeQpJac(unsigned int jvar) const;
 };
-

@@ -11,12 +11,6 @@
 
 #include "CoupledTimeDerivative.h"
 
-// Forward Declaration
-class CoefCoupledTimeDerivative;
-
-template <>
-InputParameters validParams<CoefCoupledTimeDerivative>();
-
 /**
  * This calculates the time derivative for a coupled variable multiplied by a
  * scalar coefficient
@@ -24,6 +18,8 @@ InputParameters validParams<CoefCoupledTimeDerivative>();
 class CoefCoupledTimeDerivative : public CoupledTimeDerivative
 {
 public:
+  static InputParameters validParams();
+
   CoefCoupledTimeDerivative(const InputParameters & parameters);
 
 protected:
@@ -32,4 +28,3 @@ protected:
 
   const Real _coef;
 };
-

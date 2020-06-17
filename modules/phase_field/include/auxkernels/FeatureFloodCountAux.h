@@ -13,11 +13,7 @@
 #include "FeatureFloodCount.h"
 
 // Forward Declarations
-class FeatureFloodCountAux;
 class GrainTrackerInterface;
-
-template <>
-InputParameters validParams<FeatureFloodCountAux>();
 
 /**
  * Function auxiliary value
@@ -29,6 +25,8 @@ public:
    * Factory constructor, takes parameters so that all derived classes can be built using the same
    * constructor.
    */
+  static InputParameters validParams();
+
   FeatureFloodCountAux(const InputParameters & parameters);
 
   virtual ~FeatureFloodCountAux() {}
@@ -49,4 +47,3 @@ protected:
   /// precalculated element value
   Real _value;
 };
-

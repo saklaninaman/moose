@@ -1,18 +1,22 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # MultiAppPostprocessorInterpolationTransfer
 
-!alert construction title=Undocumented Class
-The MultiAppPostprocessorInterpolationTransfer has not been documented. The content contained on this page includes the
-typical automatic documentation associated with a MooseObject; however, what is contained is
-ultimately determined by what is necessary to make the documentation clear for users.
-
 !syntax description /Transfers/MultiAppPostprocessorInterpolationTransfer
+
+## Overview
+
+Performs a transfer of a PostProcessor value from sub-applications to a field variable on the
+master application using interpolation based on the location of each sub-application.
+
+## Example Input File Syntax
+
+The following input file snippet demonstrates the use of the
+MultiAppPostprocessorInterpolationTransfer to interpolate the average value from two sub-applications
+to a field variable in the master application.
+
+!listing multiapp_postprocessor_interpolation_transfer/master.i block=Transfers
 
 !syntax parameters /Transfers/MultiAppPostprocessorInterpolationTransfer
 
 !syntax inputs /Transfers/MultiAppPostprocessorInterpolationTransfer
 
 !syntax children /Transfers/MultiAppPostprocessorInterpolationTransfer
-
-!bibtex bibliography

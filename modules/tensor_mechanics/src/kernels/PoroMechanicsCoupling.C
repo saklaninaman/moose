@@ -16,14 +16,13 @@
 
 registerMooseObject("TensorMechanicsApp", PoroMechanicsCoupling);
 
-template <>
 InputParameters
-validParams<PoroMechanicsCoupling>()
+PoroMechanicsCoupling::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addClassDescription(
       "Adds $-Bi \\cdot p_s \\cdot \\nabla \\Psi_c$, where the subscript $c$ is the component.");
-  params.addRequiredCoupledVar("porepressure", "Porepressure, $p_s$.");
+  params.addRequiredCoupledVar("porepressure", "Pore pressure, $p_s$.");
   params.addRequiredParam<unsigned int>("component",
                                         "The gradient direction (0 for x, 1 for y and 2 for z)");
   return params;

@@ -11,17 +11,14 @@
 
 #include "AuxKernel.h"
 
-class SpecificVolumeAux;
-
-template <>
-InputParameters validParams<SpecificVolumeAux>();
-
 /**
  * Computes specific volume
  */
 class SpecificVolumeAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   SpecificVolumeAux(const InputParameters & parameters);
 
 protected:
@@ -31,4 +28,3 @@ protected:
   const VariableValue & _area;
   const VariableValue & _alpha;
 };
-

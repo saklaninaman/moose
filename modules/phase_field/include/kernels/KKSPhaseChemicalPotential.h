@@ -14,10 +14,6 @@
 #include "DerivativeMaterialInterface.h"
 
 // Forward Declarations
-class KKSPhaseChemicalPotential;
-
-template <>
-InputParameters validParams<KKSPhaseChemicalPotential>();
 
 /**
  * Enforce the equality of the chemical potentials in the two phases.
@@ -36,6 +32,8 @@ InputParameters validParams<KKSPhaseChemicalPotential>();
 class KKSPhaseChemicalPotential : public DerivativeMaterialInterface<JvarMapKernelInterface<Kernel>>
 {
 public:
+  static InputParameters validParams();
+
   KKSPhaseChemicalPotential(const InputParameters & parameters);
 
 protected:
@@ -57,5 +55,9 @@ private:
 
   std::vector<const MaterialProperty<Real> *> _d2fadcadarg;
   std::vector<const MaterialProperty<Real> *> _d2fbdcbdarg;
-};
 
+  ///@{ site fractions
+  const Real _ka;
+  const Real _kb;
+  ///@}
+};

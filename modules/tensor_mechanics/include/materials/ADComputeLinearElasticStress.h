@@ -11,25 +11,17 @@
 
 #include "ADComputeStressBase.h"
 
-#define usingComputeLinearElasticStressMembers                                                     \
-  usingComputeStressBaseMembers;                                                                   \
-  using ADComputeLinearElasticStress<compute_stage>::_elasticity_tensor;                           \
-  using ADComputeLinearElasticStress<compute_stage>::_elasticity_tensor_name;
-
-template <ComputeStage>
-class ADComputeLinearElasticStress;
-
-declareADValidParams(ADComputeLinearElasticStress);
-
 /**
  * ADComputeLinearElasticStress computes the stress following linear elasticity theory (small
  * strains)
  */
-template <ComputeStage compute_stage>
-class ADComputeLinearElasticStress : public ADComputeStressBase<compute_stage>
+class ADComputeLinearElasticStress : public ADComputeStressBase
 {
 public:
+  static InputParameters validParams();
+
   ADComputeLinearElasticStress(const InputParameters & parameters);
+
   virtual void initialSetup() override;
 
 protected:
@@ -38,8 +30,5 @@ protected:
   /// Name of the elasticity tensor material property
   const std::string _elasticity_tensor_name;
   /// Elasticity tensor material property
-  const ADMaterialProperty(RankFourTensor) & _elasticity_tensor;
-
-  usingComputeStressBaseMembers;
+  const ADMaterialProperty<RankFourTensor> & _elasticity_tensor;
 };
-

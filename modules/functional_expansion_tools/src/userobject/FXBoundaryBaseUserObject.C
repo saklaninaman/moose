@@ -9,13 +9,12 @@
 
 #include "FXBoundaryBaseUserObject.h"
 
-template <>
 InputParameters
-validParams<FXBoundaryBaseUserObject>()
+FXBoundaryBaseUserObject::validParams()
 {
-  InputParameters params = validParams<SideIntegralVariableUserObject>();
+  InputParameters params = SideIntegralVariableUserObject::validParams();
 
-  params += validParams<FXIntegralBaseUserObjectParameters>();
+  params += FXIntegralBaseUserObjectParameters::validParams();
 
   return params;
 }

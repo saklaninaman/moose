@@ -9,11 +9,10 @@
 
 #include "DerivativeMultiPhaseBase.h"
 
-template <>
 InputParameters
-validParams<DerivativeMultiPhaseBase>()
+DerivativeMultiPhaseBase::validParams()
 {
-  InputParameters params = validParams<DerivativeFunctionMaterialBase>();
+  InputParameters params = DerivativeFunctionMaterialBase::validParams();
 
   // Phase materials 1-n
   params.addRequiredParam<std::vector<MaterialPropertyName>>(

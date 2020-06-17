@@ -85,7 +85,7 @@
 
 [AuxKernels]
   [./stress_xx]
-    type = RankTwoAux
+    type = ADRankTwoAux
     rank_two_tensor = stress
     variable = stress_xx
     index_i = 0
@@ -93,7 +93,7 @@
   [../]
 
  [./elastic_strain_xx]
-    type = RankTwoAux
+    type = ADRankTwoAux
     rank_two_tensor = elastic_strain
     variable = elastic_strain_xx
     index_i = 0
@@ -104,25 +104,25 @@
 
 [BCs]
   [./u_left_fix]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_x
     boundary = left
     value = 0.0
   [../]
   [./u_bottom_fix]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_y
     boundary = bottom
     value = 0.0
   [../]
   [./u_back_fix]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_z
     boundary = back
     value = 0.0
   [../]
   [./u_pull_right]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_x
     boundary = right
     value = 0.001
@@ -131,6 +131,7 @@
   [./temp_bc_1]
     type = ADFunctionDirichletBC
     variable = temp
+    preset = false
     boundary = '1 2 3 4'
     function = temperature_function
   [../]

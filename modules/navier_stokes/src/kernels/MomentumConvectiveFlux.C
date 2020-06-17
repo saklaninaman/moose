@@ -11,11 +11,10 @@
 
 registerMooseObject("NavierStokesApp", MomentumConvectiveFlux);
 
-template <>
 InputParameters
-validParams<MomentumConvectiveFlux>()
+MomentumConvectiveFlux::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addRequiredCoupledVar("vel_x", "");
   params.addCoupledVar("vel_y", "");
   params.addCoupledVar("vel_z", "");

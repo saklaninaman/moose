@@ -14,11 +14,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowVolumetricStrain);
 
-template <>
 InputParameters
-validParams<PorousFlowVolumetricStrain>()
+PorousFlowVolumetricStrain::validParams()
 {
-  InputParameters params = validParams<PorousFlowMaterialVectorBase>();
+  InputParameters params = PorousFlowMaterialVectorBase::validParams();
   params.addRequiredCoupledVar(
       "displacements",
       "The displacements appropriate for the simulation geometry and coordinate system");

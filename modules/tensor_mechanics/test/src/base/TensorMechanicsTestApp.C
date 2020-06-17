@@ -13,11 +13,10 @@
 #include "AppFactory.h"
 #include "MooseSyntax.h"
 
-template <>
 InputParameters
-validParams<TensorMechanicsTestApp>()
+TensorMechanicsTestApp::validParams()
 {
-  InputParameters params = validParams<TensorMechanicsApp>();
+  InputParameters params = TensorMechanicsApp::validParams();
   return params;
 }
 

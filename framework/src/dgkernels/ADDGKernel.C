@@ -13,43 +13,100 @@
 #include "Problem.h"
 #include "SubProblem.h"
 #include "NonlinearSystemBase.h"
+#include "ADUtils.h"
 
 // libmesh includes
 #include "libmesh/threads.h"
 
-defineADBaseValidParams(ADDGKernel, DGKernelBase, );
+InputParameters
+ADDGKernel::validParams()
+{
+  InputParameters params = DGKernelBase::validParams();
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADDGKernel<compute_stage>::ADDGKernel(const InputParameters & parameters)
+ADDGKernel::ADDGKernel(const InputParameters & parameters)
   : DGKernelBase(parameters),
-    _u(_var.adSln<compute_stage>()),
-    _grad_u(_var.adGradSln<compute_stage>()),
-    _u_neighbor(_var.adSlnNeighbor<compute_stage>()),
-    _grad_u_neighbor(_var.adGradSlnNeighbor<compute_stage>())
+    NeighborMooseVariableInterface(
+        this, false, Moose::VarKindType::VAR_NONLINEAR, Moose::VarFieldType::VAR_FIELD_STANDARD),
+    _var(*mooseVariable()),
+    _phi(_assembly.phiFace(_var)),
+    _grad_phi(_assembly.gradPhiFace(_var)),
+
+    _test(_var.phiFace()),
+    _grad_test(_var.gradPhiFace()),
+
+    _phi_neighbor(_assembly.phiFaceNeighbor(_var)),
+    _grad_phi_neighbor(_assembly.gradPhiFaceNeighbor(_var)),
+
+    _test_neighbor(_var.phiFaceNeighbor()),
+    _grad_test_neighbor(_var.gradPhiFaceNeighbor()),
+
+    _u(_var.adSln()),
+    _grad_u(_var.adGradSln()),
+    _u_neighbor(_var.adSlnNeighbor()),
+    _grad_u_neighbor(_var.adGradSlnNeighbor())
 {
+  _subproblem.haveADObjects(true);
+
+  addMooseVariableDependency(mooseVariable());
+
+  _save_in.resize(_save_in_strings.size());
+  _diag_save_in.resize(_diag_save_in_strings.size());
+
+  for (unsigned int i = 0; i < _save_in_strings.size(); i++)
+  {
+    MooseVariableFEBase * var = &_subproblem.getVariable(_tid,
+                                                         _save_in_strings[i],
+                                                         Moose::VarKindType::VAR_AUXILIARY,
+                                                         Moose::VarFieldType::VAR_FIELD_STANDARD);
+
+    if (_sys.hasVariable(_save_in_strings[i]))
+      mooseError("Trying to use solution variable " + _save_in_strings[i] +
+                 " as a save_in variable in " + name());
+
+    if (var->feType() != _var.feType())
+      paramError(
+          "save_in",
+          "saved-in auxiliary variable is incompatible with the object's nonlinear variable: ",
+          moose::internal::incompatVarMsg(*var, _var));
+
+    _save_in[i] = var;
+    var->sys().addVariableToZeroOnResidual(_save_in_strings[i]);
+    addMooseVariableDependency(var);
+  }
+
+  _has_save_in = _save_in.size() > 0;
+
+  for (unsigned int i = 0; i < _diag_save_in_strings.size(); i++)
+  {
+    MooseVariableFEBase * var = &_subproblem.getVariable(_tid,
+                                                         _diag_save_in_strings[i],
+                                                         Moose::VarKindType::VAR_NONLINEAR,
+                                                         Moose::VarFieldType::VAR_FIELD_STANDARD);
+
+    if (_sys.hasVariable(_diag_save_in_strings[i]))
+      mooseError("Trying to use solution variable " + _diag_save_in_strings[i] +
+                 " as a diag_save_in variable in " + name());
+
+    if (var->feType() != _var.feType())
+      paramError(
+          "diag_save_in",
+          "saved-in auxiliary variable is incompatible with the object's nonlinear variable: ",
+          moose::internal::incompatVarMsg(*var, _var));
+
+    _diag_save_in[i] = var;
+    var->sys().addVariableToZeroOnJacobian(_diag_save_in_strings[i]);
+    addMooseVariableDependency(var);
+  }
+
+  _has_diag_save_in = _diag_save_in.size() > 0;
 }
 
-template <ComputeStage compute_stage>
-ADDGKernel<compute_stage>::~ADDGKernel()
-{
-}
+ADDGKernel::~ADDGKernel() {}
 
-template <ComputeStage compute_stage>
 void
-ADDGKernel<compute_stage>::computeResidual()
-{
-  DGKernelBase::computeResidual();
-}
-
-template <>
-void
-ADDGKernel<JACOBIAN>::computeResidual()
-{
-}
-
-template <ComputeStage compute_stage>
-void
-ADDGKernel<compute_stage>::computeElemNeighResidual(Moose::DGResidualType type)
+ADDGKernel::computeElemNeighResidual(Moose::DGResidualType type)
 {
   bool is_elem;
   if (type == Moose::Element)
@@ -66,7 +123,7 @@ ADDGKernel<compute_stage>::computeElemNeighResidual(Moose::DGResidualType type)
 
   for (_qp = 0; _qp < _qrule->n_points(); _qp++)
     for (_i = 0; _i < test_space.size(); _i++)
-      _local_re(_i) += _JxW[_qp] * _coord[_qp] * computeQpResidual(type);
+      _local_re(_i) += raw_value(_JxW[_qp] * _coord[_qp] * computeQpResidual(type));
 
   accumulateTaggedLocalResidual();
 
@@ -82,27 +139,8 @@ ADDGKernel<compute_stage>::computeElemNeighResidual(Moose::DGResidualType type)
   }
 }
 
-template <>
-void ADDGKernel<JACOBIAN>::computeElemNeighResidual(Moose::DGResidualType /*type*/)
-{
-}
-
-template <ComputeStage compute_stage>
 void
-ADDGKernel<compute_stage>::computeJacobian()
-{
-  DGKernelBase::computeJacobian();
-}
-
-template <>
-void
-ADDGKernel<RESIDUAL>::computeJacobian()
-{
-}
-
-template <ComputeStage compute_stage>
-void
-ADDGKernel<compute_stage>::computeElemNeighJacobian(Moose::DGJacobianType type)
+ADDGKernel::computeElemNeighJacobian(Moose::DGJacobianType type)
 {
   const VariableTestValue & test_space =
       (type == Moose::ElementElement || type == Moose::ElementNeighbor) ? _test : _test_neighbor;
@@ -114,12 +152,8 @@ ADDGKernel<compute_stage>::computeElemNeighJacobian(Moose::DGJacobianType type)
   else
     prepareMatrixTagNeighbor(_assembly, _var.number(), _var.number(), type);
 
-  size_t ad_offset = 0;
-  if (type == Moose::ElementElement || type == Moose::NeighborElement)
-    ad_offset = _var.number() * _sys.getMaxVarNDofsPerElem();
-  else
-    ad_offset = _var.number() * _sys.getMaxVarNDofsPerElem() +
-                (_sys.system().n_vars() * _sys.getMaxVarNDofsPerElem());
+  auto ad_offset =
+      Moose::adOffset(_var.number(), _sys.getMaxVarNDofsPerElem(), type, _sys.system().n_vars());
 
   for (_qp = 0; _qp < _qrule->n_points(); _qp++)
     for (_i = 0; _i < test_space.size(); _i++)
@@ -151,23 +185,8 @@ ADDGKernel<compute_stage>::computeElemNeighJacobian(Moose::DGJacobianType type)
   }
 }
 
-template <ComputeStage compute_stage>
 void
-ADDGKernel<compute_stage>::computeOffDiagJacobian(unsigned int jvar)
-{
-  DGKernelBase::computeOffDiagJacobian(jvar);
-}
-
-template <>
-void
-ADDGKernel<RESIDUAL>::computeOffDiagJacobian(unsigned int)
-{
-}
-
-template <ComputeStage compute_stage>
-void
-ADDGKernel<compute_stage>::computeOffDiagElemNeighJacobian(Moose::DGJacobianType type,
-                                                           unsigned int jvar)
+ADDGKernel::computeOffDiagElemNeighJacobian(Moose::DGJacobianType type, unsigned int jvar)
 {
   const VariableTestValue & test_space =
       (type == Moose::ElementElement || type == Moose::ElementNeighbor) ? _test : _test_neighbor;
@@ -179,12 +198,8 @@ ADDGKernel<compute_stage>::computeOffDiagElemNeighJacobian(Moose::DGJacobianType
   else
     prepareMatrixTagNeighbor(_assembly, _var.number(), jvar, type);
 
-  size_t ad_offset = 0;
-  if (type == Moose::ElementElement || type == Moose::NeighborElement)
-    ad_offset = jvar * _sys.getMaxVarNDofsPerElem();
-  else
-    ad_offset = jvar * _sys.getMaxVarNDofsPerElem() +
-                (_sys.system().n_vars() * _sys.getMaxVarNDofsPerElem());
+  auto ad_offset =
+      Moose::adOffset(jvar, _sys.getMaxVarNDofsPerElem(), type, _sys.system().n_vars());
 
   for (_qp = 0; _qp < _qrule->n_points(); _qp++)
     for (_i = 0; _i < test_space.size(); _i++)
@@ -198,5 +213,3 @@ ADDGKernel<compute_stage>::computeOffDiagElemNeighJacobian(Moose::DGJacobianType
 
   accumulateTaggedLocalMatrix();
 }
-
-adBaseClass(ADDGKernel);

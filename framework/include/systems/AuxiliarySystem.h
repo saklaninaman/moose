@@ -43,7 +43,6 @@ public:
   AuxiliarySystem(FEProblemBase & subproblem, const std::string & name);
   virtual ~AuxiliarySystem();
 
-  virtual void init() override;
   virtual void addExtraVectors() override;
 
   virtual void initialSetup();
@@ -53,11 +52,9 @@ public:
   virtual void jacobianSetup();
   virtual void updateActive(THREAD_ID tid);
 
-  virtual void addVariable(const std::string & var_name,
-                           const FEType & type,
-                           Real scale_factor,
-                           const std::set<SubdomainID> * const active_subdomains = NULL) override;
-
+  virtual void addVariable(const std::string & var_type,
+                           const std::string & name,
+                           InputParameters & parameters) override;
   /**
    * Add a time integrator
    * @param type Type of the integrator
@@ -66,7 +63,7 @@ public:
    */
   void addTimeIntegrator(const std::string & type,
                          const std::string & name,
-                         InputParameters parameters) override;
+                         InputParameters & parameters) override;
   using SystemBase::addTimeIntegrator;
 
   /**
@@ -81,8 +78,9 @@ public:
    * @param name The name of the kernel
    * @param parameters Parameters for this kernel
    */
-  void
-  addKernel(const std::string & kernel_name, const std::string & name, InputParameters parameters);
+  void addKernel(const std::string & kernel_name,
+                 const std::string & name,
+                 InputParameters & parameters);
 
   /**
    * Adds a scalar kernel
@@ -92,7 +90,7 @@ public:
    */
   void addScalarKernel(const std::string & kernel_name,
                        const std::string & name,
-                       InputParameters parameters);
+                       InputParameters & parameters);
 
   virtual void reinitElem(const Elem * elem, THREAD_ID tid) override;
   virtual void
@@ -159,17 +157,7 @@ public:
    */
   bool needMaterialOnSide(BoundaryID bnd_id);
 
-  NumericVector<Number> & solution() override { return *_sys.solution; }
-  NumericVector<Number> & solutionOld() override { return *_sys.old_local_solution; }
-  NumericVector<Number> & solutionOlder() override { return *_sys.older_local_solution; }
   NumericVector<Number> * solutionPreviousNewton() override { return _solution_previous_nl; }
-
-  const NumericVector<Number> & solution() const override { return *_sys.solution; }
-  const NumericVector<Number> & solutionOld() const override { return *_sys.old_local_solution; }
-  const NumericVector<Number> & solutionOlder() const override
-  {
-    return *_sys.older_local_solution;
-  }
   const NumericVector<Number> * solutionPreviousNewton() const override
   {
     return _solution_previous_nl;
@@ -186,7 +174,7 @@ public:
 
   void clearScalarVariableCoupleableTags();
 
-  // protected:
+protected:
   void computeScalarVars(ExecFlagType type);
   void computeNodalVars(ExecFlagType type);
   void computeNodalVecVars(ExecFlagType type);
@@ -213,8 +201,6 @@ public:
   NumericVector<Number> & _serialized_solution;
   /// Solution vector of the previous nonlinear iterate
   NumericVector<Number> * _solution_previous_nl;
-  /// Time integrator
-  std::shared_ptr<TimeIntegrator> _time_integrator;
   /// solution vector for u^dot
   NumericVector<Number> * _u_dot;
   /// solution vector for u^dotdot
@@ -224,6 +210,9 @@ public:
   NumericVector<Number> * _u_dot_old;
   /// Old solution vector for u^dotdot
   NumericVector<Number> * _u_dotdot_old;
+
+  /// The current states of the solution (0 = current, 1 = old, etc)
+  std::vector<NumericVector<Number> *> _solution_state;
 
   /// Whether or not a copy of the residual needs to be made
   bool _need_serialized_solution;
@@ -262,5 +251,11 @@ public:
   friend class ComputeNodalKernelBcsThread;
   friend class ComputeNodalKernelJacobiansThread;
   friend class ComputeNodalKernelBCJacobiansThread;
-};
 
+  NumericVector<Number> & solutionInternal() const override { return *_sys.solution; }
+  NumericVector<Number> & solutionOldInternal() const override { return *_sys.old_local_solution; }
+  NumericVector<Number> & solutionOlderInternal() const override
+  {
+    return *_sys.older_local_solution;
+  }
+};

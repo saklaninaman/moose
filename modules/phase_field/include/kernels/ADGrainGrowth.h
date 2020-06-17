@@ -11,32 +11,21 @@
 
 #include "ADGrainGrowthBase.h"
 
-#define usingGrainGrowthMembers                                                                    \
-  usingGrainGrowthBaseMembers;                                                                     \
-  using ADACInterface<compute_stage>::_gamma
-
-// Forward Declarations
-template <ComputeStage compute_stage>
-class ADGrainGrowth;
-
-declareADValidParams(ADGrainGrowth);
-
 /**
  * This kernel calculates the residual for grain growth for a single phase,
  * poly-crystal system. A single material property gamma_asymm is used for
  * the prefactor of the cross-terms between order parameters.
  * This is the AD version of ACGrGrPoly
  */
-template <ComputeStage compute_stage>
-class ADGrainGrowth : public ADGrainGrowthBase<compute_stage>
+class ADGrainGrowth : public ADGrainGrowthBase
 {
 public:
+  static InputParameters validParams();
+
   ADGrainGrowth(const InputParameters & parameters);
 
 protected:
   virtual ADReal computeDFDOP();
 
-  const ADMaterialProperty(Real) & _gamma;
-
-  usingGrainGrowthBaseMembers;
+  const ADMaterialProperty<Real> & _gamma;
 };

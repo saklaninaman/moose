@@ -9,15 +9,10 @@
 
 #pragma once
 
+#include "DenseMatrix.h"
 #include "FeatureFloodCount.h"
 
-#include "libmesh/dense_matrix.h"
-
 // Forward Declarations
-class PolycrystalUserObjectBase;
-
-template <>
-InputParameters validParams<PolycrystalUserObjectBase>();
 
 /**
  * This object provides the base capability for creating proper polycrystal ICs. It is
@@ -27,6 +22,8 @@ InputParameters validParams<PolycrystalUserObjectBase>();
 class PolycrystalUserObjectBase : public FeatureFloodCount
 {
 public:
+  static InputParameters validParams();
+
   PolycrystalUserObjectBase(const InputParameters & parameters);
 
   /**
@@ -170,5 +167,8 @@ private:
   std::vector<unsigned int> _prealloc_tmp_grains;
 
   std::map<dof_id_type, std::vector<unsigned int>> _entity_to_grain_cache;
-};
 
+  /// Timers
+  const PerfID _execute_timer;
+  const PerfID _finalize_timer;
+};

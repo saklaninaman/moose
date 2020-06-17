@@ -9,13 +9,12 @@
 
 #include "MutableCoefficientsFunctionInterface.h"
 
-template <>
 InputParameters
-validParams<MutableCoefficientsFunctionInterface>()
+MutableCoefficientsFunctionInterface::validParams()
 {
-  InputParameters params = validParams<MemoizedFunctionInterface>();
+  InputParameters params = MemoizedFunctionInterface::validParams();
 
-  params += validParams<MutableCoefficientsInterface>();
+  params += MutableCoefficientsInterface::validParams();
 
   params.addClassDescription("Interface based on MutableCoefficientsInterface for natively "
                              "supporting operations based on an array of coefficients");

@@ -11,21 +11,17 @@
 
 #include "ADComputeIncrementalSmallStrain.h"
 
-template <ComputeStage>
-class ADComputeRSphericalIncrementalStrain;
-
-declareADValidParams(ADComputeRSphericalIncrementalStrain);
-
 /**
  * ADComputeRSphericalIncrementalStrain defines a strain increment only
  * for small strains in 1D spherical symmetry geometries.  The strains in the
  * polar and azimuthal directions are functions of the radial displacement.
 
  */
-template <ComputeStage compute_stage>
-class ADComputeRSphericalIncrementalStrain : public ADComputeIncrementalSmallStrain<compute_stage>
+class ADComputeRSphericalIncrementalStrain : public ADComputeIncrementalSmallStrain
 {
 public:
+  static InputParameters validParams();
+
   ADComputeRSphericalIncrementalStrain(const InputParameters & parameters);
 
   virtual void initialSetup() override;
@@ -37,7 +33,4 @@ protected:
 
   /// the old value of the first component of the displacements vector
   const VariableValue & _disp_old_0;
-
-  usingComputeIncrementalSmallStrainMembers;
 };
-

@@ -18,14 +18,11 @@
  * to calculate the term which includes the derivatives of kappa.
  **/
 
-class ACKappaFunction;
-
-template <>
-InputParameters validParams<ACKappaFunction>();
-
 class ACKappaFunction : public DerivativeMaterialInterface<JvarMapKernelInterface<Kernel>>
 {
 public:
+  static InputParameters validParams();
+
   ACKappaFunction(const InputParameters & parameters);
 
 protected:
@@ -33,15 +30,16 @@ protected:
   virtual Real computeQpJacobian();
   virtual Real computeQpOffDiagJacobian(unsigned int jvar);
 
-  const NonlinearVariableName _var_name;
-  const MaterialPropertyName _L_name;
   const MaterialProperty<Real> & _L;
   const MaterialProperty<Real> & _dLdvar;
+
   const MaterialPropertyName _kappa_name;
   const MaterialProperty<Real> & _dkappadvar;
   const MaterialProperty<Real> & _d2kappadvar2;
-  const unsigned int _op_num;
-  std::vector<NonlinearVariableName> _v_name;
+
+  const unsigned int _v_num;
+  JvarMap _v_map;
+
   std::vector<const VariableGradient *> _grad_v;
   std::vector<const MaterialProperty<Real> *> _dLdv;
   std::vector<const MaterialProperty<Real> *> _d2kappadvardv;
@@ -49,4 +47,3 @@ protected:
 private:
   Real computeFg(); /// gradient energy term
 };
-

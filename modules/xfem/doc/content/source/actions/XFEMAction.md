@@ -1,14 +1,9 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # XFEMAction
-
-!alert construction title=Undocumented Class
-The XFEMAction has not been documented. The content contained on this page
-includes the basic documentation associated with an Action; however, what is contained is
-ultimately determined by what is necessary to make the documentation clear for users.
 
 !syntax description /XFEM/XFEMAction
 
-!syntax parameters /XFEM/XFEMAction
+## Description
 
-!bibtex bibliography
+XFEMAction is a MOOSE action that constructs objects needed for using XFEM. This is invoked by including
+the [XFEM](syntax/XFEM/index.md) block at the top level in a MOOSE input file. See the page documenting
+the syntax for that block for a description, example usage, and parameters.

@@ -13,11 +13,10 @@
 
 registerMooseObject("PhaseFieldApp", DiscreteNucleationTimeStep);
 
-template <>
 InputParameters
-validParams<DiscreteNucleationTimeStep>()
+DiscreteNucleationTimeStep::validParams()
 {
-  InputParameters params = validParams<GeneralPostprocessor>();
+  InputParameters params = GeneralPostprocessor::validParams();
   params.addClassDescription(
       "Return a time step limit for nucleation event to be used by IterationAdaptiveDT");
   params.addRequiredParam<Real>("dt_max",

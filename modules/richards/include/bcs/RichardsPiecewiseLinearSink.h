@@ -18,10 +18,6 @@
 #include "RichardsSeff.h"
 
 // Forward Declarations
-class RichardsPiecewiseLinearSink;
-
-template <>
-InputParameters validParams<RichardsPiecewiseLinearSink>();
 
 /**
  * Applies a flux sink to a boundary
@@ -39,6 +35,8 @@ InputParameters validParams<RichardsPiecewiseLinearSink>();
 class RichardsPiecewiseLinearSink : public IntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   RichardsPiecewiseLinearSink(const InputParameters & parameters);
 
 protected:

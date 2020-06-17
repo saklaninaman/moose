@@ -1,11 +1,8 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # FindValueOnLine
 
-!alert construction title=Undocumented Class
-The FindValueOnLine has not been documented. The content contained on this page includes the
-typical automatic documentation associated with a MooseObject; however, what is contained is
-ultimately determined by what is necessary to make the documentation clear for users.
+The FindValueOnLine Postprocessor is for sampling a line through a mesh or on a boundary
+looking for the point at which a specific value occurs. The values of the line
+must behave monotonically or an indeterminate solution may be found.
 
 !syntax description /Postprocessors/FindValueOnLine
 

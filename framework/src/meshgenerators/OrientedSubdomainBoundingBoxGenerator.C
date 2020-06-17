@@ -14,12 +14,13 @@
 
 registerMooseObject("MooseApp", OrientedSubdomainBoundingBoxGenerator);
 
-template <>
+defineLegacyParams(OrientedSubdomainBoundingBoxGenerator);
+
 InputParameters
-validParams<OrientedSubdomainBoundingBoxGenerator>()
+OrientedSubdomainBoundingBoxGenerator::validParams()
 {
-  InputParameters params = validParams<MeshGenerator>();
-  params += validParams<OrientedBoxInterface>();
+  InputParameters params = MeshGenerator::validParams();
+  params += OrientedBoxInterface::validParams();
 
   MooseEnum location("INSIDE OUTSIDE", "INSIDE");
 
@@ -28,6 +29,8 @@ validParams<OrientedSubdomainBoundingBoxGenerator>()
       "block_id", "Subdomain id to set for inside/outside the bounding box");
   params.addParam<MooseEnum>(
       "location", location, "Control of where the subdomain id is to be set");
+  params.addClassDescription(
+      "Defines a subdomain inside or outside of a bounding box with arbitrary orientation.");
 
   return params;
 }

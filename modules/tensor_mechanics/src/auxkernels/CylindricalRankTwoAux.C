@@ -11,11 +11,10 @@
 
 registerMooseObject("TensorMechanicsApp", CylindricalRankTwoAux);
 
-template <>
 InputParameters
-validParams<CylindricalRankTwoAux>()
+CylindricalRankTwoAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   params.addClassDescription(
       "Takes RankTwoTensor material and outputs component in cylindrical coordinates");
   params.addRequiredParam<MaterialPropertyName>("rank_two_tensor",

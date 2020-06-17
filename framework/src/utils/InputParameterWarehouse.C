@@ -18,7 +18,7 @@ InputParameterWarehouse::InputParameterWarehouse()
 
 InputParameters &
 InputParameterWarehouse::addInputParameters(const std::string & name,
-                                            InputParameters parameters,
+                                            InputParameters & parameters,
                                             THREAD_ID tid /* =0 */)
 {
   // Error if the name contains "::"
@@ -28,12 +28,19 @@ InputParameterWarehouse::addInputParameters(const std::string & name,
   // Create the actual InputParameters object that will be reference by the objects
   std::shared_ptr<InputParameters> ptr = std::make_shared<InputParameters>(parameters);
 
+  auto base = ptr->get<std::string>("_moose_base");
+
   // The object name defined by the base class name, this method of storing is used for
   // determining the uniqueness of the name
-  MooseObjectName unique_name(ptr->get<std::string>("_moose_base"), name, "::");
+  MooseObjectName unique_name(base, name, "::");
 
-  // Check that the Parameters do not already exist
-  if (_input_parameters[tid].find(unique_name) != _input_parameters[tid].end())
+  // Check that the Parameters do not already exist. We allow duplicate unique_names for
+  // MooseVariableBase objects because we require duplication of the variable for reference and
+  // displaced problems. We must also have std::pair(reference_var, reference_params) AND
+  // std::pair(displaced_var, displaced_params) elements because the two vars will have different
+  // values for _sys. It's a good thing we are using a multi-map as our underlying storage
+  if (_input_parameters[tid].find(unique_name) != _input_parameters[tid].end() &&
+      base != "MooseVariableBase")
     mooseError("A '",
                unique_name.tag(),
                "' object already exists with the name '",
@@ -176,6 +183,23 @@ InputParameterWarehouse::addControllableParameterConnection(const MooseObjectPar
       for (auto slave_ptr : slaves)
         if (master_ptr != slave_ptr)
           master_ptr->connect(slave_ptr);
+  }
+}
+
+void
+InputParameterWarehouse::addControllableObjectAlias(const MooseObjectName & alias,
+                                                    const MooseObjectName & slave)
+{
+  for (THREAD_ID tid = 0; tid < libMesh::n_threads(); ++tid)
+  {
+    std::vector<ControllableItem *> slaves =
+        getControllableItems(MooseObjectParameterName(slave, "*"), tid);
+    for (auto slave_ptr : slaves)
+    {
+      MooseObjectParameterName alias_param(alias, slave_ptr->name().parameter());
+      MooseObjectParameterName slave_param(slave, slave_ptr->name().parameter());
+      addControllableParameterAlias(alias_param, slave_param);
+    }
   }
 }
 

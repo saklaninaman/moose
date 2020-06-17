@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", ThirdPhaseSuppressionMaterial);
 
-template <>
 InputParameters
-validParams<ThirdPhaseSuppressionMaterial>()
+ThirdPhaseSuppressionMaterial::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   params.addParam<std::string>("function_name", "g", "actual name for g(eta_i)");
   params.addRequiredCoupledVar("etas", "eta_i order parameters, one for each h");
   params.addClassDescription(

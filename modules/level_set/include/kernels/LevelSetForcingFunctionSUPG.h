@@ -9,33 +9,24 @@
 
 #pragma once
 
-// MOOSE includes
 #include "ADKernelGrad.h"
-#include "LevelSetVelocityInterface.h"
-
-// Forward declarations
-template <ComputeStage>
-class LevelSetForcingFunctionSUPG;
-
-declareADValidParams(LevelSetForcingFunctionSUPG);
 
 /**
  * SUPG stabilization term for a forcing function.
  */
-template <ComputeStage compute_stage>
-class LevelSetForcingFunctionSUPG : public LevelSetVelocityInterface<ADKernelGrad<compute_stage>>
+class LevelSetForcingFunctionSUPG : public ADKernelGrad
 {
 public:
+  static InputParameters validParams();
+
   LevelSetForcingFunctionSUPG(const InputParameters & parameters);
 
 protected:
-  virtual ADVectorResidual precomputeQpResidual() override;
+  virtual ADRealVectorValue precomputeQpResidual() override;
 
   /// Function value
   const Function & _function;
 
-  usingKernelGradMembers;
-  using LevelSetVelocityInterface<ADKernelGrad<compute_stage>>::computeQpVelocity;
-  using LevelSetVelocityInterface<ADKernelGrad<compute_stage>>::_velocity;
-  using LevelSetVelocityInterface<ADKernelGrad<compute_stage>>::_q_point;
+  /// Velocity vector variable
+  const ADVectorVariableValue & _velocity;
 };

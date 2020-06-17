@@ -11,19 +11,15 @@
 
 #include "Action.h"
 
-class CommonTensorMechanicsAction;
-
-template <>
-InputParameters validParams<CommonTensorMechanicsAction>();
-
 /**
  * Store common tensor mechanics parameters
  */
 class CommonTensorMechanicsAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   CommonTensorMechanicsAction(const InputParameters & parameters);
 
-  virtual void act() override{};
+  virtual void act() override;
 };
-

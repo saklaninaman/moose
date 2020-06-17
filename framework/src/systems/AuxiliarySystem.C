@@ -26,6 +26,8 @@
 #include "libmesh/quadrature_gauss.h"
 #include "libmesh/node_range.h"
 #include "libmesh/numeric_vector.h"
+#include "libmesh/default_coupling.h"
+#include "libmesh/string_to_enum.h"
 
 // AuxiliarySystem ////////
 
@@ -59,14 +61,20 @@ AuxiliarySystem::AuxiliarySystem(FEProblemBase & subproblem, const std::string &
   _elem_vars.resize(libMesh::n_threads());
   _elem_std_vars.resize(libMesh::n_threads());
   _elem_vec_vars.resize(libMesh::n_threads());
+
+  if (!_fe_problem.defaultGhosting())
+  {
+    auto & dof_map = _sys.get_dof_map();
+    dof_map.remove_algebraic_ghosting_functor(dof_map.default_algebraic_ghosting());
+    dof_map.set_implicit_neighbor_dofs(false);
+  }
+
+  /// Forcefully init the default solution states to match those available in libMesh
+  /// Must be called here because it would call virtuals in the parent class
+  solutionState(_default_solution_states);
 }
 
 AuxiliarySystem::~AuxiliarySystem() { delete &_serialized_solution; }
-
-void
-AuxiliarySystem::init()
-{
-}
 
 void
 AuxiliarySystem::addDotVectors()
@@ -173,27 +181,42 @@ AuxiliarySystem::updateActive(THREAD_ID tid)
 }
 
 void
-AuxiliarySystem::addVariable(const std::string & var_name,
-                             const FEType & type,
-                             Real scale_factor,
-                             const std::set<SubdomainID> * const active_subdomains /* = NULL*/)
+AuxiliarySystem::addVariable(const std::string & var_type,
+                             const std::string & name,
+                             InputParameters & parameters)
 {
-  SystemBase::addVariable(var_name, type, scale_factor, active_subdomains);
+  SystemBase::addVariable(var_type, name, parameters);
+
+  auto fe_type = FEType(Utility::string_to_enum<Order>(parameters.get<MooseEnum>("order")),
+                        Utility::string_to_enum<FEFamily>(parameters.get<MooseEnum>("family")));
+
+  if (var_type == "MooseVariableScalar" || var_type == "ArrayMooseVariable")
+    return;
+
   for (THREAD_ID tid = 0; tid < libMesh::n_threads(); tid++)
   {
-    if (type.family == LAGRANGE_VEC)
+    if (fe_type.family == LAGRANGE_VEC || fe_type.family == NEDELEC_ONE ||
+        fe_type.family == MONOMIAL_VEC)
     {
-      VectorMooseVariable * var = _vars[tid].getFieldVariable<RealVectorValue>(var_name);
+      VectorMooseVariable * var = _vars[tid].getFieldVariable<RealVectorValue>(name);
       if (var)
       {
-        _nodal_vars[tid].push_back(var);
-        _nodal_vec_vars[tid].push_back(var);
+        if (var->feType().family == LAGRANGE_VEC)
+        {
+          _nodal_vars[tid].push_back(var);
+          _nodal_vec_vars[tid].push_back(var);
+        }
+        else
+        {
+          _elem_vars[tid].push_back(var);
+          _elem_vec_vars[tid].push_back(var);
+        }
       }
     }
 
     else
     {
-      MooseVariable * var = _vars[tid].getFieldVariable<Real>(var_name);
+      MooseVariable * var = _vars[tid].getFieldVariable<Real>(name);
 
       if (var)
       {
@@ -215,16 +238,17 @@ AuxiliarySystem::addVariable(const std::string & var_name,
 void
 AuxiliarySystem::addTimeIntegrator(const std::string & type,
                                    const std::string & name,
-                                   InputParameters parameters)
+                                   InputParameters & parameters)
 {
   parameters.set<SystemBase *>("_sys") = this;
-  _time_integrator = _factory.create<TimeIntegrator>(type, name, parameters);
+  std::shared_ptr<TimeIntegrator> ti = _factory.create<TimeIntegrator>(type, name, parameters);
+  _time_integrator = ti;
 }
 
 void
 AuxiliarySystem::addKernel(const std::string & kernel_name,
                            const std::string & name,
-                           InputParameters parameters)
+                           InputParameters & parameters)
 {
   parameters.set<AuxiliarySystem *>("_aux_sys") = this;
 
@@ -255,7 +279,7 @@ AuxiliarySystem::addKernel(const std::string & kernel_name,
 void
 AuxiliarySystem::addScalarKernel(const std::string & kernel_name,
                                  const std::string & name,
-                                 InputParameters parameters)
+                                 InputParameters & parameters)
 {
   for (THREAD_ID tid = 0; tid < libMesh::n_threads(); tid++)
   {
@@ -298,6 +322,9 @@ AuxiliarySystem::reinitElemFace(const Elem * /*elem*/,
 NumericVector<Number> &
 AuxiliarySystem::serializedSolution()
 {
+  if (!_serialized_solution.initialized())
+    _serialized_solution.init(_sys.n_dofs(), false, SERIAL);
+
   _need_serialized_solution = true;
   return _serialized_solution;
 }
@@ -343,10 +370,10 @@ AuxiliarySystem::compute(ExecFlagType type)
 
   if (_vars[0].fieldVariables().size() > 0)
   {
-    computeNodalVars(type);
     computeNodalVecVars(type);
-    computeElementalVars(type);
+    computeNodalVars(type);
     computeElementalVecVars(type);
+    computeElementalVars(type);
 
     // compute time derivatives of nodal aux variables _after_ the values were updated
     if (_fe_problem.dt() > 0. && _time_integrator)
@@ -368,7 +395,7 @@ AuxiliarySystem::getDependObjects(ExecFlagType type)
         _elemental_aux_storage[type].getActiveObjects();
     for (const auto & aux : auxs)
     {
-      const std::set<std::string> & uo = aux->getDependObjects();
+      const std::set<UserObjectName> & uo = aux->getDependObjects();
       depend_objects.insert(uo.begin(), uo.end());
     }
   }
@@ -379,7 +406,7 @@ AuxiliarySystem::getDependObjects(ExecFlagType type)
         _elemental_vec_aux_storage[type].getActiveObjects();
     for (const auto & aux : auxs)
     {
-      const std::set<std::string> & uo = aux->getDependObjects();
+      const std::set<UserObjectName> & uo = aux->getDependObjects();
       depend_objects.insert(uo.begin(), uo.end());
     }
   }
@@ -390,7 +417,7 @@ AuxiliarySystem::getDependObjects(ExecFlagType type)
         _nodal_aux_storage[type].getActiveObjects();
     for (const auto & aux : auxs)
     {
-      const std::set<std::string> & uo = aux->getDependObjects();
+      const std::set<UserObjectName> & uo = aux->getDependObjects();
       depend_objects.insert(uo.begin(), uo.end());
     }
   }
@@ -401,7 +428,7 @@ AuxiliarySystem::getDependObjects(ExecFlagType type)
         _nodal_vec_aux_storage[type].getActiveObjects();
     for (const auto & aux : auxs)
     {
-      const std::set<std::string> & uo = aux->getDependObjects();
+      const std::set<UserObjectName> & uo = aux->getDependObjects();
       depend_objects.insert(uo.begin(), uo.end());
     }
   }
@@ -420,7 +447,7 @@ AuxiliarySystem::getDependObjects()
         _elemental_aux_storage.getActiveObjects();
     for (const auto & aux : auxs)
     {
-      const std::set<std::string> & uo = aux->getDependObjects();
+      const std::set<UserObjectName> & uo = aux->getDependObjects();
       depend_objects.insert(uo.begin(), uo.end());
     }
   }
@@ -431,7 +458,7 @@ AuxiliarySystem::getDependObjects()
         _elemental_vec_aux_storage.getActiveObjects();
     for (const auto & aux : auxs)
     {
-      const std::set<std::string> & uo = aux->getDependObjects();
+      const std::set<UserObjectName> & uo = aux->getDependObjects();
       depend_objects.insert(uo.begin(), uo.end());
     }
   }
@@ -441,7 +468,7 @@ AuxiliarySystem::getDependObjects()
     const std::vector<std::shared_ptr<AuxKernel>> & auxs = _nodal_aux_storage.getActiveObjects();
     for (const auto & aux : auxs)
     {
-      const std::set<std::string> & uo = aux->getDependObjects();
+      const std::set<UserObjectName> & uo = aux->getDependObjects();
       depend_objects.insert(uo.begin(), uo.end());
     }
   }
@@ -452,7 +479,7 @@ AuxiliarySystem::getDependObjects()
         _nodal_vec_aux_storage.getActiveObjects();
     for (const auto & aux : auxs)
     {
-      const std::set<std::string> & uo = aux->getDependObjects();
+      const std::set<UserObjectName> & uo = aux->getDependObjects();
       depend_objects.insert(uo.begin(), uo.end());
     }
   }
@@ -626,12 +653,21 @@ AuxiliarySystem::computeElementalVarsHelper(
     {
       ConstElemRange & range = *_mesh.getActiveLocalElementRange();
       ComputeElemAuxVarsThread<AuxKernelType> eavt(_fe_problem, warehouse, vars, true);
-      Threads::parallel_reduce(range, eavt);
-
-      solution().close();
-      _sys.update();
+      try
+      {
+        Threads::parallel_reduce(range, eavt);
+      }
+      catch (MooseException & e)
+      {
+        _fe_problem.setException(e.what());
+      }
     }
     PARALLEL_CATCH;
+
+    // We need to make sure we propagate exceptions to all processes before trying to close here,
+    // which is a parallel operation
+    solution().close();
+    _sys.update();
   }
 
   // Boundary Elemental AuxKernels
@@ -643,12 +679,21 @@ AuxiliarySystem::computeElementalVarsHelper(
     {
       ConstBndElemRange & bnd_elems = *_mesh.getBoundaryElementRange();
       ComputeElemAuxBcsThread<AuxKernelType> eabt(_fe_problem, warehouse, vars, true);
-      Threads::parallel_reduce(bnd_elems, eabt);
-
-      solution().close();
-      _sys.update();
+      try
+      {
+        Threads::parallel_reduce(bnd_elems, eabt);
+      }
+      catch (MooseException & e)
+      {
+        _fe_problem.setException(e.what());
+      }
     }
     PARALLEL_CATCH;
+
+    // We need to make sure we propagate exceptions to all processes before trying to close here,
+    // which is a parallel operation
+    solution().close();
+    _sys.update();
   }
 }
 

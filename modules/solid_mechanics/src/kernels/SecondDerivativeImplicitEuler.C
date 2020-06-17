@@ -10,11 +10,10 @@
 #include "SecondDerivativeImplicitEuler.h"
 #include "SubProblem.h"
 
-template <>
 InputParameters
-validParams<SecondDerivativeImplicitEuler>()
+SecondDerivativeImplicitEuler::validParams()
 {
-  InputParameters params = validParams<TimeKernel>();
+  InputParameters params = TimeKernel::validParams();
   return params;
 }
 

@@ -1,14 +1,11 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # SetupDebugAction
-
-!alert construction title=Undocumented Class
-The SetupDebugAction has not been documented. The content contained on this page includes the
-typical automatic documentation associated with an Action; however, what is contained is ultimately
-determined by what is necessary to make the documentation clear for users.
 
 !syntax description /Debug/SetupDebugAction
 
-!syntax parameters /Debug/SetupDebugAction
+## Overview
 
-!bibtex bibliography
+This [Action](Action.md) object acts whenever the `[Debug]` block exists in the input file and provides
+parameters, as listed below, for creating various Output objects as well a flags for debugging the
+action and/or parser system execution. Please refer to the [Debug/index.md] for more details.
+
+!syntax parameters /Debug/SetupDebugAction heading=None

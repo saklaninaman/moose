@@ -9,11 +9,10 @@
 
 #include "SplitCHBase.h"
 
-template <>
 InputParameters
-validParams<SplitCHBase>()
+SplitCHBase::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
 
   return params;
 }

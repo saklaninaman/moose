@@ -1,18 +1,14 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
+# XDA/XDR
 
-# XDR
+!syntax description /Outputs/XDA
 
-!alert construction title=Undocumented Class
-The XDR has not been documented. The content contained on this page includes the
-typical automatic documentation associated with a MooseObject; however, what is contained is
-ultimately determined by what is necessary to make the documentation clear for users.
+## Overview
 
-!syntax description /Outputs/XDR
+The XDA/XDR output objects write solution information using the libMesh XDA (ASCII) or
+XDR (binary) format.
 
-!syntax parameters /Outputs/XDR
+!syntax parameters /Outputs/XDA
 
-!syntax inputs /Outputs/XDR
+!syntax inputs /Outputs/XDA
 
-!syntax children /Outputs/XDR
-
-!bibtex bibliography
+!syntax children /Outputs/XDA

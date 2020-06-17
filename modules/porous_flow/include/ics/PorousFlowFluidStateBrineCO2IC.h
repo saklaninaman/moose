@@ -12,10 +12,6 @@
 #include "PorousFlowFluidStateIC.h"
 
 class PorousFlowBrineCO2;
-class PorousFlowFluidStateBrineCO2IC;
-
-template <>
-InputParameters validParams<PorousFlowFluidStateBrineCO2IC>();
 
 /**
  * PorousFlowFluidStateBrineCO2IC calculates an initial value for
@@ -25,6 +21,7 @@ InputParameters validParams<PorousFlowFluidStateBrineCO2IC>();
 class PorousFlowFluidStateBrineCO2IC : public PorousFlowFluidStateIC
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowFluidStateBrineCO2IC(const InputParameters & parameters);
 };
-

@@ -13,11 +13,6 @@
 #include "RankTwoTensor.h"
 #include "DerivativeMaterialInterface.h"
 
-class FluxBasedStrainIncrement;
-
-template <>
-InputParameters validParams<FluxBasedStrainIncrement>();
-
 /**
  * FluxBasedStrainIncrement computes strain increment based on flux (vacancy)
  * Forest et. al. MSMSE 2015
@@ -25,6 +20,8 @@ InputParameters validParams<FluxBasedStrainIncrement>();
 class FluxBasedStrainIncrement : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   FluxBasedStrainIncrement(const InputParameters & parameters);
 
 protected:
@@ -45,4 +42,3 @@ protected:
 
   RankTwoTensor _flux_grad_tensor;
 };
-

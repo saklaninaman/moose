@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", InterfaceDiffusionBoundaryTerm);
 
-template <>
 InputParameters
-validParams<InterfaceDiffusionBoundaryTerm>()
+InterfaceDiffusionBoundaryTerm::validParams()
 {
-  InputParameters params = validParams<InterfaceDiffusionBase>();
+  InputParameters params = InterfaceDiffusionBase::validParams();
   params.addClassDescription("Add weak form surface terms of the Diffusion equation for two "
                              "different variables across a subdomain boundary");
   return params;

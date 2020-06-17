@@ -19,14 +19,12 @@
 #include "RichardsSUPG.h"
 
 // Forward Declarations
-class RichardsMaterial;
-
-template <>
-InputParameters validParams<RichardsMaterial>();
 
 class RichardsMaterial : public Material
 {
 public:
+  static InputParameters validParams();
+
   RichardsMaterial(const InputParameters & parameters);
 
 protected:
@@ -215,4 +213,3 @@ private:
    */
   void zero2ndDerivedQuantities(unsigned int qp);
 };
-

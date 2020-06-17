@@ -15,7 +15,7 @@
 #include "MooseVariableBase.h"
 
 // C++ includes
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <vector>
 
@@ -37,11 +37,6 @@ public:
    * @param parameters Parameters that come from constructing the object
    */
   ScalarCoupleable(const MooseObject * moose_object);
-
-  /**
-   * Destructor for object
-   */
-  virtual ~ScalarCoupleable();
 
   /**
    * Get the list of coupled scalar variables
@@ -100,6 +95,14 @@ protected:
    * @return Reference to a VariableValue for the coupled variable
    */
   virtual VariableValue & coupledScalarValue(const std::string & var_name, unsigned int comp = 0);
+
+  /**
+   * Returns AD value of a scalar coupled variable
+   * @param var_name Name of coupled variable
+   * @param comp Component number for vector of coupled variables
+   * @return Reference to a ADVariableValue for the coupled variable
+   */
+  const ADVariableValue & adCoupledScalarValue(const std::string & var_name, unsigned int comp = 0);
 
   /**
    * Returns value of a scalar coupled variable
@@ -195,10 +198,13 @@ protected:
   FEProblemBase & _sc_fe_problem;
 
   /// Coupled vars whose values we provide
-  std::map<std::string, std::vector<MooseVariableScalar *>> _coupled_scalar_vars;
+  std::unordered_map<std::string, std::vector<MooseVariableScalar *>> _coupled_scalar_vars;
 
   /// Will hold the default value for optional coupled scalar variables.
-  std::map<std::string, VariableValue *> _default_value;
+  std::unordered_map<std::string, std::unique_ptr<VariableValue>> _default_value;
+
+  /// Will hold the default AD value for optional coupled scalar variables.
+  std::unordered_map<std::string, std::unique_ptr<ADVariableValue>> _dual_default_value;
 
   /// Vector of coupled variables
   std::vector<MooseVariableScalar *> _coupled_moose_scalar_vars;
@@ -230,6 +236,14 @@ protected:
   VariableValue * getDefaultValue(const std::string & var_name);
 
   /**
+   * Helper method to return (and insert if necessary) the AD default value
+   * for an uncoupled variable.
+   * @param var_name the name of the variable for which to retrieve a default value
+   * @return ADVariableValue * a pointer to the associated ADVariableValue.
+   */
+  ADVariableValue * getADDefaultValue(const std::string & var_name);
+
+  /**
    * Check that the right kind of variable is being coupled in
    *
    * @param var_name The name of the coupled variable
@@ -254,10 +268,9 @@ protected:
 
 private:
   /// Field variables coupled into this object (for error checking)
-  std::map<std::string, std::vector<MooseVariableFEBase *>> _sc_coupled_vars;
+  std::unordered_map<std::string, std::vector<MooseVariableFieldBase *>> _sc_coupled_vars;
 
   std::set<TagID> _sc_coupleable_vector_tags;
 
   std::set<TagID> _sc_coupleable_matrix_tags;
 };
-

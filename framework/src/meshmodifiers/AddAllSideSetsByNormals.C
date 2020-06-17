@@ -20,13 +20,19 @@
 #include "libmesh/point_locator_base.h"
 #include "libmesh/elem.h"
 
-registerMooseObject("MooseApp", AddAllSideSetsByNormals);
+registerMooseObjectReplaced("MooseApp",
+                            AddAllSideSetsByNormals,
+                            "11/30/2019 00:00",
+                            AllSideSetsByNormalsGenerator);
 
 template <>
 InputParameters
 validParams<AddAllSideSetsByNormals>()
 {
   InputParameters params = validParams<AddSideSetsBase>();
+
+  params.addClassDescription("Adds sidesets to the entire mesh based on unique normals");
+
   return params;
 }
 
@@ -63,8 +69,8 @@ AddAllSideSetsByNormals::modify()
       if (elem->neighbor_ptr(side))
         continue;
 
-      _fe_face->reinit(elem, side);
       const std::vector<Point> & normals = _fe_face->get_normals();
+      _fe_face->reinit(elem, side);
 
       {
         // See if we've seen this normal before (linear search)

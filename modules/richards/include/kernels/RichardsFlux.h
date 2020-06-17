@@ -13,10 +13,6 @@
 #include "RichardsVarNames.h"
 
 // Forward Declarations
-class RichardsFlux;
-
-template <>
-InputParameters validParams<RichardsFlux>();
 
 /**
  * Kernel = grad(permeability*relativepermeability/viscosity * (grad(pressure) - density*gravity))
@@ -25,6 +21,8 @@ InputParameters validParams<RichardsFlux>();
 class RichardsFlux : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   RichardsFlux(const InputParameters & parameters);
 
 protected:

@@ -1,7 +1,14 @@
 [Mesh]
-  type = FileMesh
-  file = meshed_annulus.e
-  dim = 2
+  [fmesh]
+    type = FileMeshGenerator
+    file = meshed_annulus.e
+  []
+  [rename]
+    type = RenameBlockGenerator
+    input = fmesh
+    old_block_id = '1 2 3'
+    new_block_id = '1 4 3'
+  []
 []
 
 [Variables]
@@ -40,6 +47,8 @@
     variable = temp
     master = 2
     slave = 3
+    emissivity_master = 0
+    emissivity_slave = 0
     gap_conductivity = 0.5
   [../]
 []

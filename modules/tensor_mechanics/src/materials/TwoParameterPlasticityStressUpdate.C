@@ -12,11 +12,10 @@
 #include "Conversion.h"      // for stringify
 #include "libmesh/utility.h" // for Utility::pow
 
-template <>
 InputParameters
-validParams<TwoParameterPlasticityStressUpdate>()
+TwoParameterPlasticityStressUpdate::validParams()
 {
-  InputParameters params = validParams<MultiParameterPlasticityStressUpdate>();
+  InputParameters params = MultiParameterPlasticityStressUpdate::validParams();
   params.addClassDescription("Return-map and Jacobian algorithms for (P, Q) plastic models");
   return params;
 }

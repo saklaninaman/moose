@@ -16,6 +16,8 @@ class XFEM;
 class XFEMMarkerAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   XFEMMarkerAux(const InputParameters & parameters);
 
   virtual ~XFEMMarkerAux() {}
@@ -26,7 +28,3 @@ protected:
 private:
   std::shared_ptr<XFEM> _xfem;
 };
-
-template <>
-InputParameters validParams<XFEMMarkerAux>();
-

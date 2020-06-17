@@ -12,10 +12,6 @@
 #include "IntegratedBC.h"
 
 // Forward Declarations
-class INSTemperatureNoBCBC;
-
-template <>
-InputParameters validParams<INSTemperatureNoBCBC>();
 
 /**
  * This class implements the "No BC" boundary condition
@@ -24,6 +20,8 @@ InputParameters validParams<INSTemperatureNoBCBC>();
 class INSTemperatureNoBCBC : public IntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   INSTemperatureNoBCBC(const InputParameters & parameters);
 
   virtual ~INSTemperatureNoBCBC() {}
@@ -35,4 +33,3 @@ protected:
 
   const MaterialProperty<Real> & _k;
 };
-

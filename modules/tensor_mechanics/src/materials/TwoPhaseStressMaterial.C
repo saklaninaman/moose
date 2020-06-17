@@ -13,11 +13,10 @@
 
 registerMooseObject("TensorMechanicsApp", TwoPhaseStressMaterial);
 
-template <>
 InputParameters
-validParams<TwoPhaseStressMaterial>()
+TwoPhaseStressMaterial::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   params.addClassDescription("Compute a global stress in a two phase model");
   params.addParam<MaterialPropertyName>(
       "h", "h", "Switching Function Material that provides h(eta)");

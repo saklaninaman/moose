@@ -36,14 +36,17 @@
 #include <algorithm>
 
 // Call to "uname"
+#ifdef LIBMESH_HAVE_SYS_UTSNAME_H
 #include <sys/utsname.h>
+#endif
 
-template <>
+defineLegacyParams(MultiApp);
+
 InputParameters
-validParams<MultiApp>()
+MultiApp::validParams()
 {
-  InputParameters params = validParams<MooseObject>();
-  params += validParams<SetupInterface>();
+  InputParameters params = MooseObject::validParams();
+  params += SetupInterface::validParams();
 
   params.addParam<bool>("use_displaced_mesh",
                         false,
@@ -159,6 +162,16 @@ validParams<MultiApp>()
                                             std::vector<std::string>(),
                                             "List of variables to relax during Picard Iteration");
 
+  params.addParam<bool>(
+      "clone_master_mesh", false, "True to clone master mesh and use it for this MultiApp.");
+
+  params.addParam<bool>("keep_solution_during_restore",
+                        false,
+                        "This is useful when doing Picard.  It takes the "
+                        "final solution from the previous Picard iteration"
+                        "and re-uses it as the initial guess "
+                        "for the next picard iteration");
+
   params.addPrivateParam<std::shared_ptr<CommandLine>>("_command_line");
   params.addPrivateParam<bool>("use_positions", true);
   params.declareControllable("enable");
@@ -172,6 +185,7 @@ MultiApp::MultiApp(const InputParameters & parameters)
   : MooseObject(parameters),
     SetupInterface(this),
     Restartable(this, "MultiApps"),
+    PerfGraphInterface(this),
     _fe_problem(*getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")),
     _app_type(isParamValid("app_type") ? std::string(getParam<MooseEnum>("app_type"))
                                        : _fe_problem.getMooseApp().type()),
@@ -198,13 +212,20 @@ MultiApp::MultiApp(const InputParameters & parameters)
     _move_happened(false),
     _has_an_app(true),
     _backups(declareRestartableDataWithContext<SubAppBackups>("backups", this)),
-    _cli_args(getParam<std::vector<std::string>>("cli_args"))
+    _cli_args(getParam<std::vector<std::string>>("cli_args")),
+    _keep_solution_during_restore(getParam<bool>("keep_solution_during_restore")),
+    _perf_backup(registerTimedSection("backup", 3)),
+    _perf_restore(registerTimedSection("restore", 3)),
+    _perf_init(registerTimedSection("init", 3)),
+    _perf_reset_app(registerTimedSection("resetApp", 3))
 {
 }
 
 void
 MultiApp::init(unsigned int num)
 {
+  TIME_SECTION(_perf_init);
+
   _total_num_apps = num;
   buildComm();
   _backups.reserve(_my_num_apps);
@@ -402,6 +423,8 @@ MultiApp::postExecute()
 void
 MultiApp::backup()
 {
+  TIME_SECTION(_perf_backup);
+
   _console << "Beginning backing up MultiApp " << name() << std::endl;
   for (unsigned int i = 0; i < _my_num_apps; i++)
     _backups[i] = _apps[i]->backup();
@@ -411,16 +434,62 @@ MultiApp::backup()
 void
 MultiApp::restore()
 {
+  TIME_SECTION(_perf_restore);
+
   // Must be restarting / recovering so hold off on restoring
   // Instead - the restore will happen in createApp()
   // Note that _backups was already populated by dataLoad()
   if (_apps.empty())
     return;
 
+  // We temporatily copy and store solutions for all subapps
+  if (_keep_solution_during_restore)
+  {
+    _end_solutions.resize(_my_num_apps);
+
+    for (unsigned int i = 0; i < _my_num_apps; i++)
+    {
+      _end_solutions[i] =
+          _apps[i]->getExecutioner()->feProblem().getNonlinearSystemBase().solution().clone();
+      auto & sub_multiapps =
+          _apps[i]->getExecutioner()->feProblem().getMultiAppWarehouse().getObjects();
+
+      // multiapps of each subapp should do the same things
+      // It is implemented recursively
+      for (auto & multi_app : sub_multiapps)
+        multi_app->keepSolutionDuringRestore(_keep_solution_during_restore);
+    }
+  }
+
   _console << "Begining restoring MultiApp " << name() << std::endl;
   for (unsigned int i = 0; i < _my_num_apps; i++)
     _apps[i]->restore(_backups[i]);
   _console << "Finished restoring MultiApp " << name() << std::endl;
+
+  // Now copy the latest solutions back for each subapp
+  if (_keep_solution_during_restore)
+  {
+    for (unsigned int i = 0; i < _my_num_apps; i++)
+    {
+      _apps[i]->getExecutioner()->feProblem().getNonlinearSystemBase().solution() =
+          *_end_solutions[i];
+
+      // We need to synchronize solution so that local_solution has the right values
+      _apps[i]->getExecutioner()->feProblem().getNonlinearSystemBase().update();
+    }
+
+    _end_solutions.clear();
+  }
+}
+
+void
+MultiApp::keepSolutionDuringRestore(bool keep_solution_during_restore)
+{
+  if (_pars.isParamSetByUser("keep_solution_during_restore"))
+    paramError("keep_solution_during_restore",
+               "This parameter should be provided in only master app");
+
+  _keep_solution_during_restore = keep_solution_during_restore;
 }
 
 BoundingBox
@@ -554,6 +623,8 @@ MultiApp::localApp(unsigned int local_app)
 void
 MultiApp::resetApp(unsigned int global_app, Real time)
 {
+  TIME_SECTION(_perf_reset_app);
+
   Moose::ScopedCommSwapper swapper(_my_comm);
 
   if (hasLocalApp(global_app))
@@ -635,6 +706,15 @@ MultiApp::createApp(unsigned int i, Real start_time)
            << ":" << COLOR_DEFAULT << std::endl;
   app_params.set<unsigned int>("_multiapp_level") = _app.multiAppLevel() + 1;
   app_params.set<unsigned int>("_multiapp_number") = _first_local_app + i;
+  if (getParam<bool>("clone_master_mesh"))
+  {
+    _console << COLOR_CYAN << "Cloned master mesh will be used for subapp " << name()
+             << COLOR_DEFAULT << std::endl;
+    app_params.set<const MooseMesh *>("_master_mesh") = &_fe_problem.mesh();
+    auto displaced_problem = _fe_problem.getDisplacedProblem();
+    if (displaced_problem)
+      app_params.set<const MooseMesh *>("_master_displaced_mesh") = &displaced_problem->mesh();
+  }
   _apps[i] = AppFactory::instance().createShared(_app_type, full_name, app_params, _my_comm);
   auto & app = _apps[i];
 
@@ -644,24 +724,8 @@ MultiApp::createApp(unsigned int i, Real start_time)
   else
     input_file = _input_files[_first_local_app + i];
 
-  std::ostringstream output_base;
-
-  // Create an output base by taking the output base of the master problem and appending
-  // the name of the multiapp + a number to it
-  if (!_app.getOutputFileBase().empty())
-    output_base << _app.getOutputFileBase() + "_";
-  else
-  {
-    std::string base = _app.getFileName();
-    size_t pos = base.find_last_of('.');
-    output_base << base.substr(0, pos) + "_out_";
-  }
-
-  // Append the sub app name to the output file base
-  output_base << multiapp_name.str();
   app->setGlobalTimeOffset(start_time);
   app->setInputFileName(input_file);
-  app->setOutputFileBase(output_base.str());
   app->setOutputFileNumbers(_app.getOutputWarehouse().getFileNumbers());
   app->setRestart(_app.isRestarting());
   app->setRecover(_app.isRecovering());
@@ -678,6 +742,12 @@ MultiApp::createApp(unsigned int i, Real start_time)
 
   // Update the MultiApp level for the app that was just created
   app->setupOptions();
+  // if multiapp does not have file base in Outputs input block, output file base will
+  // be empty here since setupOptions() does not set the default file base with the multiapp
+  // input file name. Master will create the default file base for multiapp by taking the
+  // output base of the master problem and appending the name of the multiapp plus a number to it
+  if (app->getOutputFileBase().empty())
+    app->setOutputFileBase(_app.getOutputFileBase() + "_" + multiapp_name.str());
   preRunInputFile();
   app->runInputFile();
 
@@ -716,10 +786,13 @@ MultiApp::buildComm()
   ierr = MPI_Comm_rank(_communicator.get(), &_orig_rank);
   mooseCheckMPIErr(ierr);
 
+#ifdef LIBMESH_HAVE_SYS_UTSNAME_H
   struct utsname sysInfo;
   uname(&sysInfo);
-
   _node_name = sysInfo.nodename;
+#else
+  _node_name = "Unknown";
+#endif
 
   // If we have more apps than processors then we're just going to divide up the work
   if (_total_num_apps >= (unsigned)_orig_num_procs)

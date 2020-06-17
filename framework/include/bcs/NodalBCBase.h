@@ -34,10 +34,18 @@ class NodalBCBase : public BoundaryCondition,
                     public CoupleableMooseVariableDependencyIntermediateInterface
 {
 public:
+  static InputParameters validParams();
+
   NodalBCBase(const InputParameters & parameters);
+
   virtual void computeResidual() = 0;
   virtual void computeJacobian() = 0;
   virtual void computeOffDiagJacobian(unsigned int jvar) = 0;
+
+  /**
+   * Compute the off-diagonal contributions from scalar variables
+   */
+  virtual void computeOffDiagJacobianScalar(unsigned int /*jvar*/) {}
 
 protected:
   /// The aux variables to save the residual contributions to
@@ -50,4 +58,3 @@ protected:
   std::vector<MooseVariableFEBase *> _diag_save_in;
   std::vector<AuxVariableName> _diag_save_in_strings;
 };
-

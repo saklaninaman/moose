@@ -12,11 +12,6 @@
 #include "AuxKernel.h"
 #include "PorousFlowDictator.h"
 
-class PorousFlowDarcyVelocityComponent;
-
-template <>
-InputParameters validParams<PorousFlowDarcyVelocityComponent>();
-
 /**
  * Computes a component of the Darcy velocity:
  * -k_ij * krel /mu (nabla_j P - w_j)
@@ -30,6 +25,8 @@ InputParameters validParams<PorousFlowDarcyVelocityComponent>();
 class PorousFlowDarcyVelocityComponent : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowDarcyVelocityComponent(const InputParameters & parameters);
 
 protected:
@@ -62,4 +59,3 @@ protected:
   /// Gravitational acceleration
   const RealVectorValue _gravity;
 };
-

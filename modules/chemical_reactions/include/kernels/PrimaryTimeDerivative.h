@@ -12,10 +12,6 @@
 #include "TimeDerivative.h"
 
 // Forward Declaration
-class PrimaryTimeDerivative;
-
-template <>
-InputParameters validParams<PrimaryTimeDerivative>();
 
 /**
  * Define the Kernel for a CoupledConvectionReactionSub operator that looks like:
@@ -24,6 +20,8 @@ InputParameters validParams<PrimaryTimeDerivative>();
 class PrimaryTimeDerivative : public TimeDerivative
 {
 public:
+  static InputParameters validParams();
+
   PrimaryTimeDerivative(const InputParameters & parameters);
 
 protected:

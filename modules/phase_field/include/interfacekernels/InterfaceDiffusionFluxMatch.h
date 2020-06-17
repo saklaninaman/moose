@@ -11,11 +11,6 @@
 
 #include "InterfaceDiffusionBase.h"
 
-class InterfaceDiffusionFluxMatch;
-
-template <>
-InputParameters validParams<InterfaceDiffusionFluxMatch>();
-
 /**
  * Enforce gradient continuity between two different variables across a
  * subdomain boundary.
@@ -23,10 +18,11 @@ InputParameters validParams<InterfaceDiffusionFluxMatch>();
 class InterfaceDiffusionFluxMatch : public InterfaceDiffusionBase
 {
 public:
+  static InputParameters validParams();
+
   InterfaceDiffusionFluxMatch(const InputParameters & parameters);
 
 protected:
   virtual Real computeQpResidual(Moose::DGResidualType type) override;
   virtual Real computeQpJacobian(Moose::DGJacobianType type) override;
 };
-

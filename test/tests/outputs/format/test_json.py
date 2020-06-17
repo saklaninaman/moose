@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -12,8 +12,8 @@ import os, sys
 import subprocess
 import json
 import unittest
-from FactorySystem.Parser import DupWalker
-import hit
+from FactorySystem import Parser
+import pyhit
 
 def find_app():
     """
@@ -140,13 +140,9 @@ class TestJSONBase(unittest.TestCase):
         output = output.split('### END DUMP DATA ###')[0]
 
         self.assertNotEqual(len(output), 0)
-        root = hit.parse("dump.i", output)
-        hit.explode(root)
-        w = DupWalker("dump.i")
-        root.walk(w, hit.NodeType.All)
-        if w.errors:
-            print("\n".join(w.errors))
-        self.assertEqual(len(w.errors), 0)
+        root = pyhit.parse(output)
+        errors = list(Parser.checkDuplicates(root))
+        self.assertEqual(errors, [])
         return root
 
 
@@ -211,7 +207,7 @@ class TestLineInfo(TestJSONBase):
         adapt = data["Adaptivity"]["actions"]["SetAdaptivityOptionsAction"]
         fi = adapt["file_info"]
         self.assertEqual(len(fi.keys()), 1)
-        fname = fi.keys()[0]
+        fname = list(fi)[0]
         # Clang seems to have the full path name for __FILE__
         # gcc seems to just use the path that is given on the command line, which won't include "framework"
         self.assertTrue(fname.endswith(os.path.join("src", "base", "Moose.C")), 'file "{}" found instead'.format(fname))
@@ -219,9 +215,15 @@ class TestLineInfo(TestJSONBase):
 
         fi = adapt["tasks"]["set_adaptivity_options"]["file_info"]
         self.assertEqual(len(fi.keys()), 1)
-        fname = fi.keys()[0]
+        fname = list(fi)[0]
         self.assertTrue(fname.endswith(os.path.join("src", "actions", "SetAdaptivityOptionsAction.C")))
         self.assertGreater(fi[fname], 0)
+
+class TestNoTemplate(unittest.TestCase):
+    def test(self):
+        output = run_app(['--json'])
+        self.assertNotIn('<RESIDUAL>', output)
+        self.assertNotIn('<JACOBIAN>', output)
 
 if __name__ == '__main__':
     unittest.main(__name__, verbosity=2)

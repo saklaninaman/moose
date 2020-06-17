@@ -11,11 +11,10 @@
 #include "SolidModel.h"
 #include "Function.h"
 
-template <>
 InputParameters
-validParams<ConstitutiveModel>()
+ConstitutiveModel::validParams()
 {
-  InputParameters params = validParams<SolidModel>();
+  InputParameters params = SolidModel::validParams();
 
   params.addCoupledVar("temp", "Coupled Temperature");
 

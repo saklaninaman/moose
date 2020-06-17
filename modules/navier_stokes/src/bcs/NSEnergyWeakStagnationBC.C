@@ -14,11 +14,10 @@
 
 registerMooseObject("NavierStokesApp", NSEnergyWeakStagnationBC);
 
-template <>
 InputParameters
-validParams<NSEnergyWeakStagnationBC>()
+NSEnergyWeakStagnationBC::validParams()
 {
-  InputParameters params = validParams<NSWeakStagnationBaseBC>();
+  InputParameters params = NSWeakStagnationBaseBC::validParams();
   params.addClassDescription("The inviscid energy BC term with specified normal flow.");
   return params;
 }

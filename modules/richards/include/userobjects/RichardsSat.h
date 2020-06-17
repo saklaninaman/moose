@@ -11,11 +11,6 @@
 
 #include "GeneralUserObject.h"
 
-class RichardsSat;
-
-template <>
-InputParameters validParams<RichardsSat>();
-
 /**
  * Saturation of a phase as a function of
  * effective saturation of that phase,
@@ -24,6 +19,8 @@ InputParameters validParams<RichardsSat>();
 class RichardsSat : public GeneralUserObject
 {
 public:
+  static InputParameters validParams();
+
   RichardsSat(const InputParameters & parameters);
 
   void initialize();
@@ -46,4 +43,3 @@ protected:
   /// sum of the residual saturations for every phase
   Real _sum_s_res;
 };
-

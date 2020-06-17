@@ -12,11 +12,6 @@
 #include "HelmholtzFluidProperties.h"
 #include <array>
 
-class HydrogenFluidProperties;
-
-template <>
-InputParameters validParams<HydrogenFluidProperties>();
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Woverloaded-virtual"
 
@@ -42,6 +37,8 @@ InputParameters validParams<HydrogenFluidProperties>();
 class HydrogenFluidProperties : public HelmholtzFluidProperties
 {
 public:
+  static InputParameters validParams();
+
   HydrogenFluidProperties(const InputParameters & parameters);
 
   virtual std::string fluidName() const override;
@@ -50,12 +47,12 @@ public:
 
   virtual Real mu_from_rho_T(Real density, Real temperature) const override;
 
-  virtual void mu_from_rho_T(Real density,
-                             Real temperature,
-                             Real ddensity_dT,
-                             Real & mu,
-                             Real & dmu_drho,
-                             Real & dmu_dT) const override;
+  void mu_from_rho_T(Real density,
+                     Real temperature,
+                     Real ddensity_dT,
+                     Real & mu,
+                     Real & dmu_drho,
+                     Real & dmu_dT) const;
 
   virtual Real mu_from_p_T(Real pressure, Real temperature) const override;
 
@@ -81,9 +78,7 @@ public:
   virtual void
   k_from_p_T(Real pressure, Real temperature, Real & k, Real & dk_dp, Real & dk_dT) const override;
 
-  virtual Real henryConstant(Real temperature) const override;
-
-  virtual void henryConstant(Real temperature, Real & Kh, Real & dKh_dT) const override;
+  virtual std::vector<Real> henryCoefficients() const override;
 
   virtual Real criticalPressure() const override;
 
@@ -206,4 +201,3 @@ protected:
 };
 
 #pragma GCC diagnostic pop
-

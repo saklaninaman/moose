@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", ACInterface2DMultiPhase1);
 
-template <>
 InputParameters
-validParams<ACInterface2DMultiPhase1>()
+ACInterface2DMultiPhase1::validParams()
 {
-  InputParameters params = validParams<ACInterface>();
+  InputParameters params = ACInterface::validParams();
   params.addClassDescription(
       "Gradient energy Allen-Cahn Kernel where the derivative of interface parameter kappa "
       "wrt the gradient of order parameter is considered.");
@@ -72,7 +71,7 @@ ACInterface2DMultiPhase1::computeQpJacobian()
     RealGradient dgradL =
         _grad_phi[_j][_qp] * _dLdop[_qp] + _grad_u[_qp] * _phi[_j][_qp] * _d2Ldop2[_qp];
 
-    for (unsigned int i = 0; i < _nvar; ++i)
+    for (unsigned int i = 0; i < _n_args; ++i)
       dgradL += (*_gradarg[i])[_qp] * _phi[_j][_qp] * (*_d2Ldargdop[i])[_qp];
 
     dsum += dgradL * _test[_i][_qp];
@@ -99,7 +98,7 @@ ACInterface2DMultiPhase1::computeQpOffDiagJacobian(unsigned int jvar)
     RealGradient dgradL = _grad_phi[_j][_qp] * (*_dLdarg[cvar])[_qp] +
                           _grad_u[_qp] * _phi[_j][_qp] * (*_d2Ldargdop[cvar])[_qp];
 
-    for (unsigned int i = 0; i < _nvar; ++i)
+    for (unsigned int i = 0; i < _n_args; ++i)
       dgradL += (*_gradarg[i])[_qp] * _phi[_j][_qp] * (*_d2Ldarg2[cvar][i])[_qp];
 
     dsum += dgradL * _test[_i][_qp];

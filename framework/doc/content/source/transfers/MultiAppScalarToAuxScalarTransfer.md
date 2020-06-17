@@ -1,18 +1,18 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # MultiAppScalarToAuxScalarTransfer
 
-!alert construction title=Undocumented Class
-The MultiAppScalarToAuxScalarTransfer has not been documented. The content contained on this page includes the
-typical automatic documentation associated with a MooseObject; however, what is contained is
-ultimately determined by what is necessary to make the documentation clear for users.
-
 !syntax description /Transfers/MultiAppScalarToAuxScalarTransfer
+
+## Example Input File Syntax
+
+The following examples demonstrate the use the MultiAppScalarToAuxScalarTransfer for transferring data
+to ([tosub]) and from ([fromsub]) sub-applications.
+
+!listing multiapp_scalar_to_auxscalar_transfer/to_sub/master.i block=Transfers id=tosub caption=Example use of MultiAppScalarToAuxScalarTransfer for transferring data +to+ sub-applications.
+
+!listing multiapp_scalar_to_auxscalar_transfer/from_sub/master.i block=Transfers id=fromsub caption=Example use of MultiAppScalarToAuxScalarTransfer for transferring data +from+ sub-applications.
 
 !syntax parameters /Transfers/MultiAppScalarToAuxScalarTransfer
 
 !syntax inputs /Transfers/MultiAppScalarToAuxScalarTransfer
 
 !syntax children /Transfers/MultiAppScalarToAuxScalarTransfer
-
-!bibtex bibliography

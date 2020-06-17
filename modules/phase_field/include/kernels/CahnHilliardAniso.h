@@ -18,9 +18,7 @@
 class CahnHilliardAniso : public CahnHilliardBase<RealTensorValue>
 {
 public:
+  static InputParameters validParams();
+
   CahnHilliardAniso(const InputParameters & parameters);
 };
-
-template <>
-InputParameters validParams<CahnHilliardAniso>();
-

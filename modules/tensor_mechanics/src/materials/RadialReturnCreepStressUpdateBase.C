@@ -9,11 +9,10 @@
 
 #include "RadialReturnCreepStressUpdateBase.h"
 
-template <>
 InputParameters
-validParams<RadialReturnCreepStressUpdateBase>()
+RadialReturnCreepStressUpdateBase::validParams()
 {
-  InputParameters params = validParams<RadialReturnStressUpdate>();
+  InputParameters params = RadialReturnStressUpdate::validParams();
 
   params.addDeprecatedParam<std::string>(
       "creep_prepend",

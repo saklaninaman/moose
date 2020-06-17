@@ -11,11 +11,7 @@
 
 #include "AuxKernel.h"
 
-class PressureAux;
 class SinglePhaseFluidProperties;
-
-template <>
-InputParameters validParams<PressureAux>();
 
 /**
  * Computes pressure from specific volume and specific internal energy
@@ -23,6 +19,8 @@ InputParameters validParams<PressureAux>();
 class PressureAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   PressureAux(const InputParameters & parameters);
 
 protected:
@@ -33,4 +31,3 @@ protected:
 
   const SinglePhaseFluidProperties & _fp;
 };
-

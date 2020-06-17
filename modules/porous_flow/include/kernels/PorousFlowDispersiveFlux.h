@@ -13,11 +13,6 @@
 #include "PorousFlowDictator.h"
 #include "RankTwoTensor.h"
 
-class PorousFlowDispersiveFlux;
-
-template <>
-InputParameters validParams<PorousFlowDispersiveFlux>();
-
 /**
  * Dispersive flux of component k in fluid phase alpha. Includes the effects
  * of both molecular diffusion and hydrodynamic dispersion.
@@ -25,6 +20,8 @@ InputParameters validParams<PorousFlowDispersiveFlux>();
 class PorousFlowDispersiveFlux : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowDispersiveFlux(const InputParameters & parameters);
 
 protected:
@@ -123,5 +120,7 @@ protected:
 
   /// Transverse dispersivity for each phase
   const std::vector<Real> _disp_trans;
-};
 
+  /// Flag to check whether permeabiity derivatives are non-zero
+  const bool _perm_derivs;
+};

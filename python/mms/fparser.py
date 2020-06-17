@@ -13,8 +13,6 @@ FParser printer
 The FParserPrinter converts single sympy expressions into a single FParser.
 """
 
-from __future__ import print_function, division
-
 from sympy.printing.codeprinter import CodePrinter
 from sympy.printing.precedence import precedence
 from sympy import ccode
@@ -98,11 +96,12 @@ class FParserPrinter(CodePrinter):
 
     def _print_BaseScalar(self, expr):
         """
-        Print x,y,z instead of R.x, R.y, or R.z.
+        Print simple variable names instead of R.variable_name
 
         see sympy/sympy/vector/scalar.py
         """
-        return 'xyz'[expr._id[0]]
+        index, system = expr._id
+        return system._variable_names[index]
 
     def _print_Rational(self, expr):
         p, q = int(expr.p), int(expr.q)
@@ -176,7 +175,7 @@ def fparser(expr, assign_to=None, **kwargs):
 
 def print_fparser(expr, **kwargs):
     """Prints an FParser representation of the given expression."""
-    print(fparser(expr, **kwargs))
+    print(str(fparser(expr, **kwargs)))
 
 def build_hit(expr, name, **kwargs):
     """
@@ -187,24 +186,25 @@ def build_hit(expr, name, **kwargs):
         name[str]: The name of the input file block to create
         kwargs: Key, value pairs for val, vals input parameters (defaults to 1.0) if not provided
     """
-    import hit
+    import pyhit
 
     symbols = set([str(s) for s in expr.free_symbols]).difference(set(['R.x', 'R.y', 'R.z', 't']))
     for symbol in symbols:
         kwargs.setdefault(symbol, 1.)
 
-    root = hit.NewSection(name)
-    root.addChild(hit.NewField('type', hit.FieldKind.String, 'ParsedFunction'))
-    root.addChild(hit.NewField('value', hit.FieldKind.String, "'{}'".format(str(fparser(expr)))))
+    root = pyhit.Node(None, name)
+    root['type'] = 'ParsedFunction'
+    root['value'] = "'{}'".format(str(fparser(expr)))
 
     if kwargs:
         pvars = ' '.join(kwargs.keys())
         pvals = ' '.join([str(v) for v in kwargs.values()])
-        root.addChild(hit.NewField('vars', hit.FieldKind.String, "'{}'".format(pvars)))
-        root.addChild(hit.NewField('vals', hit.FieldKind.String, "'{}'".format(pvals)))
+        root['vars'] = "'{}'".format(pvars)
+        root['vals'] = "'{}'".format(pvals)
 
     return root
 
 def print_hit(*args, **kwargs):
     """Prints a hit block containing a ParsedFunction of the given expression"""
-    print(build_hit(*args, **kwargs))
+    root = build_hit(*args, **kwargs)
+    print(root.render())

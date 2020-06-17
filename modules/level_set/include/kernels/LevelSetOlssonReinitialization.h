@@ -12,23 +12,18 @@
 // MOOSE includes
 #include "ADKernelGrad.h"
 
-// Forward declarations
-template <ComputeStage>
-class LevelSetOlssonReinitialization;
-
-declareADValidParams(LevelSetOlssonReinitialization);
-
 /**
  * Implements the re-initialization equation proposed by Olsson et. al. (2007).
  */
-template <ComputeStage compute_stage>
-class LevelSetOlssonReinitialization : public ADKernelGrad<compute_stage>
+class LevelSetOlssonReinitialization : public ADKernelGrad
 {
 public:
+  static InputParameters validParams();
+
   LevelSetOlssonReinitialization(const InputParameters & parameters);
 
 protected:
-  virtual ADVectorResidual precomputeQpResidual() override;
+  virtual ADRealVectorValue precomputeQpResidual() override;
 
   /// Gradient of the level set variable at time, \tau = 0.
   const ADVariableGradient & _grad_levelset_0;
@@ -36,7 +31,8 @@ protected:
   /// Interface thickness
   const PostprocessorValue & _epsilon;
 
-  usingKernelGradMembers;
-  using ADKernelGrad<compute_stage>::getPostprocessorValue;
-};
+  /// Use modified reinitilization formulation (see Olsson et. al. (2007), section 2.2.1)
+  const bool _use_modified_reinitilization_formulation;
 
+  using ADKernelGrad::getPostprocessorValue;
+};

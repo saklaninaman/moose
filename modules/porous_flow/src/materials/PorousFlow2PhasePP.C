@@ -12,11 +12,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlow2PhasePP);
 
-template <>
 InputParameters
-validParams<PorousFlow2PhasePP>()
+PorousFlow2PhasePP::validParams()
 {
-  InputParameters params = validParams<PorousFlowVariableBase>();
+  InputParameters params = PorousFlowVariableBase::validParams();
   params.addRequiredCoupledVar("phase0_porepressure",
                                "Variable that is the porepressure of phase "
                                "0 (eg, the water phase).  It will be <= "
@@ -26,7 +25,7 @@ validParams<PorousFlow2PhasePP>()
   params.addRequiredParam<UserObjectName>("capillary_pressure",
                                           "Name of the UserObject defining the capillary pressure");
   params.addClassDescription("This Material calculates the 2 porepressures and the 2 saturations "
-                             "in a 2-phase isothermal situation, and derivatives of these with "
+                             "in a 2-phase situation, and derivatives of these with "
                              "respect to the PorousFlowVariables");
   return params;
 }

@@ -11,17 +11,14 @@
 
 #include "CrystalPlasticityUOBase.h"
 
-class CrystalPlasticityStateVariable;
-
-template <>
-InputParameters validParams<CrystalPlasticityStateVariable>();
-
 /**
  * Crystal plasticity state variable userobject class.
  */
 class CrystalPlasticityStateVariable : public CrystalPlasticityUOBase
 {
 public:
+  static InputParameters validParams();
+
   CrystalPlasticityStateVariable(const InputParameters & parameters);
 
   virtual bool updateStateVariable(unsigned int qp,
@@ -69,4 +66,3 @@ protected:
   /// Scale factor of individual component
   std::vector<Real> _scale_factor;
 };
-

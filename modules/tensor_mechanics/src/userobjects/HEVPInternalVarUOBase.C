@@ -9,11 +9,10 @@
 
 #include "HEVPInternalVarUOBase.h"
 
-template <>
 InputParameters
-validParams<HEVPInternalVarUOBase>()
+HEVPInternalVarUOBase::validParams()
 {
-  InputParameters params = validParams<DiscreteElementUserObject>();
+  InputParameters params = DiscreteElementUserObject::validParams();
   params.addParam<std::string>(
       "intvar_rate_prop_name",
       "Name of internal variable property: Same as internal variable rate user object");

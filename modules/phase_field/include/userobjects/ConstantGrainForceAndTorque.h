@@ -13,10 +13,6 @@
 #include "GrainForceAndTorqueInterface.h"
 
 // Forward Declarations
-class ConstantGrainForceAndTorque;
-
-template <>
-InputParameters validParams<ConstantGrainForceAndTorque>();
 
 /**
  * This class is here to get the force and torque acting on a grain
@@ -24,6 +20,8 @@ InputParameters validParams<ConstantGrainForceAndTorque>();
 class ConstantGrainForceAndTorque : public GrainForceAndTorqueInterface, public GeneralUserObject
 {
 public:
+  static InputParameters validParams();
+
   ConstantGrainForceAndTorque(const InputParameters & parameters);
 
   virtual void initialize();
@@ -51,4 +49,3 @@ protected:
   std::vector<std::vector<Real>> _eta_jacobians;
   ///@}
 };
-

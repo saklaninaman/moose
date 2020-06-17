@@ -58,11 +58,6 @@
 # Fluid bulk modulus = 2E3 MPa
 # Fluid viscosity = 1.1E-3 Pa.s = 1.1E-9 MPa.s = 3.5E-17 MPa.year
 #
-[Mesh]
-  type = FileMesh
-  file = mesh/coarse.e
-[]
-
 [GlobalParams]
   perform_finite_strain_rotations = false
   displacements = 'disp_x disp_y disp_z'
@@ -71,55 +66,65 @@
   biot_coefficient = 0.7
 []
 
-[MeshModifiers]
+[Mesh]
+  [file]
+    type = FileMeshGenerator
+    file = mesh/coarse.e
+  []
   [./xmin]
-    type = SideSetsAroundSubdomain
+    type = SideSetsAroundSubdomainGenerator
      block = '2 3 4 5 6 7 8 9 10 11 12 13 14 15 16'
     new_boundary = xmin
     normal = '-1 0 0'
+    input = file
   [../]
   [./xmax]
-    type = SideSetsAroundSubdomain
+    type = SideSetsAroundSubdomainGenerator
      block = '2 3 4 5 6 7 8 9 10 11 12 13 14 15 16'
     new_boundary = xmax
     normal = '1 0 0'
+    input = xmin
   [../]
   [./ymin]
-    type = SideSetsAroundSubdomain
+    type = SideSetsAroundSubdomainGenerator
      block = '2 3 4 5 6 7 8 9 10 11 12 13 14 15 16'
     new_boundary = ymin
     normal = '0 -1 0'
+    input = xmax
   [../]
   [./ymax]
-    type = SideSetsAroundSubdomain
+    type = SideSetsAroundSubdomainGenerator
      block = '2 3 4 5 6 7 8 9 10 11 12 13 14 15 16'
     new_boundary = ymax
     normal = '0 1 0'
+    input = ymin
   [../]
   [./zmax]
-    type = SideSetsAroundSubdomain
+    type = SideSetsAroundSubdomainGenerator
     block = 16
     new_boundary = zmax
     normal = '0 0 1'
+    input = ymax
   [../]
   [./zmin]
-    type = SideSetsAroundSubdomain
+    type = SideSetsAroundSubdomainGenerator
     block = 2
     new_boundary = zmin
     normal = '0 0 -1'
+    input = zmax
   [../]
   [./excav]
-    type = SubdomainBoundingBox
-    depends_on = 'xmin xmax ymin ymax zmin zmax'
+    type = SubdomainBoundingBoxGenerator
+    input = zmin
     block_id = 1
     bottom_left = '0 0 -400'
     top_right = '150 1000 -397'
   [../]
   [./roof]
-    type = SideSetsBetweenSubdomains
+    type = SideSetsBetweenSubdomainsGenerator
     master_block = 3
     paired_block = 1
-    depends_on = excav
+    input = excav
     new_boundary = roof
   [../]
 []
@@ -645,37 +650,37 @@
 
 [BCs]
   [./no_x]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_x
     boundary = 'xmin xmax'
     value = 0.0
   [../]
   [./no_y]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_y
     boundary = 'ymin ymax'
     value = 0.0
   [../]
   [./no_z]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_z
     boundary = zmin
     value = 0.0
   [../]
   [./no_wc_x]
-    type = PresetBC
+    type = DirichletBC
     variable = wc_x
     boundary = 'ymin ymax'
     value = 0.0
   [../]
   [./no_wc_y]
-    type = PresetBC
+    type = DirichletBC
     variable = wc_y
     boundary = 'xmin xmax'
     value = 0.0
   [../]
   [./fix_porepressure]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = porepressure
     boundary = 'ymin ymax xmax'
     function = ini_pp

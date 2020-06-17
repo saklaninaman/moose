@@ -78,12 +78,13 @@ addAdvancedOutputParams(InputParameters & params)
 }
 }
 
-template <>
+defineLegacyParams(AdvancedOutput);
+
 InputParameters
-validParams<AdvancedOutput>()
+AdvancedOutput::validParams()
 {
   // Get the parameters from the parent object
-  InputParameters params = validParams<FileOutput>();
+  InputParameters params = FileOutput::validParams();
   addAdvancedOutputParams(params);
   return params;
 }
@@ -118,15 +119,14 @@ AdvancedOutput::enableOutputTypes(const std::string & names)
 }
 
 // Constructor
-AdvancedOutput::AdvancedOutput(const InputParameters & parameters) : FileOutput(parameters)
+AdvancedOutput::AdvancedOutput(const InputParameters & parameters)
+  : FileOutput(parameters),
+    _elemental_as_nodal(isParamValid("elemental_as_nodal") ? getParam<bool>("elemental_as_nodal")
+                                                           : false),
+    _scalar_as_nodal(isParamValid("scalar_as_nodal") ? getParam<bool>("scalar_as_nodal") : false)
 {
   _is_advanced = true;
   _advanced_execute_on = OutputOnWarehouse(_execute_on, parameters);
-  // Set nodal output variables if they appear in valid parameters
-  if (isParamValid("elemental_as_nodal"))
-    _elemental_as_nodal = getParam<bool>("elemental_as_nodal");
-  if (isParamValid("scalar_as_nodal"))
-    _scalar_as_nodal = getParam<bool>("scalar_as_nodal");
 }
 
 void
@@ -147,7 +147,7 @@ AdvancedOutput::initialSetup()
   // If 'elemental_as_nodal = true' the elemental variable names must be appended to the
   // nodal variable names. Thus, when libMesh::EquationSystem::build_solution_vector is called
   // it will create the correct nodal variable from the elemental
-  if (isParamValid("elemental_as_nodal") && _elemental_as_nodal)
+  if (_elemental_as_nodal)
   {
     OutputData & nodal = _execute_data["nodal"];
     OutputData & elemental = _execute_data["elemental"];
@@ -157,7 +157,7 @@ AdvancedOutput::initialSetup()
   }
 
   // Similarly as above, if 'scalar_as_nodal = true' append the elemental variable lists
-  if (isParamValid("scalar_as_nodal") && _scalar_as_nodal)
+  if (_scalar_as_nodal)
   {
     OutputData & nodal = _execute_data["nodal"];
     OutputData & scalar = _execute_data["scalars"];
@@ -390,29 +390,37 @@ AdvancedOutput::initAvailableLists()
       MooseVariableFEBase & var = _problem_ptr->getVariable(
           0, var_name, Moose::VarKindType::VAR_ANY, Moose::VarFieldType::VAR_FIELD_ANY);
       const FEType type = var.feType();
-      if (type.order == CONSTANT)
-        _execute_data["elemental"].available.insert(var_name);
-      else if (type.family == NEDELEC_ONE || type.family == LAGRANGE_VEC)
+      for (unsigned int i = 0; i < var.count(); ++i)
       {
-        switch (_es_ptr->get_mesh().spatial_dimension())
+        VariableName vname = var_name;
+        if (var.count() > 1)
+          vname = SubProblem::arrayVariableComponent(var_name, i);
+
+        if (type.order == CONSTANT && type.family != MONOMIAL_VEC)
+          _execute_data["elemental"].available.insert(vname);
+        else if (type.family == NEDELEC_ONE || type.family == LAGRANGE_VEC ||
+                 type.family == MONOMIAL_VEC)
         {
-          case 0:
-          case 1:
-            _execute_data["nodal"].available.insert(var_name);
-            break;
-          case 2:
-            _execute_data["nodal"].available.insert(var_name + "_x");
-            _execute_data["nodal"].available.insert(var_name + "_y");
-            break;
-          case 3:
-            _execute_data["nodal"].available.insert(var_name + "_x");
-            _execute_data["nodal"].available.insert(var_name + "_y");
-            _execute_data["nodal"].available.insert(var_name + "_z");
-            break;
+          switch (_es_ptr->get_mesh().spatial_dimension())
+          {
+            case 0:
+            case 1:
+              _execute_data["nodal"].available.insert(vname);
+              break;
+            case 2:
+              _execute_data["nodal"].available.insert(vname + "_x");
+              _execute_data["nodal"].available.insert(vname + "_y");
+              break;
+            case 3:
+              _execute_data["nodal"].available.insert(vname + "_x");
+              _execute_data["nodal"].available.insert(vname + "_y");
+              _execute_data["nodal"].available.insert(vname + "_z");
+              break;
+          }
         }
+        else
+          _execute_data["nodal"].available.insert(vname);
       }
-      else
-        _execute_data["nodal"].available.insert(var_name);
     }
 
     else if (_problem_ptr->hasScalarVariable(var_name))
@@ -461,29 +469,37 @@ AdvancedOutput::initShowHideLists(const std::vector<VariableName> & show,
       MooseVariableFEBase & var = _problem_ptr->getVariable(
           0, var_name, Moose::VarKindType::VAR_ANY, Moose::VarFieldType::VAR_FIELD_ANY);
       const FEType type = var.feType();
-      if (type.order == CONSTANT)
-        _execute_data["elemental"].show.insert(var_name);
-      else if (type.family == NEDELEC_ONE || type.family == LAGRANGE_VEC)
+      for (unsigned int i = 0; i < var.count(); ++i)
       {
-        switch (_es_ptr->get_mesh().spatial_dimension())
+        VariableName vname = var_name;
+        if (var.count() > 1)
+          vname = SubProblem::arrayVariableComponent(var_name, i);
+
+        if (type.order == CONSTANT)
+          _execute_data["elemental"].show.insert(vname);
+        else if (type.family == NEDELEC_ONE || type.family == LAGRANGE_VEC ||
+                 type.family == MONOMIAL_VEC)
         {
-          case 0:
-          case 1:
-            _execute_data["nodal"].show.insert(var_name);
-            break;
-          case 2:
-            _execute_data["nodal"].show.insert(var_name + "_x");
-            _execute_data["nodal"].show.insert(var_name + "_y");
-            break;
-          case 3:
-            _execute_data["nodal"].show.insert(var_name + "_x");
-            _execute_data["nodal"].show.insert(var_name + "_y");
-            _execute_data["nodal"].show.insert(var_name + "_z");
-            break;
+          switch (_es_ptr->get_mesh().spatial_dimension())
+          {
+            case 0:
+            case 1:
+              _execute_data["nodal"].show.insert(vname);
+              break;
+            case 2:
+              _execute_data["nodal"].show.insert(vname + "_x");
+              _execute_data["nodal"].show.insert(vname + "_y");
+              break;
+            case 3:
+              _execute_data["nodal"].show.insert(vname + "_x");
+              _execute_data["nodal"].show.insert(vname + "_y");
+              _execute_data["nodal"].show.insert(vname + "_z");
+              break;
+          }
         }
+        else
+          _execute_data["nodal"].show.insert(vname);
       }
-      else
-        _execute_data["nodal"].show.insert(var_name);
     }
     else if (_problem_ptr->hasScalarVariable(var_name))
       _execute_data["scalars"].show.insert(var_name);
@@ -503,29 +519,37 @@ AdvancedOutput::initShowHideLists(const std::vector<VariableName> & show,
       MooseVariableFEBase & var = _problem_ptr->getVariable(
           0, var_name, Moose::VarKindType::VAR_ANY, Moose::VarFieldType::VAR_FIELD_ANY);
       const FEType type = var.feType();
-      if (type.order == CONSTANT)
-        _execute_data["elemental"].hide.insert(var_name);
-      else if (type.family == NEDELEC_ONE || type.family == LAGRANGE_VEC)
+      for (unsigned int i = 0; i < var.count(); ++i)
       {
-        switch (_es_ptr->get_mesh().spatial_dimension())
+        VariableName vname = var_name;
+        if (var.count() > 1)
+          vname = SubProblem::arrayVariableComponent(var_name, i);
+
+        if (type.order == CONSTANT)
+          _execute_data["elemental"].hide.insert(vname);
+        else if (type.family == NEDELEC_ONE || type.family == LAGRANGE_VEC ||
+                 type.family == MONOMIAL_VEC)
         {
-          case 0:
-          case 1:
-            _execute_data["nodal"].hide.insert(var_name);
-            break;
-          case 2:
-            _execute_data["nodal"].hide.insert(var_name + "_x");
-            _execute_data["nodal"].hide.insert(var_name + "_y");
-            break;
-          case 3:
-            _execute_data["nodal"].hide.insert(var_name + "_x");
-            _execute_data["nodal"].hide.insert(var_name + "_y");
-            _execute_data["nodal"].hide.insert(var_name + "_z");
-            break;
+          switch (_es_ptr->get_mesh().spatial_dimension())
+          {
+            case 0:
+            case 1:
+              _execute_data["nodal"].hide.insert(vname);
+              break;
+            case 2:
+              _execute_data["nodal"].hide.insert(vname + "_x");
+              _execute_data["nodal"].hide.insert(vname + "_y");
+              break;
+            case 3:
+              _execute_data["nodal"].hide.insert(vname + "_x");
+              _execute_data["nodal"].hide.insert(vname + "_y");
+              _execute_data["nodal"].hide.insert(vname + "_z");
+              break;
+          }
         }
+        else
+          _execute_data["nodal"].hide.insert(vname);
       }
-      else
-        _execute_data["nodal"].hide.insert(var_name);
     }
     else if (_problem_ptr->hasScalarVariable(var_name))
       _execute_data["scalars"].hide.insert(var_name);

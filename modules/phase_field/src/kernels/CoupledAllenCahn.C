@@ -11,9 +11,8 @@
 
 registerMooseObject("PhaseFieldApp", CoupledAllenCahn);
 
-template <>
 InputParameters
-validParams<CoupledAllenCahn>()
+CoupledAllenCahn::validParams()
 {
   InputParameters params = ACBulk<Real>::validParams();
   params.addClassDescription(
@@ -27,15 +26,13 @@ validParams<CoupledAllenCahn>()
 CoupledAllenCahn::CoupledAllenCahn(const InputParameters & parameters)
   : ACBulk<Real>(parameters),
     _v_name(getVar("v", 0)->name()),
-    _nvar(_coupled_moose_vars.size()),
     _dFdV(getMaterialPropertyDerivative<Real>("f_name", _v_name)),
     _d2FdVdEta(getMaterialPropertyDerivative<Real>("f_name", _v_name, _var.name())),
-    _d2FdVdarg(_nvar)
+    _d2FdVdarg(_n_args)
 {
   // Iterate over all coupled variables
-  for (unsigned int i = 0; i < _nvar; ++i)
-    _d2FdVdarg[i] =
-        &getMaterialPropertyDerivative<Real>("f_name", _v_name, _coupled_moose_vars[i]->name());
+  for (unsigned int i = 0; i < _n_args; ++i)
+    _d2FdVdarg[i] = &getMaterialPropertyDerivative<Real>("f_name", _v_name, i);
 }
 
 void

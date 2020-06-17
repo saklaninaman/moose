@@ -11,11 +11,6 @@
 
 #include "PorousFlowPermeabilityBase.h"
 
-class PorousFlowPermeabilityTensorFromVar;
-
-template <>
-InputParameters validParams<PorousFlowPermeabilityTensorFromVar>();
-
 /**
  * Material designed to provide the permeability tensor which is calculated
  * from a tensor multiplied by a scalar:
@@ -26,6 +21,8 @@ InputParameters validParams<PorousFlowPermeabilityTensorFromVar>();
 class PorousFlowPermeabilityTensorFromVar : public PorousFlowPermeabilityBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowPermeabilityTensorFromVar(const InputParameters & parameters);
 
 protected:
@@ -37,4 +34,3 @@ protected:
   /// Tensor multiplier k_ijk
   const RealTensorValue _k_anisotropy;
 };
-

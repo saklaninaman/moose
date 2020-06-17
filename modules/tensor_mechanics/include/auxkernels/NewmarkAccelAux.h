@@ -11,17 +11,14 @@
 
 #include "AuxKernel.h"
 
-class NewmarkAccelAux;
-
-template <>
-InputParameters validParams<NewmarkAccelAux>();
-
 class NewmarkAccelAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   /**
-  *Computes Acceleration using Newmark Time integration scheme
-  */
+   *Computes Acceleration using Newmark Time integration scheme
+   */
   NewmarkAccelAux(const InputParameters & parameters);
 
   virtual ~NewmarkAccelAux() {}
@@ -34,4 +31,3 @@ protected:
   const VariableValue & _vel_old;
   Real _beta;
 };
-

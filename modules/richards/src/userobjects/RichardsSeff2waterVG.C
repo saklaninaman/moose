@@ -14,11 +14,10 @@
 
 registerMooseObject("RichardsApp", RichardsSeff2waterVG);
 
-template <>
 InputParameters
-validParams<RichardsSeff2waterVG>()
+RichardsSeff2waterVG::validParams()
 {
-  InputParameters params = validParams<RichardsSeff>();
+  InputParameters params = RichardsSeff::validParams();
   params.addRequiredRangeCheckedParam<Real>("al",
                                             "al > 0",
                                             "van-Genuchten alpha parameter.  Must "

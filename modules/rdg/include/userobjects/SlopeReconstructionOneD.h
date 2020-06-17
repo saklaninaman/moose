@@ -12,10 +12,6 @@
 #include "SlopeReconstructionBase.h"
 
 // Forward Declarations
-class SlopeReconstructionOneD;
-
-template <>
-InputParameters validParams<SlopeReconstructionOneD>();
 
 /**
  * One-dimensional piecewise linear slope reconstruction
@@ -24,6 +20,7 @@ InputParameters validParams<SlopeReconstructionOneD>();
 class SlopeReconstructionOneD : public SlopeReconstructionBase
 {
 public:
+  static InputParameters validParams();
+
   SlopeReconstructionOneD(const InputParameters & parameters);
 };
-

@@ -12,10 +12,6 @@
 #include "Material.h"
 
 // Forward Declarations
-class DarcyMaterial;
-
-template <>
-InputParameters validParams<DarcyMaterial>();
 
 /**
  * Defines the permeability tensor used in Darcy flow
@@ -23,6 +19,8 @@ InputParameters validParams<DarcyMaterial>();
 class DarcyMaterial : public Material
 {
 public:
+  static InputParameters validParams();
+
   DarcyMaterial(const InputParameters & parameters);
 
 protected:
@@ -34,4 +32,3 @@ protected:
   /// the Material property that this Material provides
   MaterialProperty<RealTensorValue> & _permeability;
 };
-

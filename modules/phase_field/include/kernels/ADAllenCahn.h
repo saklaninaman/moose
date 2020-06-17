@@ -11,29 +11,21 @@
 
 #include "ADAllenCahnBase.h"
 
-// Forward Declarations
-template <ComputeStage>
-class ADAllenCahn;
-
-declareADValidParams(ADAllenCahn);
-
 /**
  * ADAllenCahn uses the Free Energy function and derivatives
  * provided by a DerivativeParsedMaterial to computer the
  * residual for the bulk part of the Allen-Cahn equation.
  */
-template <ComputeStage compute_stage>
-class ADAllenCahn : public ADAllenCahnBase<compute_stage, Real>
+class ADAllenCahn : public ADAllenCahnBase<Real>
 {
 public:
+  static InputParameters validParams();
+
   ADAllenCahn(const InputParameters & parameters);
 
 protected:
   virtual ADReal computeDFDOP();
 
   const MaterialPropertyName _f_name;
-  const ADMaterialProperty(Real) & _dFdEta;
-
-  usingAllenCahnBaseMembers(Real);
+  const ADMaterialProperty<Real> & _dFdEta;
 };
-

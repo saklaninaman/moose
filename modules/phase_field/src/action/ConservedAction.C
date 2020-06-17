@@ -22,11 +22,10 @@ registerMooseAction("PhaseFieldApp", ConservedAction, "add_variable");
 
 registerMooseAction("PhaseFieldApp", ConservedAction, "add_kernel");
 
-template <>
 InputParameters
-validParams<ConservedAction>()
+ConservedAction::validParams()
 {
-  InputParameters params = validParams<Action>();
+  InputParameters params = Action::validParams();
   params.addClassDescription(
       "Set up the variable(s) and the kernels needed for a conserved phase field variable."
       " Note that for a direct solve, the element family and order are overwritten with hermite "
@@ -94,8 +93,14 @@ ConservedAction::act()
   //
   if (_current_task == "add_variable")
   {
+    auto type = AddVariableAction::determineType(_fe_type, 1);
+    auto var_params = _factory.getValidParams(type);
+    var_params.set<MooseEnum>("family") = Moose::stringify(_fe_type.family);
+    var_params.set<MooseEnum>("order") = _fe_type.order.get_order();
+    var_params.set<std::vector<Real>>("scaling") = {_scaling};
+
     // Create conserved variable _var_name
-    _problem->addVariable(_var_name, _fe_type, _scaling);
+    _problem->addVariable(type, _var_name, var_params);
 
     // Create chemical potential variable for split form
     switch (_solve_type)
@@ -104,7 +109,7 @@ ConservedAction::act()
         break;
       case SolveType::REVERSE_SPLIT:
       case SolveType::FORWARD_SPLIT:
-        _problem->addVariable(_chempot_name, _fe_type, _scaling);
+        _problem->addVariable(type, _chempot_name, var_params);
     }
   }
 

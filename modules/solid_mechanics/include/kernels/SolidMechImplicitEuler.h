@@ -13,14 +13,12 @@
 #include "Material.h"
 
 // Forward Declarations
-class SolidMechImplicitEuler;
-
-template <>
-InputParameters validParams<SolidMechImplicitEuler>();
 
 class SolidMechImplicitEuler : public SecondDerivativeImplicitEuler
 {
 public:
+  static InputParameters validParams();
+
   SolidMechImplicitEuler(const InputParameters & parameters);
 
 protected:

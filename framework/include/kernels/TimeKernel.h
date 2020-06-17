@@ -24,9 +24,19 @@ InputParameters validParams<TimeKernel>();
 class TimeKernel : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   TimeKernel(const InputParameters & parameters);
 
   virtual void computeResidual() override;
+
+  /**
+   * Entry point for additional computation for the local residual after the standard calls
+   *
+   * NOTE: This is an advanced interface and in nearly all cases you should just override
+   * computeQpResidual()!
+   */
+  virtual void computeResidualAdditional() {}
 
 protected:
   /// Time derivative of u

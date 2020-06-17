@@ -19,11 +19,10 @@
 
 registerMooseObject("XFEMApp", PointValueAtXFEMInterface);
 
-template <>
 InputParameters
-validParams<PointValueAtXFEMInterface>()
+PointValueAtXFEMInterface::validParams()
 {
-  InputParameters params = validParams<GeneralUserObject>();
+  InputParameters params = GeneralUserObject::validParams();
   params.addRequiredParam<VariableName>(
       "variable", "The name of the variable that this UserObject operates on");
   params.addParam<UserObjectName>(

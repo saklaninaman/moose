@@ -14,10 +14,6 @@
 #include "RichardsSat.h"
 
 // Forward Declarations
-class RichardsSatPrimeAux;
-
-template <>
-InputParameters validParams<RichardsSatPrimeAux>();
 
 /**
  * Derivative of fluid Saturation wrt effective saturation
@@ -25,6 +21,8 @@ InputParameters validParams<RichardsSatPrimeAux>();
 class RichardsSatPrimeAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   RichardsSatPrimeAux(const InputParameters & parameters);
 
 protected:
@@ -36,4 +34,3 @@ protected:
   /// User object defining saturation as a function of effective saturation
   const RichardsSat & _sat_UO;
 };
-

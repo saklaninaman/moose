@@ -11,11 +11,6 @@
 
 #include "PorousFlowFluidStateBase.h"
 
-class PorousFlowFluidStateSingleComponentBase;
-
-template <>
-InputParameters validParams<PorousFlowFluidStateSingleComponentBase>();
-
 /**
  * Base class for miscible multiphase flow classes with a single fluid component using
  * a pressure and enthalpy formulation (eg, water and steam)
@@ -23,6 +18,8 @@ InputParameters validParams<PorousFlowFluidStateSingleComponentBase>();
 class PorousFlowFluidStateSingleComponentBase : public PorousFlowFluidStateBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowFluidStateSingleComponentBase(const InputParameters & parameters);
 
   /**
@@ -39,7 +36,7 @@ public:
                                         Real enthalpy,
                                         unsigned int qp,
                                         FluidStatePhaseEnum & phase_state,
-                                        std::vector<FluidStatePropertiesAD> & fsp) const = 0;
+                                        std::vector<FluidStateProperties> & fsp) const = 0;
 
   unsigned int getPressureIndex() const { return _pidx; };
   unsigned int getEnthalpyIndex() const { return _hidx; };

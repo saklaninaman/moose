@@ -14,8 +14,8 @@
 
 [Problem]
   type = ReferenceResidualProblem
-  solution_variables = 'disp_x disp_y scalar_strain_zz'
-  reference_residual_variables = 'saved_x saved_y saved_zz'
+  extra_tag_vectors = 'ref'
+  reference_vector = 'ref'
 []
 
 [Variables]
@@ -105,6 +105,7 @@
     use_displaced_mesh = true
     displacements = 'disp_x disp_y'
     save_in = 'saved_x saved_y'
+    extra_vector_tags = 'ref'
   [../]
 []
 
@@ -186,13 +187,13 @@
 
 [BCs]
   [./leftx]
-    type = PresetBC
+    type = DirichletBC
     boundary = left
     variable = disp_x
     value = 0.0
   [../]
   [./bottomy]
-    type = PresetBC
+    type = DirichletBC
     boundary = bottom
     variable = disp_y
     value = 0.0

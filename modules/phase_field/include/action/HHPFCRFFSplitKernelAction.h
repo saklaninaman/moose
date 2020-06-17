@@ -12,14 +12,12 @@
 #include "Action.h"
 
 // Forward Declarations
-class HHPFCRFFSplitKernelAction;
-
-template <>
-InputParameters validParams<HHPFCRFFSplitKernelAction>();
 
 class HHPFCRFFSplitKernelAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   HHPFCRFFSplitKernelAction(const InputParameters & params);
 
   virtual void act();
@@ -29,4 +27,3 @@ protected:
   const std::string _L_name_base;
   const VariableName _n_name;
 };
-

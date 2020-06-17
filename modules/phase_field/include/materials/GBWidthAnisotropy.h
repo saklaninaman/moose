@@ -12,10 +12,6 @@
 #include "GBAnisotropyBase.h"
 
 // Forward Declarations
-class GBWidthAnisotropy;
-
-template <>
-InputParameters validParams<GBWidthAnisotropy>();
 
 /**
  * Function[kappa, gamma, m, L] = parameters (sigma, mob, w_GB, sigma0)
@@ -28,10 +24,11 @@ InputParameters validParams<GBWidthAnisotropy>();
 class GBWidthAnisotropy : public GBAnisotropyBase
 {
 public:
+  static InputParameters validParams();
+
   GBWidthAnisotropy(const InputParameters & parameters);
 
 private:
   const Real _mu;
   const Real _kappa;
 };
-

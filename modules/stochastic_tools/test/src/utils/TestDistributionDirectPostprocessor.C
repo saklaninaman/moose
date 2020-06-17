@@ -8,15 +8,14 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "TestDistributionDirectPostprocessor.h"
-#include "NormalDistribution.h"
+#include "Normal.h"
 
 registerMooseObject("StochasticToolsTestApp", TestDistributionDirectPostprocessor);
 
-template <>
 InputParameters
-validParams<TestDistributionDirectPostprocessor>()
+TestDistributionDirectPostprocessor::validParams()
 {
-  InputParameters params = validParams<GeneralPostprocessor>();
+  InputParameters params = GeneralPostprocessor::validParams();
   params.addRequiredParam<DistributionName>(
       "distribution", "The normal distribution which supplies the postprocessor value.");
   params.addRequiredParam<Real>(
@@ -31,7 +30,7 @@ validParams<TestDistributionDirectPostprocessor>()
 TestDistributionDirectPostprocessor::TestDistributionDirectPostprocessor(
     const InputParameters & parameters)
   : GeneralPostprocessor(parameters),
-    _distribution(getDistribution<NormalDistribution>("distribution")),
+    _distribution(getDistribution<Normal>("distribution")),
     _value(getParam<Real>("value")),
     _mean(getParam<Real>("mean")),
     _std_dev(getParam<Real>("standard_deviation")),

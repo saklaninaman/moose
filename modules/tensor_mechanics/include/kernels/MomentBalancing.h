@@ -10,17 +10,8 @@
 #pragma once
 
 #include "Kernel.h"
-
-// Forward Declarations
-class MomentBalancing;
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-template <typename>
-class RankFourTensorTempl;
-typedef RankFourTensorTempl<Real> RankFourTensor;
-template <>
-InputParameters validParams<MomentBalancing>();
+#include "RankTwoTensorForward.h"
+#include "RankFourTensorForward.h"
 
 /**
  * This Kernel computes
@@ -35,6 +26,8 @@ InputParameters validParams<MomentBalancing>();
 class MomentBalancing : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   MomentBalancing(const InputParameters & parameters);
 
 protected:
@@ -66,4 +59,3 @@ protected:
   /// the moose variable numbers for the displacements
   std::vector<unsigned int> _disp_var;
 };
-

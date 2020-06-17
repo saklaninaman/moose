@@ -27,7 +27,8 @@
 #include "MeshChangedInterface.h"
 #include "VectorPostprocessorInterface.h"
 #include "MooseVariableInterface.h"
-#include "MemberTemplateMacros.h"
+#include "ElementIDInterface.h"
+#include "UserObject.h"
 
 // forward declarations
 template <typename ComputeValueType>
@@ -68,9 +69,12 @@ class AuxKernelTempl : public MooseObject,
                        protected GeometricSearchInterface,
                        public Restartable,
                        public MeshChangedInterface,
-                       protected VectorPostprocessorInterface
+                       protected VectorPostprocessorInterface,
+                       public ElementIDInterface
 {
 public:
+  static InputParameters validParams();
+
   AuxKernelTempl(const InputParameters & parameters);
 
   /**
@@ -90,9 +94,9 @@ public:
    */
   MooseVariableFE<ComputeValueType> & variable() { return _var; }
 
-  const std::set<std::string> & getDependObjects() const { return _depend_uo; }
+  const std::set<UserObjectName> & getDependObjects() const { return _depend_uo; }
 
-  void coupledCallback(const std::string & var_name, bool is_old) override;
+  void coupledCallback(const std::string & var_name, bool is_old) const override;
 
   virtual const std::set<std::string> & getRequestedItems() override;
 
@@ -102,20 +106,24 @@ public:
    * Override functions from MaterialPropertyInterface for error checking
    */
   template <typename T>
-  const MaterialProperty<T> & getMaterialPropertyTempl(const std::string & name);
+  const MaterialProperty<T> & getMaterialProperty(const std::string & name);
+  template <typename T, bool is_ad>
+  const GenericMaterialProperty<T, is_ad> & getGenericMaterialProperty(const std::string & name);
   template <typename T>
-  const MaterialProperty<T> & getMaterialPropertyOldTempl(const std::string & name);
+  const MaterialProperty<T> & getMaterialPropertyOld(const std::string & name);
   template <typename T>
-  const MaterialProperty<T> & getMaterialPropertyOlderTempl(const std::string & name);
+  const MaterialProperty<T> & getMaterialPropertyOlder(const std::string & name);
 
   template <typename T>
-  const T & getUserObjectTempl(const std::string & name);
+  const T & getUserObject(const UserObjectName & name);
   template <typename T>
-  const T & getUserObjectByNameTempl(const UserObjectName & name);
+  const T & getUserObjectByName(const UserObjectName & name);
 
-  const UserObject & getUserObjectBase(const std::string & name);
+  const UserObject & getUserObjectBase(const UserObjectName & name);
+  const UserObject & getUserObjectBaseByName(const UserObjectName & name);
 
-  virtual const PostprocessorValue & getPostprocessorValue(const std::string & name);
+  virtual const PostprocessorValue & getPostprocessorValue(const std::string & name,
+                                                           unsigned int index = 0);
   virtual const PostprocessorValue & getPostprocessorValueByName(const PostprocessorName & name);
 
   virtual const VectorPostprocessorValue &
@@ -146,10 +154,10 @@ protected:
   virtual ComputeValueType computeValue() = 0;
 
   virtual const VariableValue & coupledDot(const std::string & var_name,
-                                           unsigned int comp = 0) override;
+                                           unsigned int comp = 0) const override;
 
   virtual const VariableValue & coupledDotDu(const std::string & var_name,
-                                             unsigned int comp = 0) override;
+                                             unsigned int comp = 0) const override;
 
   /// This callback is used for AuxKernelTempls that need to perform a per-element calculation
   virtual void precalculateValue() {}
@@ -213,6 +221,9 @@ protected:
   /// Current node (valid only for nodal kernels)
   const Node * const & _current_node;
 
+  /// The current boundary ID
+  const BoundaryID & _current_boundary_id;
+
   /// reference to the solution vector of auxiliary system
   NumericVector<Number> & _solution;
 
@@ -220,11 +231,11 @@ protected:
   unsigned int _qp;
 
   /// Depend AuxKernelTempls
-  std::set<std::string> _depend_vars;
+  mutable std::set<std::string> _depend_vars;
   std::set<std::string> _supplied_vars;
 
   /// Depend UserObjects
-  std::set<std::string> _depend_uo;
+  std::set<UserObjectName> _depend_uo;
 
   /// number of local dofs for elemental variables
   unsigned int _n_local_dofs;
@@ -242,7 +253,7 @@ protected:
 template <typename ComputeValueType>
 template <typename T>
 const MaterialProperty<T> &
-AuxKernelTempl<ComputeValueType>::getMaterialPropertyTempl(const std::string & name)
+AuxKernelTempl<ComputeValueType>::getMaterialProperty(const std::string & name)
 {
   if (isNodal())
     mooseError("Nodal AuxKernel '",
@@ -253,13 +264,30 @@ AuxKernelTempl<ComputeValueType>::getMaterialPropertyTempl(const std::string & n
                _var.name(),
                "'.");
 
-  return MaterialPropertyInterface::getMaterialPropertyTempl<T>(name);
+  return MaterialPropertyInterface::getMaterialProperty<T>(name);
+}
+
+template <typename ComputeValueType>
+template <typename T, bool is_ad>
+const GenericMaterialProperty<T, is_ad> &
+AuxKernelTempl<ComputeValueType>::getGenericMaterialProperty(const std::string & name)
+{
+  if (isNodal())
+    mooseError("Nodal AuxKernel '",
+               AuxKernelTempl::name(),
+               "' attempted to reference material property '",
+               name,
+               "'\nConsider using an elemental auxiliary variable for '",
+               _var.name(),
+               "'.");
+
+  return MaterialPropertyInterface::getGenericMaterialProperty<T, is_ad>(name);
 }
 
 template <typename ComputeValueType>
 template <typename T>
 const MaterialProperty<T> &
-AuxKernelTempl<ComputeValueType>::getMaterialPropertyOldTempl(const std::string & name)
+AuxKernelTempl<ComputeValueType>::getMaterialPropertyOld(const std::string & name)
 {
   if (isNodal())
     mooseError("Nodal AuxKernel '",
@@ -270,13 +298,13 @@ AuxKernelTempl<ComputeValueType>::getMaterialPropertyOldTempl(const std::string 
                _var.name(),
                "'.");
 
-  return MaterialPropertyInterface::getMaterialPropertyOldTempl<T>(name);
+  return MaterialPropertyInterface::getMaterialPropertyOld<T>(name);
 }
 
 template <typename ComputeValueType>
 template <typename T>
 const MaterialProperty<T> &
-AuxKernelTempl<ComputeValueType>::getMaterialPropertyOlderTempl(const std::string & name)
+AuxKernelTempl<ComputeValueType>::getMaterialPropertyOlder(const std::string & name)
 {
   if (isNodal())
     mooseError("Nodal AuxKernel '",
@@ -287,23 +315,31 @@ AuxKernelTempl<ComputeValueType>::getMaterialPropertyOlderTempl(const std::strin
                _var.name(),
                "'.");
 
-  return MaterialPropertyInterface::getMaterialPropertyOlderTempl<T>(name);
+  return MaterialPropertyInterface::getMaterialPropertyOlder<T>(name);
 }
 
 template <typename ComputeValueType>
 template <typename T>
 const T &
-AuxKernelTempl<ComputeValueType>::getUserObjectTempl(const std::string & name)
+AuxKernelTempl<ComputeValueType>::getUserObject(const UserObjectName & name)
 {
   _depend_uo.insert(_pars.get<UserObjectName>(name));
-  return UserObjectInterface::getUserObjectTempl<T>(name);
+  auto & uo = UserObjectInterface::getUserObject<T>(name);
+  auto indirect_dependents = uo.getDependObjects();
+  for (auto & indirect_dependent : indirect_dependents)
+    _depend_uo.insert(indirect_dependent);
+  return uo;
 }
 
 template <typename ComputeValueType>
 template <typename T>
 const T &
-AuxKernelTempl<ComputeValueType>::getUserObjectByNameTempl(const UserObjectName & name)
+AuxKernelTempl<ComputeValueType>::getUserObjectByName(const UserObjectName & name)
 {
   _depend_uo.insert(name);
-  return UserObjectInterface::getUserObjectByNameTempl<T>(name);
+  auto & uo = UserObjectInterface::getUserObjectByName<T>(name);
+  auto indirect_dependents = uo.getDependObjects();
+  for (auto & indirect_dependent : indirect_dependents)
+    _depend_uo.insert(indirect_dependent);
+  return uo;
 }

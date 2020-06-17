@@ -14,12 +14,8 @@
 #include "GrainTracker.h"
 
 // Forward Declarations
-class OutputEulerAngles;
 class GrainTracker;
 class EulerAngleProvider;
-
-template <>
-InputParameters validParams<OutputEulerAngles>();
 
 /**
  * Output euler angles from user object to an AuxVariable.
@@ -27,6 +23,8 @@ InputParameters validParams<OutputEulerAngles>();
 class OutputEulerAngles : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   OutputEulerAngles(const InputParameters & parameters);
 
 protected:
@@ -45,4 +43,3 @@ protected:
   /// precalculated element value
   Real _value;
 };
-

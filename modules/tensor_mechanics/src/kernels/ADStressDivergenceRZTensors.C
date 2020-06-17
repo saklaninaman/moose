@@ -13,41 +13,40 @@
 #include "ElasticityTensorTools.h"
 #include "libmesh/quadrature.h"
 
-registerADMooseObject("TensorMechanicsApp", ADStressDivergenceRZTensors);
+registerMooseObject("TensorMechanicsApp", ADStressDivergenceRZTensors);
 
-defineADValidParams(
-    ADStressDivergenceRZTensors,
-    ADStressDivergenceTensors,
-    params.addClassDescription(
-        "Calculate stress divergence for an axisymmetric problem in cylindrical coordinates.");
-    params.addRequiredRangeCheckedParam<unsigned int>(
-        "component",
-        "component < 2",
-        "An integer corresponding to the direction the variable this kernel acts in. (0 "
-        "refers to the radial and 1 to the axial displacement.)");
-    params.set<bool>("use_displaced_mesh") = true;);
+InputParameters
+ADStressDivergenceRZTensors::validParams()
+{
+  InputParameters params = ADStressDivergenceTensors::validParams();
+  params.addClassDescription(
+      "Calculate stress divergence for an axisymmetric problem in cylindrical coordinates.");
+  params.addRequiredRangeCheckedParam<unsigned int>(
+      "component",
+      "component < 2",
+      "An integer corresponding to the direction the variable this kernel acts in. (0 "
+      "refers to the radial and 1 to the axial displacement.)");
+  params.set<bool>("use_displaced_mesh") = true;
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADStressDivergenceRZTensors<compute_stage>::ADStressDivergenceRZTensors(
-    const InputParameters & parameters)
-  : ADStressDivergenceTensors<compute_stage>(parameters)
+ADStressDivergenceRZTensors::ADStressDivergenceRZTensors(const InputParameters & parameters)
+  : ADStressDivergenceTensors(parameters)
 {
 }
 
-template <ComputeStage compute_stage>
 void
-ADStressDivergenceRZTensors<compute_stage>::initialSetup()
+ADStressDivergenceRZTensors::initialSetup()
 {
   if (getBlockCoordSystem() != Moose::COORD_RZ)
     mooseError("The coordinate system in the Problem block must be set to RZ for axisymmetric "
                "geometries.");
 }
 
-template <ComputeStage compute_stage>
-ADResidual
-ADStressDivergenceRZTensors<compute_stage>::computeQpResidual()
+ADReal
+ADStressDivergenceRZTensors::computeQpResidual()
 {
-  ADResidual div = 0.0;
+  ADReal div = 0.0;
   if (_component == 0)
   {
     div = _grad_test[_i][_qp](0) * _stress[_qp](0, 0) +
@@ -74,9 +73,8 @@ ADStressDivergenceRZTensors<compute_stage>::computeQpResidual()
   return div;
 }
 
-template <ComputeStage compute_stage>
 void
-ADStressDivergenceRZTensors<compute_stage>::precalculateResidual()
+ADStressDivergenceRZTensors::precalculateResidual()
 {
   if (!_volumetric_locking_correction)
     return;

@@ -11,11 +11,6 @@
 
 #include "PorousFlowVariableBase.h"
 
-class PorousFlow1PhaseFullySaturated;
-
-template <>
-InputParameters validParams<PorousFlow1PhaseFullySaturated>();
-
 /**
  * Base material designed to calculate fluid phase porepressure and saturation
  * for the single-phase situation assuming full saturation where porepressure
@@ -24,6 +19,8 @@ InputParameters validParams<PorousFlow1PhaseFullySaturated>();
 class PorousFlow1PhaseFullySaturated : public PorousFlowVariableBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlow1PhaseFullySaturated(const InputParameters & parameters);
 
 protected:
@@ -44,4 +41,3 @@ protected:
   /// The PorousFlow variable number of the porepressure
   const unsigned int _p_var_num;
 };
-

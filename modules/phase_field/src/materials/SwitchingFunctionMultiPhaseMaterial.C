@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", SwitchingFunctionMultiPhaseMaterial);
 
-template <>
 InputParameters
-validParams<SwitchingFunctionMultiPhaseMaterial>()
+SwitchingFunctionMultiPhaseMaterial::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   params.addRequiredParam<MaterialPropertyName>(
       "h_name", "Name of the switching function material property for the given phase");
   params.addRequiredCoupledVar("phase_etas", "Vector of order parameters for the given phase");

@@ -11,11 +11,6 @@
 
 #include "ComputeThermalExpansionEigenstrainBase.h"
 
-class ComputeMeanThermalExpansionEigenstrainBase;
-
-template <>
-InputParameters validParams<ComputeMeanThermalExpansionEigenstrainBase>();
-
 /**
  * ComputeMeanThermalExpansionEigenstrainBase is a base class for computing the
  * thermal expansion eigenstrain according to a temperature-dependent mean thermal
@@ -30,6 +25,8 @@ InputParameters validParams<ComputeMeanThermalExpansionEigenstrainBase>();
 class ComputeMeanThermalExpansionEigenstrainBase : public ComputeThermalExpansionEigenstrainBase
 {
 public:
+  static InputParameters validParams();
+
   ComputeMeanThermalExpansionEigenstrainBase(const InputParameters & parameters);
 
 protected:
@@ -63,4 +60,3 @@ protected:
    */
   virtual Real meanThermalExpansionCoefficientDerivative(const Real temperature) = 0;
 };
-

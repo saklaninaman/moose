@@ -9,21 +9,23 @@
 
 #include "ADCoupledValueTest.h"
 
-registerADMooseObject("MooseTestApp", ADCoupledValueTest);
+registerMooseObject("MooseTestApp", ADCoupledValueTest);
 
-defineADValidParams(ADCoupledValueTest,
-                    ADKernel,
-                    params.addCoupledVar("v", 2.0, "The coupled variable."););
+InputParameters
+ADCoupledValueTest::validParams()
+{
+  InputParameters params = ADKernel::validParams();
+  params.addCoupledVar("v", 2.0, "The coupled variable.");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADCoupledValueTest<compute_stage>::ADCoupledValueTest(const InputParameters & parameters)
-  : ADKernel<compute_stage>(parameters), _v(adCoupledValue("v"))
+ADCoupledValueTest::ADCoupledValueTest(const InputParameters & parameters)
+  : ADKernel(parameters), _v(adCoupledValue("v"))
 {
 }
 
-template <ComputeStage compute_stage>
-ADResidual
-ADCoupledValueTest<compute_stage>::computeQpResidual()
+ADReal
+ADCoupledValueTest::computeQpResidual()
 {
   return _test[_i][_qp] * -_v[_qp];
 }

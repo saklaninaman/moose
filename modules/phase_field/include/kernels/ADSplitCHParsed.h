@@ -12,22 +12,16 @@
 #include "ADSplitCHCRes.h"
 #include "DerivativeMaterialPropertyNameInterface.h"
 
-// Forward Declarations
-template <ComputeStage>
-class ADSplitCHParsed;
-
-declareADValidParams(ADSplitCHParsed);
-
 /**
  * ADSplitCHParsed uses the Free Energy function and derivatives
  * provided by an ADMaterial. Derivatives w.r.t DOFs provided by the MOOSE AD
  * system are required for a correct Jacobian to be formed.
  */
-template <ComputeStage compute_stage>
-class ADSplitCHParsed : public ADSplitCHCRes<compute_stage>,
-                        public DerivativeMaterialPropertyNameInterface
+class ADSplitCHParsed : public ADSplitCHCRes, public DerivativeMaterialPropertyNameInterface
 {
 public:
+  static InputParameters validParams();
+
   ADSplitCHParsed(const InputParameters & parameters);
 
 protected:
@@ -37,8 +31,5 @@ protected:
   const MaterialPropertyName _f_name;
 
   /// chemical potential property
-  const ADMaterialProperty(Real) & _dFdc;
-
-  usingSplitCHCResMembers;
+  const ADMaterialProperty<Real> & _dFdc;
 };
-

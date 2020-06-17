@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", SmoothSuperellipsoidIC);
 
-template <>
 InputParameters
-validParams<SmoothSuperellipsoidIC>()
+SmoothSuperellipsoidIC::validParams()
 {
-  InputParameters params = validParams<SmoothSuperellipsoidBaseIC>();
+  InputParameters params = SmoothSuperellipsoidBaseIC::validParams();
   params.addClassDescription("Superellipsoid with a smooth interface");
   params.addRequiredParam<Real>("x1", "The x coordinate of the superellipsoid center");
   params.addRequiredParam<Real>("y1", "The y coordinate of the superellipsoid center");

@@ -11,20 +11,17 @@
 
 #include "GBDependentTensorBase.h"
 
-class GBDependentAnisotropicTensor;
-
-template <>
-InputParameters validParams<GBDependentAnisotropicTensor>();
 /**
  * GB dependent anisotropic tensor Ref. Forest, MSMSE, 2015
  */
 class GBDependentAnisotropicTensor : public GBDependentTensorBase
 {
 public:
+  static InputParameters validParams();
+
   GBDependentAnisotropicTensor(const InputParameters & parameters);
 
 protected:
   virtual void initQpStatefulProperties();
   virtual void computeQpProperties();
 };
-

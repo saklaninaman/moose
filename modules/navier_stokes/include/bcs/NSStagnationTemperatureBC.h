@@ -12,10 +12,6 @@
 #include "NSStagnationBC.h"
 
 // Forward Declarations
-class NSStagnationTemperatureBC;
-
-template <>
-InputParameters validParams<NSStagnationTemperatureBC>();
 
 /**
  * This Dirichlet condition imposes the condition T_0 = T_0_desired,
@@ -25,6 +21,8 @@ InputParameters validParams<NSStagnationTemperatureBC>();
 class NSStagnationTemperatureBC : public NSStagnationBC
 {
 public:
+  static InputParameters validParams();
+
   NSStagnationTemperatureBC(const InputParameters & parameters);
 
 protected:
@@ -38,4 +36,3 @@ protected:
   // Required paramters
   const Real _desired_stagnation_temperature;
 };
-

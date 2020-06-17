@@ -11,11 +11,10 @@
 
 registerMooseObject("ChemicalReactionsApp", KineticDisPreRateAux);
 
-template <>
 InputParameters
-validParams<KineticDisPreRateAux>()
+KineticDisPreRateAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   params.addCoupledVar("log_k", 0.0, "The equilibrium constant of the dissolution reaction");
   params.addRequiredParam<std::vector<Real>>("sto_v",
                                              "The stoichiometric coefficients of reactant species");

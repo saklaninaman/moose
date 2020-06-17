@@ -20,7 +20,7 @@
 
 [AuxKernels]
   [./hydrostatic_stress]
-    type = RankTwoScalarAux
+    type = ADRankTwoScalarAux
     variable = hydrostatic_stress
     rank_two_tensor = stress
     scalar_type = Hydrostatic
@@ -61,7 +61,7 @@
 
 [Materials]
   [./elasticity_tensor]
-    type = ComputeIsotropicElasticityTensor
+    type = ADComputeIsotropicElasticityTensor
     youngs_modulus = 1e10
     poissons_ratio = 0.3
   [../]
@@ -111,21 +111,21 @@
 
 [BCs]
   [./no_disp_x]
-    type = ADPresetBC
+    type = ADDirichletBC
     variable = disp_x
     boundary = left
     value = 0.0
   [../]
 
   [./no_disp_y]
-    type = ADPresetBC
+    type = ADDirichletBC
     variable = disp_y
     boundary = bottom
     value = 0.0
   [../]
 
   [./pull_disp_y]
-    type = ADFunctionPresetBC
+    type = ADFunctionDirichletBC
     variable = disp_y
     boundary = top
     function = pull

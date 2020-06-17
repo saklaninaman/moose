@@ -24,6 +24,8 @@ InputParameters validParams<MaterialDerivativeTestAction>();
 class MaterialDerivativeTestAction : public Action, public DerivativeMaterialPropertyNameInterface
 {
 public:
+  static InputParameters validParams();
+
   MaterialDerivativeTestAction(const InputParameters & parameters);
 
   virtual void act() override;
@@ -47,4 +49,3 @@ protected:
   /// every derivative given by a list of variables to derive w.r.t
   std::map<MaterialPropertyName, std::vector<VariableName>> _derivatives;
 };
-

@@ -10,18 +10,8 @@
 #pragma once
 
 #include "Material.h"
-
-// Forward Declarations
-class MultiPhaseStressMaterial;
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-template <typename>
-class RankFourTensorTempl;
-typedef RankFourTensorTempl<Real> RankFourTensor;
-
-template <>
-InputParameters validParams<MultiPhaseStressMaterial>();
+#include "RankTwoTensorForward.h"
+#include "RankFourTensorForward.h"
 
 /**
  * Construct a global strain from the phase strains in a manner that is consistent
@@ -30,6 +20,8 @@ InputParameters validParams<MultiPhaseStressMaterial>();
 class MultiPhaseStressMaterial : public Material
 {
 public:
+  static InputParameters validParams();
+
   MultiPhaseStressMaterial(const InputParameters & parameters);
 
 protected:
@@ -50,8 +42,11 @@ protected:
   std::vector<const MaterialProperty<RankFourTensor> *> _dphase_stress_dstrain;
 
   // global material properties
+
+  /// Base name of the material system
   const std::string _base_name;
+
+  /// The stress tensor
   MaterialProperty<RankTwoTensor> & _stress;
   MaterialProperty<RankFourTensor> & _dstress_dstrain;
 };
-

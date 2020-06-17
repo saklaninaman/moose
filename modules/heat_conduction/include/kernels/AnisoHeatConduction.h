@@ -14,6 +14,8 @@
 class AnisoHeatConduction : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   AnisoHeatConduction(const InputParameters & parameters);
 
 protected:
@@ -27,7 +29,3 @@ private:
   const MaterialProperty<Real> * _k_i[3];
   const MaterialProperty<Real> * _k_i_dT[3];
 };
-
-template <>
-InputParameters validParams<AnisoHeatConduction>();
-

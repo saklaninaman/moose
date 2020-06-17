@@ -12,17 +12,14 @@
 #include "CrystalPlasticitySlipRate.h"
 #include "RankTwoTensor.h"
 
-class CrystalPlasticitySlipRateGSS;
-
-template <>
-InputParameters validParams<CrystalPlasticitySlipRateGSS>();
-
 /**
  * Phenomenological constitutive model slip rate userobject class.
  */
 class CrystalPlasticitySlipRateGSS : public CrystalPlasticitySlipRate
 {
 public:
+  static InputParameters validParams();
+
   CrystalPlasticitySlipRateGSS(const InputParameters & parameters);
 
   virtual bool calcSlipRate(unsigned int qp, Real dt, std::vector<Real> & val) const;
@@ -43,4 +40,3 @@ protected:
 
   const MaterialProperty<std::vector<RankTwoTensor>> & _flow_direction;
 };
-

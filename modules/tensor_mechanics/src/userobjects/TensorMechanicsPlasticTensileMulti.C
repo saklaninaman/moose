@@ -15,11 +15,10 @@
 
 registerMooseObject("TensorMechanicsApp", TensorMechanicsPlasticTensileMulti);
 
-template <>
 InputParameters
-validParams<TensorMechanicsPlasticTensileMulti>()
+TensorMechanicsPlasticTensileMulti::validParams()
 {
-  InputParameters params = validParams<TensorMechanicsPlasticModel>();
+  InputParameters params = TensorMechanicsPlasticModel::validParams();
   params.addClassDescription("Associative tensile plasticity with hardening/softening");
   params.addRequiredParam<UserObjectName>(
       "tensile_strength",

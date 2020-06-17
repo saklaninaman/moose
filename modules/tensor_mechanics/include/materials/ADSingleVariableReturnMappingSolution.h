@@ -10,37 +10,20 @@
 #pragma once
 
 #include "MooseTypes.h"
+#include "DualRealOps.h"
 #include "InputParameters.h"
 
-#define usingSingleVariableReturnMappingSolutionMembers                                            \
-  using ADSingleVariableReturnMappingSolution<compute_stage>::returnMappingSolve;                  \
-  using ADSingleVariableReturnMappingSolution<compute_stage>::minimumPermissibleValue;             \
-  using ADSingleVariableReturnMappingSolution<compute_stage>::maximumPermissibleValue;             \
-  using ADSingleVariableReturnMappingSolution<compute_stage>::initialGuess;                        \
-  using ADSingleVariableReturnMappingSolution<compute_stage>::computeResidual;                     \
-  using ADSingleVariableReturnMappingSolution<compute_stage>::computeDerivative;                   \
-  using ADSingleVariableReturnMappingSolution<compute_stage>::computeReferenceResidual;            \
-  using ADSingleVariableReturnMappingSolution<compute_stage>::iterationFinalize;                   \
-  using ADSingleVariableReturnMappingSolution<compute_stage>::outputIterationSummary;              \
-  using ADSingleVariableReturnMappingSolution<compute_stage>::_check_range;                        \
-  using ADSingleVariableReturnMappingSolution<compute_stage>::_line_search;                        \
-  using ADSingleVariableReturnMappingSolution<compute_stage>::_bracket_solution
-
-// Forward declarations
-template <ComputeStage>
-class ADSingleVariableReturnMappingSolution;
 class ConsoleStream;
-
-declareADValidParams(ADSingleVariableReturnMappingSolution);
 
 /**
  * Base class that provides capability for Newton return mapping
  * iterations on a single variable
  */
-template <ComputeStage compute_stage>
 class ADSingleVariableReturnMappingSolution
 {
 public:
+  static InputParameters validParams();
+
   ADSingleVariableReturnMappingSolution(const InputParameters & parameters);
   virtual ~ADSingleVariableReturnMappingSolution() {}
 
@@ -127,6 +110,28 @@ protected:
   /// those bounds if outside them
   bool _bracket_solution;
 
+  /**
+   * Output information for a single iteration step to build the convergence history of the model
+   * @param iter_output            Output stream
+   * @param it                     Current iteration count
+   * @param effective_trial_stress Effective trial stress
+   * @param scalar                 Inelastic strain increment magnitude being solved for
+   * @param residual               Current value of the residual
+   * @param reference              Current value of the reference quantity
+   */
+  virtual void outputIterationStep(std::stringstream * iter_output,
+                                   const ADReal & effective_trial_stress,
+                                   const ADReal & scalar,
+                                   const Real reference_residual);
+
+  /**
+   * Check to see whether the residual is within the convergence limits.
+   * @param residual  Current value of the residual
+   * @param reference Current value of the reference quantity
+   * @return Whether the model converged
+   */
+  bool converged(const ADReal & residual, const Real reference);
+
 private:
   enum class InternalSolveOutput
   {
@@ -187,14 +192,6 @@ private:
                            std::stringstream * iter_output = nullptr);
 
   /**
-   * Check to see whether the residual is within the convergence limits.
-   * @param residual  Current value of the residual
-   * @param reference Current value of the reference quantity
-   * @return Whether the model converged
-   */
-  bool converged(const ADReal & residual, const Real reference);
-
-  /**
    * Check to see whether the residual is within acceptable convergence limits.
    * This will only return true if it has been determined that progress is no
    * longer being made and that the residual is within the acceptable limits.
@@ -237,18 +234,4 @@ private:
                     ADReal & scalar_upper_bound,
                     ADReal & scalar_lower_bound,
                     std::stringstream * iter_output);
-
-  /**
-   * Output information for a single iteration step to build the convergence history of the model
-   * @param iter_output            Output stream
-   * @param it                     Current iteration count
-   * @param effective_trial_stress Effective trial stress
-   * @param scalar                 Inelastic strain increment magnitude being solved for
-   * @param residual               Current value of the residual
-   * @param reference              Current value of the reference quantity
-   */
-  virtual void outputIterationStep(std::stringstream * iter_output,
-                                   const ADReal & effective_trial_stress,
-                                   const ADReal & scalar,
-                                   const Real reference_residual);
 };

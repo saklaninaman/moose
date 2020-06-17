@@ -17,11 +17,12 @@
 #include "MooseEigenSystem.h"
 #include "UserObject.h"
 
-template <>
+defineLegacyParams(EigenExecutionerBase);
+
 InputParameters
-validParams<EigenExecutionerBase>()
+EigenExecutionerBase::validParams()
 {
-  InputParameters params = validParams<Executioner>();
+  InputParameters params = Executioner::validParams();
   params.addClassDescription("Executioner for Eigen value problems.");
 
   params.addRequiredParam<PostprocessorName>("bx_norm", "To evaluate |Bx| for the eigenvalue");
@@ -38,6 +39,8 @@ validParams<EigenExecutionerBase>()
                               "Normalization");
   params.addParamNamesToGroup("auto_initialization time", "Advanced");
 
+  params.addParam<Real>("k0", 1.0, "Initial guess of the eigenvalue");
+
   params.addPrivateParam<bool>("_eigen", true);
 
   return params;
@@ -53,7 +56,7 @@ EigenExecutionerBase::EigenExecutionerBase(const InputParameters & parameters)
   : Executioner(parameters),
     _problem(_fe_problem),
     _eigen_sys(static_cast<MooseEigenSystem &>(_problem.getNonlinearSystemBase())),
-    _eigenvalue(declareRestartableData("eigenvalue", 1.0)),
+    _eigenvalue(addAttributeReporter("eigenvalue", getParam<Real>("k0"))),
     _source_integral(getPostprocessorValue("bx_norm")),
     _source_integral_old(1),
     _normalization(isParamValid("normalization")
@@ -95,16 +98,14 @@ EigenExecutionerBase::init()
 
   // check when the postprocessors are evaluated
   const ExecFlagEnum & bx_exec =
-      _problem.getUserObjectTempl<UserObject>(getParam<PostprocessorName>("bx_norm"))
-          .getExecuteOnEnum();
+      _problem.getUserObject<UserObject>(getParam<PostprocessorName>("bx_norm")).getExecuteOnEnum();
   if (!bx_exec.contains(EXEC_LINEAR))
     mooseError("Postprocessor " + getParam<PostprocessorName>("bx_norm") +
                " requires execute_on = 'linear'");
 
   if (isParamValid("normalization"))
-    _norm_exec =
-        _problem.getUserObjectTempl<UserObject>(getParam<PostprocessorName>("normalization"))
-            .getExecuteOnEnum();
+    _norm_exec = _problem.getUserObject<UserObject>(getParam<PostprocessorName>("normalization"))
+                     .getExecuteOnEnum();
   else
     _norm_exec = bx_exec;
 
@@ -161,7 +162,7 @@ EigenExecutionerBase::checkIntegrity()
 bool
 EigenExecutionerBase::inversePowerIteration(unsigned int min_iter,
                                             unsigned int max_iter,
-                                            Real pfactor,
+                                            Real l_rtol,
                                             bool cheb_on,
                                             Real tol_eig,
                                             bool echo,
@@ -172,7 +173,7 @@ EigenExecutionerBase::inversePowerIteration(unsigned int min_iter,
 {
   mooseAssert(max_iter >= min_iter,
               "Maximum number of power iterations must be greater than or equal to its minimum");
-  mooseAssert(pfactor > 0.0, "Invaid linear convergence tolerance");
+  mooseAssert(l_rtol > 0.0, "Invaid linear convergence tolerance");
   mooseAssert(tol_eig > 0.0, "Invalid eigenvalue tolerance");
   mooseAssert(tol_x > 0.0, "Invalid solution norm tolerance");
 
@@ -181,8 +182,7 @@ EigenExecutionerBase::inversePowerIteration(unsigned int min_iter,
   if (!xdiff.empty())
   {
     solution_diff = &getPostprocessorValueByName(xdiff);
-    const ExecFlagEnum & xdiff_exec =
-        _problem.getUserObjectTempl<UserObject>(xdiff).getExecuteOnEnum();
+    const ExecFlagEnum & xdiff_exec = _problem.getUserObject<UserObject>(xdiff).getExecuteOnEnum();
     if (!xdiff_exec.contains(EXEC_LINEAR))
       mooseError("Postprocessor " + xdiff + " requires execute_on = 'linear'");
   }
@@ -207,7 +207,7 @@ EigenExecutionerBase::inversePowerIteration(unsigned int min_iter,
   Real tol2 = _problem.es().parameters.get<Real>("nonlinear solver relative residual tolerance");
 
   // every power iteration is a linear solve, so set nonlinear iteration number to one
-  _problem.es().parameters.set<Real>("linear solver tolerance") = pfactor;
+  _problem.es().parameters.set<Real>("linear solver tolerance") = l_rtol;
   // disable nonlinear convergence check
   _problem.es().parameters.set<unsigned int>("nonlinear solver maximum iterations") = 1;
   _problem.es().parameters.set<Real>("nonlinear solver relative residual tolerance") = 1 - 1e-8;
@@ -413,6 +413,7 @@ EigenExecutionerBase::postExecute()
 
   {
     TIME_SECTION(_final_timer)
+    _problem.execMultiApps(EXEC_FINAL);
     _problem.execute(EXEC_FINAL);
     _problem.outputStep(EXEC_FINAL);
   }
@@ -564,7 +565,7 @@ EigenExecutionerBase::chebyshev(Chebyshev_Parameters & chebyshev_parameters,
 }
 
 bool
-EigenExecutionerBase::nonlinearSolve(Real rel_tol, Real abs_tol, Real pfactor, Real & k)
+EigenExecutionerBase::nonlinearSolve(Real nl_rtol, Real nl_atol, Real l_rtol, Real & k)
 {
   makeBXConsistent(k);
 
@@ -576,9 +577,9 @@ EigenExecutionerBase::nonlinearSolve(Real rel_tol, Real abs_tol, Real pfactor, R
   Real tol2 = _problem.es().parameters.get<Real>("linear solver tolerance");
   Real tol3 = _problem.es().parameters.get<Real>("nonlinear solver relative residual tolerance");
 
-  _problem.es().parameters.set<Real>("nonlinear solver absolute residual tolerance") = abs_tol;
-  _problem.es().parameters.set<Real>("nonlinear solver relative residual tolerance") = rel_tol;
-  _problem.es().parameters.set<Real>("linear solver tolerance") = pfactor;
+  _problem.es().parameters.set<Real>("nonlinear solver absolute residual tolerance") = nl_atol;
+  _problem.es().parameters.set<Real>("nonlinear solver relative residual tolerance") = nl_rtol;
+  _problem.es().parameters.set<Real>("linear solver tolerance") = l_rtol;
 
   // call nonlinear solve
   _problem.solve();

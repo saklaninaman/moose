@@ -18,6 +18,8 @@
 class PolycrystalStoredEnergyAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   PolycrystalStoredEnergyAction(const InputParameters & params);
 
   virtual void act();
@@ -32,7 +34,3 @@ protected:
   /// number of deformed grains
   const unsigned int _deformed_grain_num;
 };
-
-template <>
-InputParameters validParams<PolycrystalStoredEnergyAction>();
-

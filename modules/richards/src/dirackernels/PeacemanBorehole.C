@@ -12,11 +12,10 @@
 
 #include <fstream>
 
-template <>
 InputParameters
-validParams<PeacemanBorehole>()
+PeacemanBorehole::validParams()
 {
-  InputParameters params = validParams<DiracKernel>();
+  InputParameters params = DiracKernel::validParams();
   params.addRequiredParam<FunctionName>(
       "character",
       "If zero then borehole does nothing.  If positive the borehole acts as a sink "
@@ -268,8 +267,9 @@ PeacemanBorehole::wellConstant(const RealTensorValue & perm,
   const Real ll1 = max1 - min1;
   const Real ll2 = max2 - min2;
 
-  const Real r0 = _re_constant * std::sqrt(std::sqrt(eig_val1 / eig_val2) * std::pow(ll2, 2) +
-                                           std::sqrt(eig_val2 / eig_val1) * std::pow(ll1, 2)) /
+  const Real r0 = _re_constant *
+                  std::sqrt(std::sqrt(eig_val1 / eig_val2) * std::pow(ll2, 2) +
+                            std::sqrt(eig_val2 / eig_val1) * std::pow(ll1, 2)) /
                   (std::pow(eig_val1 / eig_val2, 0.25) + std::pow(eig_val2 / eig_val1, 0.25));
 
   const Real effective_perm = std::sqrt(det2D);

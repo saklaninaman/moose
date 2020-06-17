@@ -40,19 +40,19 @@
 
 [BCs]
   [./bottom]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_z
     boundary = bottom
     value = 0
   [../]
   [./axial]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_r
     boundary = left
     value = 0
   [../]
   [./rdisp]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_r
     boundary = right
     value = 0.1
@@ -61,7 +61,7 @@
 
 [Materials]
   [./elasticity]
-    type = ComputeIsotropicElasticityTensor
+    type = ADComputeIsotropicElasticityTensor
     poissons_ratio = 0.3
     youngs_modulus = 1e10
   [../]

@@ -11,17 +11,13 @@
 
 #include "FunctionNeumannBC.h"
 
-class FXFluxBC;
-
-template <>
-InputParameters validParams<FXFluxBC>();
-
 /**
  * Defines an FX-based BC that strongly encourages the gradients to match
  */
 class FXFluxBC : public FunctionNeumannBC
 {
 public:
+  static InputParameters validParams();
+
   FXFluxBC(const InputParameters & parameters);
 };
-

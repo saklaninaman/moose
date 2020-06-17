@@ -17,11 +17,10 @@
 
 registerMooseObject("XFEMApp", XFEMRankTwoTensorMarkerUserObject);
 
-template <>
 InputParameters
-validParams<XFEMRankTwoTensorMarkerUserObject>()
+XFEMRankTwoTensorMarkerUserObject::validParams()
 {
-  InputParameters params = validParams<XFEMMaterialStateMarkerBase>();
+  InputParameters params = XFEMMaterialStateMarkerBase::validParams();
   params.addClassDescription(
       "Mark elements to be cut by XFEM based on a scalar extracted from a RankTwoTensor");
   params.addParam<MooseEnum>(

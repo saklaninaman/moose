@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -12,7 +12,7 @@ from peacock.Input.InputFile import InputFile
 from peacock.utils import Testing
 from peacock import PeacockException
 from PyQt5 import QtWidgets
-import hit
+from pyhit import hit
 
 class Tests(Testing.PeacockTester):
     qapp = QtWidgets.QApplication([])

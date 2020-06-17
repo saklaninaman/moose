@@ -20,11 +20,10 @@
 
 #include "libmesh/quadrature.h"
 
-template <>
 InputParameters
-validParams<NavierStokesMaterial>()
+NavierStokesMaterial::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
 
   params.addClassDescription("This is the base class all materials should use if you are trying to "
                              "use the Navier-Stokes Kernels.");

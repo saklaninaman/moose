@@ -21,12 +21,13 @@
 
 registerMooseObject("MooseApp", ParsedGenerateSideset);
 
-template <>
+defineLegacyParams(ParsedGenerateSideset);
+
 InputParameters
-validParams<ParsedGenerateSideset>()
+ParsedGenerateSideset::validParams()
 {
-  InputParameters params = validParams<SideSetsGeneratorBase>();
-  params += validParams<FunctionParserUtils>();
+  InputParameters params = SideSetsGeneratorBase::validParams();
+  params += FunctionParserUtils<false>::validParams();
 
   params.addRequiredParam<MeshGeneratorName>("input", "The mesh we want to modify");
   params.addRequiredParam<std::string>("combinatorial_geometry",
@@ -44,18 +45,17 @@ validParams<ParsedGenerateSideset>()
   params.addParam<std::vector<std::string>>(
       "constant_expressions",
       "Vector of values for the constants in constant_names (can be an FParser expression)");
-  params.addClassDescription("A MeshModifier that adds element's sides to a sideset if the "
-                             "centroid satisfies the combinatorial_geometry expression, (and "
-                             "optionally) "
-                             "if one of the side's elements is in included_subdomain_ids and if it "
-                             "features the correct normal.");
+  params.addClassDescription("A MeshModifier that adds element sides to a sideset if the "
+                             "centroid satisfies the `combinatorial_geometry` expression. "
+                             "Optionally, element sides are also added if they are included in "
+                             "`included_subdomain_ids` and if they feature the designated normal.");
 
   return params;
 }
 
 ParsedGenerateSideset::ParsedGenerateSideset(const InputParameters & parameters)
   : SideSetsGeneratorBase(parameters),
-    FunctionParserUtils(parameters),
+    FunctionParserUtils<false>(parameters),
     _input(getMesh("input")),
     _function(parameters.get<std::string>("combinatorial_geometry")),
     _sideset_name(getParam<BoundaryName>("new_sideset_name")),
@@ -70,7 +70,7 @@ ParsedGenerateSideset::ParsedGenerateSideset(const InputParameters & parameters)
     mooseError("GenerateAllSideSetsByNormals only works with ReplicatedMesh.");
 
   // base function object
-  _func_F = ADFunctionPtr(new ADFunction());
+  _func_F = std::make_shared<SymFunction>();
 
   // set FParser internal feature flags
   setParserFeatureFlags(_func_F);
@@ -119,8 +119,8 @@ ParsedGenerateSideset::generate()
 
     for (unsigned int side = 0; side < elem->n_sides(); ++side)
     {
-      _fe_face->reinit(elem, side);
       const std::vector<Point> & normals = _fe_face->get_normals();
+      _fe_face->reinit(elem, side);
 
       // check normal if requested
       if (_check_normal && std::abs(1.0 - _normal * normals[0]) > _variance)

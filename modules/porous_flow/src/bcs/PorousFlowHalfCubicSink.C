@@ -12,11 +12,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowHalfCubicSink);
 
-template <>
 InputParameters
-validParams<PorousFlowHalfCubicSink>()
+PorousFlowHalfCubicSink::validParams()
 {
-  InputParameters params = validParams<PorousFlowSinkPTDefiner>();
+  InputParameters params = PorousFlowSinkPTDefiner::validParams();
   params.addRequiredParam<Real>(
       "max",
       "Maximum of the cubic flux multiplier.  Denote x = porepressure - center (or in the "

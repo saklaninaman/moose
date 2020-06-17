@@ -12,11 +12,6 @@
 #include "TimeDerivative.h"
 #include "PorousFlowDictator.h"
 
-class PorousFlowEnergyTimeDerivative;
-
-template <>
-InputParameters validParams<PorousFlowEnergyTimeDerivative>();
-
 /**
  * Kernel = (heat_energy - heat_energy_old)/dt
  * It is lumped to the nodes
@@ -24,6 +19,8 @@ InputParameters validParams<PorousFlowEnergyTimeDerivative>();
 class PorousFlowEnergyTimeDerivative : public TimeKernel
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowEnergyTimeDerivative(const InputParameters & parameters);
 
 protected:
@@ -104,4 +101,3 @@ protected:
    */
   Real computeQpJac(unsigned int pvar) const;
 };
-

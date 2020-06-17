@@ -14,11 +14,7 @@
 #include "DerivativeMaterialInterface.h"
 
 // Forward Declarations
-class ComputeGrainForceAndTorque;
 class GrainTrackerInterface;
-
-template <>
-InputParameters validParams<ComputeGrainForceAndTorque>();
 
 /**
  * This class is here to get the force and torque acting on a grain
@@ -27,6 +23,8 @@ class ComputeGrainForceAndTorque : public DerivativeMaterialInterface<ShapeEleme
                                    public GrainForceAndTorqueInterface
 {
 public:
+  static InputParameters validParams();
+
   ComputeGrainForceAndTorque(const InputParameters & parameters);
 
   virtual void initialize();
@@ -74,4 +72,3 @@ protected:
 
   unsigned int _total_dofs;
 };
-

@@ -12,10 +12,6 @@
 #include "IntegratedBC.h"
 
 // Forward Declarations
-class ImplicitNeumannBC;
-
-template <>
-InputParameters validParams<ImplicitNeumannBC>();
 
 /**
  * This class implements a form of the Neumann boundary condition in
@@ -25,6 +21,8 @@ InputParameters validParams<ImplicitNeumannBC>();
 class ImplicitNeumannBC : public IntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   ImplicitNeumannBC(const InputParameters & parameters);
 
   virtual ~ImplicitNeumannBC() {}
@@ -34,4 +32,3 @@ protected:
   virtual Real computeQpJacobian();
   virtual Real computeQpOffDiagJacobian(unsigned jvar);
 };
-

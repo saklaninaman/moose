@@ -11,11 +11,6 @@
 
 #include "Kernel.h"
 
-class MassConvectiveFlux;
-
-template <>
-InputParameters validParams<MassConvectiveFlux>();
-
 /**
  * Mass convective flux: \f$\rho \vec u \cdot \nabla v\f$
  *
@@ -23,6 +18,8 @@ InputParameters validParams<MassConvectiveFlux>();
 class MassConvectiveFlux : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   MassConvectiveFlux(const InputParameters & parameters);
 
 protected:
@@ -34,4 +31,3 @@ protected:
   const VariableValue & _vel_y;
   const VariableValue & _vel_z;
 };
-

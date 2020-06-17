@@ -12,13 +12,13 @@
 #include "NonlinearSystem.h"
 
 registerMooseAction("MooseApp", AddInterfaceKernelAction, "add_interface_kernel");
-registerMooseAction("MooseApp", AddInterfaceKernelAction, "ready_to_init");
 
-template <>
+defineLegacyParams(AddInterfaceKernelAction);
+
 InputParameters
-validParams<AddInterfaceKernelAction>()
+AddInterfaceKernelAction::validParams()
 {
-  return validParams<MooseObjectAction>();
+  return MooseObjectAction::validParams();
 }
 
 AddInterfaceKernelAction::AddInterfaceKernelAction(InputParameters params)
@@ -29,9 +29,6 @@ AddInterfaceKernelAction::AddInterfaceKernelAction(InputParameters params)
 void
 AddInterfaceKernelAction::act()
 {
-  if (_current_task == "ready_to_init")
-    _problem->getNonlinearSystem().dofMap().set_implicit_neighbor_dofs(true);
-
   if (_current_task == "add_interface_kernel")
     _problem->addInterfaceKernel(_type, _name, _moose_object_pars);
 }

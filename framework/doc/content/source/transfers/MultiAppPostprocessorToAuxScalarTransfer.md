@@ -1,18 +1,17 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # MultiAppPostprocessorToAuxScalarTransfer
 
-!alert construction title=Undocumented Class
-The MultiAppPostprocessorToAuxScalarTransfer has not been documented. The content contained on this page includes the
-typical automatic documentation associated with a MooseObject; however, what is contained is
-ultimately determined by what is necessary to make the documentation clear for users.
-
 !syntax description /Transfers/MultiAppPostprocessorToAuxScalarTransfer
+
+## Example Input File Syntax
+
+The MultiAppPostprocessorToAuxScalarTransfer transfers a Postprocessor value to an scalar
+AuxVariable. In the following example, a Postprocessor value from the master application
+is transferred to a scalar AuxVariable on each of the sub-applications.
+
+!listing multiapp_postprocessor_to_scalar/master.i block=Transfers
 
 !syntax parameters /Transfers/MultiAppPostprocessorToAuxScalarTransfer
 
 !syntax inputs /Transfers/MultiAppPostprocessorToAuxScalarTransfer
 
 !syntax children /Transfers/MultiAppPostprocessorToAuxScalarTransfer
-
-!bibtex bibliography

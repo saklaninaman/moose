@@ -14,9 +14,6 @@
 // Forward Declarations
 class BoundingBoxIC;
 
-template <typename T>
-InputParameters validParams();
-
 template <>
 InputParameters validParams<BoundingBoxIC>();
 
@@ -31,6 +28,8 @@ InputParameters validParams<BoundingBoxIC>();
 class BoundingBoxIC : public InitialCondition
 {
 public:
+  static InputParameters validParams();
+
   BoundingBoxIC(const InputParameters & parameters);
 
   virtual Real value(const Point & p) override;

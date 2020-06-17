@@ -11,11 +11,6 @@
 
 #include "IntegratedBC.h"
 
-class CoupledConvectiveHeatFluxBC;
-
-template <>
-InputParameters validParams<CoupledConvectiveHeatFluxBC>();
-
 /**
  * Boundary condition for convective heat flux where temperature and heat transfer coefficient are
  * given by auxiliary variables.  Typically used in multi-app coupling scenario. It is possible to
@@ -24,6 +19,8 @@ InputParameters validParams<CoupledConvectiveHeatFluxBC>();
 class CoupledConvectiveHeatFluxBC : public IntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   CoupledConvectiveHeatFluxBC(const InputParameters & parameters);
 
 protected:
@@ -32,11 +29,12 @@ protected:
 
   /// The number of components
   unsigned int _n_components;
-  /// Far-field temperatue fields for each component
+  /// Far-field temperature fields for each component
   std::vector<const VariableValue *> _T_infinity;
   /// Convective heat transfer coefficient
   std::vector<const VariableValue *> _htc;
   /// Volume fraction of individual phase
   std::vector<const VariableValue *> _alpha;
+  /// Scale factor
+  const VariableValue & _scale_factor;
 };
-

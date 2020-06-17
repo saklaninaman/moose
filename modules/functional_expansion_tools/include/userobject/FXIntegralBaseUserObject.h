@@ -25,11 +25,9 @@
  */
 class FXIntegralBaseUserObjectParameters
 {
-  // Empty class, used only for parameters
+public:
+  static InputParameters validParams();
 };
-
-template <>
-InputParameters validParams<FXIntegralBaseUserObjectParameters>();
 
 /**
  * This class interacts with a MooseApp through functional expansions. It is templated to allow the
@@ -116,9 +114,9 @@ FXIntegralBaseUserObject<IntegralBaseVariableUserObject>::FXIntegralBaseUserObje
   : IntegralBaseVariableUserObject(parameters),
     MutableCoefficientsInterface(this, parameters),
     _function_series(FunctionSeries::checkAndConvertFunction(
-        getFunction("function"), UserObject::getParamTempl<std::string>("_moose_base"), name())),
-    _keep_history(UserObject::getParamTempl<bool>("keep_history")),
-    _print_state(UserObject::getParamTempl<bool>("print_state")),
+        getFunction("function"), UserObject::getParam<std::string>("_moose_base"), name())),
+    _keep_history(UserObject::getParam<bool>("keep_history")),
+    _print_state(UserObject::getParam<bool>("print_state")),
     _standardized_function_volume(_function_series.getStandardizedFunctionVolume())
 {
   // Size the coefficient arrays

@@ -12,11 +12,10 @@
 
 registerMooseObject("FluidPropertiesTestApp", TestTwoPhaseFluidProperties);
 
-template <>
 InputParameters
-validParams<TestTwoPhaseFluidProperties>()
+TestTwoPhaseFluidProperties::validParams()
 {
-  InputParameters params = validParams<TwoPhaseFluidProperties>();
+  InputParameters params = TwoPhaseFluidProperties::validParams();
 
   params.addClassDescription("Test 2-phase fluid properties");
 
@@ -59,11 +58,7 @@ TestTwoPhaseFluidProperties::sigma_from_T(Real T) const
   return 5 * T;
 }
 
-Real
-TestTwoPhaseFluidProperties::dsigma_dT_from_T(Real /*T*/) const
-{
-  return 5;
-}
+Real TestTwoPhaseFluidProperties::dsigma_dT_from_T(Real /*T*/) const { return 5; }
 
 bool
 TestTwoPhaseFluidProperties::supportsPhaseChange() const

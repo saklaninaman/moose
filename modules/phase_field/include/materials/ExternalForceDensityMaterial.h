@@ -13,11 +13,7 @@
 #include "DerivativeMaterialInterface.h"
 
 // Forward Declarations
-class ExternalForceDensityMaterial;
 class Function;
-
-template <>
-InputParameters validParams<ExternalForceDensityMaterial>();
 
 /**
  * This Material calculates the force density acting on a particle/grain
@@ -26,6 +22,8 @@ InputParameters validParams<ExternalForceDensityMaterial>();
 class ExternalForceDensityMaterial : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   ExternalForceDensityMaterial(const InputParameters & parameters);
 
 protected:

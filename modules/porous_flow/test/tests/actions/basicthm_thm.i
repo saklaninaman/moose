@@ -1,40 +1,40 @@
-# PorousFlowBasicTHM action with coupling_type = ThermoHydroMechanical
+# PorousFlowBasicTHM action with coupling_type = ThermoHydroMechanicalGenerator
 
 [Mesh]
-  type = GeneratedMesh
-  dim = 2
-  nx = 10
-  ny = 3
-  xmax = 10
-  ymax = 3
-[]
-
-[MeshModifiers]
+  [gen]
+    type = GeneratedMeshGenerator
+    dim = 2
+    nx = 10
+    ny = 3
+    xmax = 10
+    ymax = 3
+  []
   [./aquifer]
-    type = SubdomainBoundingBox
+    input = gen
+    type = SubdomainBoundingBoxGenerator
     block_id = 1
     bottom_left = '0 1 0'
     top_right = '10 2 0'
   [../]
   [./injection_area]
-    type = SideSetsAroundSubdomain
+    type = SideSetsAroundSubdomainGenerator
     block = 1
     new_boundary = 'injection_area'
     normal = '-1 0 0'
-    depends_on = 'aquifer'
+    input = 'aquifer'
   [../]
   [./outflow_area]
-    type = SideSetsAroundSubdomain
+    type = SideSetsAroundSubdomainGenerator
     block = 1
     new_boundary = 'outflow_area'
     normal = '1 0 0'
-    depends_on = 'aquifer'
+    input = 'injection_area'
   [../]
   [./rename]
-    type = RenameBlock
+    type = RenameBlockGenerator
     old_block_id = '0 1'
     new_block_name = 'caprock aquifer'
-    depends_on = 'injection_area'
+    input = 'outflow_area'
   [../]
 []
 
@@ -66,20 +66,20 @@
   coupling_type = ThermoHydroMechanical
   gravity = '0 0 0'
   fp = simple_fluid
-  thermal_eigenstrain_name = thermal_contribution
+  eigenstrain_names = thermal_contribution
   use_displaced_mesh = false
   add_stress_aux = false
 []
 
 [BCs]
   [./constant_injection_porepressure]
-    type = PresetBC
+    type = DirichletBC
     variable = porepressure
     value = 1.5e6
     boundary = injection_area
   [../]
   [./constant_injection_temperature]
-    type = PresetBC
+    type = DirichletBC
     variable = temperature
     value = 313
     boundary = injection_area
@@ -94,19 +94,19 @@
     PT_shift = 1e6
   [../]
   [./constant_outflow_temperature]
-    type = PresetBC
+    type = DirichletBC
     variable = temperature
     value = 293
     boundary = outflow_area
   [../]
   [./top_bottom]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_y
     value = 0
     boundary = 'top bottom'
   [../]
   [./right]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_x
     value = 0
     boundary = right

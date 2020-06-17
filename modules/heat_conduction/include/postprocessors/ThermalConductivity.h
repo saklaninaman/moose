@@ -12,10 +12,6 @@
 #include "SideAverageValue.h"
 
 // Forward Declarations
-class ThermalConductivity;
-
-template <>
-InputParameters validParams<ThermalConductivity>();
 
 /**
  * This postprocessor computes the thermal conductivity of the bulk.
@@ -23,6 +19,8 @@ InputParameters validParams<ThermalConductivity>();
 class ThermalConductivity : public SideAverageValue
 {
 public:
+  static InputParameters validParams();
+
   ThermalConductivity(const InputParameters & parameters);
 
   virtual Real getValue();
@@ -41,4 +39,3 @@ private:
   /// data:  if we restart, the code will not think it is the zero timestep again.
   bool & _step_zero;
 };
-

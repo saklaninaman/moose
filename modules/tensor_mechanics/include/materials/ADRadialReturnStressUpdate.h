@@ -12,21 +12,6 @@
 #include "ADStressUpdateBase.h"
 #include "ADSingleVariableReturnMappingSolution.h"
 
-#define usingRadialReturnStressUpdateMembers                                                       \
-  usingStressUpdateBaseMembers;                                                                    \
-  usingSingleVariableReturnMappingSolutionMembers;                                                 \
-  using ADRadialReturnStressUpdate<compute_stage>::propagateQpStatefulPropertiesRadialReturn;      \
-  using ADRadialReturnStressUpdate<compute_stage>::_three_shear_modulus;                           \
-  using ADRadialReturnStressUpdate<compute_stage>::_effective_inelastic_strain;                    \
-  using ADRadialReturnStressUpdate<compute_stage>::_effective_inelastic_strain_old;                \
-  using ADRadialReturnStressUpdate<compute_stage>::_max_inelastic_increment
-
-// Forward declarations
-template <ComputeStage>
-class ADRadialReturnStressUpdate;
-
-declareADValidParams(ADRadialReturnStressUpdate);
-
 /**
  * ADRadialReturnStressUpdate computes the radial return stress increment for
  * an isotropic elastic-viscoplasticity model after interating on the difference
@@ -39,11 +24,12 @@ declareADValidParams(ADRadialReturnStressUpdate);
  * This class is based on the Elasto-viscoplasticity algorithm in F. Dunne and N.
  * Petrinic's Introduction to Computational Plasticity (2004) Oxford University Press.
  */
-template <ComputeStage compute_stage>
-class ADRadialReturnStressUpdate : public ADStressUpdateBase<compute_stage>,
-                                   public ADSingleVariableReturnMappingSolution<compute_stage>
+class ADRadialReturnStressUpdate : public ADStressUpdateBase,
+                                   public ADSingleVariableReturnMappingSolution
 {
 public:
+  static InputParameters validParams();
+
   ADRadialReturnStressUpdate(const InputParameters & parameters);
 
   /**
@@ -121,10 +107,8 @@ protected:
   /// 3 * shear modulus
   ADReal _three_shear_modulus;
 
-  ADMaterialProperty(Real) & _effective_inelastic_strain;
+  ADMaterialProperty<Real> & _effective_inelastic_strain;
   const MaterialProperty<Real> & _effective_inelastic_strain_old;
   Real _max_inelastic_increment;
-
-  usingStressUpdateBaseMembers;
-  usingSingleVariableReturnMappingSolutionMembers;
+  const bool _apply_strain;
 };

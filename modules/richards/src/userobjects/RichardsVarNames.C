@@ -14,11 +14,10 @@
 
 registerMooseObject("RichardsApp", RichardsVarNames);
 
-template <>
 InputParameters
-validParams<RichardsVarNames>()
+RichardsVarNames::validParams()
 {
-  InputParameters params = validParams<GeneralUserObject>();
+  InputParameters params = GeneralUserObject::validParams();
   params.addClassDescription("Holds information on the porepressure variable names");
   params.addRequiredCoupledVar("richards_vars",
                                "List of variables that represent the porepressures or "

@@ -12,27 +12,27 @@
 #include "FEProblem.h"
 #include "MooseMesh.h"
 
-registerADMooseObject("TensorMechanicsApp", ADComputeAxisymmetricRZFiniteStrain);
+registerMooseObject("TensorMechanicsApp", ADComputeAxisymmetricRZFiniteStrain);
 
-defineADValidParams(
-    ADComputeAxisymmetricRZFiniteStrain,
-    ADCompute2DFiniteStrain,
-    params.addClassDescription(
-        "Compute a strain increment for finite strains under axisymmetric assumptions."););
+InputParameters
+ADComputeAxisymmetricRZFiniteStrain::validParams()
+{
+  InputParameters params = ADCompute2DFiniteStrain::validParams();
+  params.addClassDescription(
+      "Compute a strain increment for finite strains under axisymmetric assumptions.");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADComputeAxisymmetricRZFiniteStrain<compute_stage>::ADComputeAxisymmetricRZFiniteStrain(
+ADComputeAxisymmetricRZFiniteStrain::ADComputeAxisymmetricRZFiniteStrain(
     const InputParameters & parameters)
-  : ADCompute2DFiniteStrain<compute_stage>(parameters),
-    _disp_old_0(coupledValueOld("displacements", 0))
+  : ADCompute2DFiniteStrain(parameters), _disp_old_0(coupledValueOld("displacements", 0))
 {
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeAxisymmetricRZFiniteStrain<compute_stage>::initialSetup()
+ADComputeAxisymmetricRZFiniteStrain::initialSetup()
 {
-  ADCompute2DFiniteStrain<compute_stage>::initialSetup();
+  ADCompute2DFiniteStrain::initialSetup();
 
   if (getBlockCoordSystem() != Moose::COORD_RZ)
     mooseError("The coordinate system must be set to RZ for Axisymmetric geometries.");
@@ -42,9 +42,8 @@ ADComputeAxisymmetricRZFiniteStrain<compute_stage>::initialSetup()
                "The out-of-plane direction for axisymmetric systems is currently restricted to z");
 }
 
-template <ComputeStage compute_stage>
 ADReal
-ADComputeAxisymmetricRZFiniteStrain<compute_stage>::computeOutOfPlaneGradDisp()
+ADComputeAxisymmetricRZFiniteStrain::computeOutOfPlaneGradDisp()
 {
   if (!MooseUtils::absoluteFuzzyEqual(_q_point[_qp](0), 0.0))
     return (*_disp[0])[_qp] / _q_point[_qp](0);
@@ -52,9 +51,8 @@ ADComputeAxisymmetricRZFiniteStrain<compute_stage>::computeOutOfPlaneGradDisp()
     return 0.0;
 }
 
-template <ComputeStage compute_stage>
 Real
-ADComputeAxisymmetricRZFiniteStrain<compute_stage>::computeOutOfPlaneGradDispOld()
+ADComputeAxisymmetricRZFiniteStrain::computeOutOfPlaneGradDispOld()
 {
   if (!MooseUtils::absoluteFuzzyEqual(_q_point[_qp](0), 0.0))
     return _disp_old_0[_qp] / _q_point[_qp](0);

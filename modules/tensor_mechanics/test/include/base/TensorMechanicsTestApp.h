@@ -11,14 +11,11 @@
 
 #include "MooseApp.h"
 
-class TensorMechanicsTestApp;
-
-template <>
-InputParameters validParams<TensorMechanicsTestApp>();
-
 class TensorMechanicsTestApp : public MooseApp
 {
 public:
+  static InputParameters validParams();
+
   TensorMechanicsTestApp(InputParameters parameters);
   virtual ~TensorMechanicsTestApp();
 
@@ -28,4 +25,3 @@ public:
   static void associateSyntax(Syntax & syntax, ActionFactory & action_factory);
   static void registerExecFlags(Factory & factory);
 };
-

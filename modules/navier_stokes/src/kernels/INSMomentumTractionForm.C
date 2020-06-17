@@ -11,11 +11,10 @@
 
 registerMooseObject("NavierStokesApp", INSMomentumTractionForm);
 
-template <>
 InputParameters
-validParams<INSMomentumTractionForm>()
+INSMomentumTractionForm::validParams()
 {
-  InputParameters params = validParams<INSMomentumBase>();
+  InputParameters params = INSMomentumBase::validParams();
   params.addClassDescription("This class computes momentum equation residual and Jacobian viscous "
                              "contributions for the 'traction' form of the governing equations.");
   return params;

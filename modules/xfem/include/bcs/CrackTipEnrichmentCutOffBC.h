@@ -9,21 +9,18 @@
 
 #pragma once
 
-#include "PresetBC.h"
+#include "DirichletBC.h"
 #include "CrackFrontDefinition.h"
-
-class CrackTipEnrichmentCutOffBC;
-
-template <>
-InputParameters validParams<CrackTipEnrichmentCutOffBC>();
 
 /**
  * CrackTipEnrichmentCutOffBC is used in XFEM Crack Tip Enrichment to fix DOFs to zero for those
  * nodes with basis function supports that are far away from any crack tip.
  */
-class CrackTipEnrichmentCutOffBC : public PresetBC
+class CrackTipEnrichmentCutOffBC : public DirichletBC
 {
 public:
+  static InputParameters validParams();
+
   CrackTipEnrichmentCutOffBC(const InputParameters & parameters);
 
 protected:
@@ -34,4 +31,3 @@ protected:
 private:
   const CrackFrontDefinition * _crack_front_definition;
 };
-

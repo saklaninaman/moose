@@ -12,15 +12,11 @@
 #include "LangevinNoise.h"
 #include "ConservedNoiseBase.h"
 
-// Forward Declarations
-class ConservedLangevinNoise;
-
-template <>
-InputParameters validParams<ConservedLangevinNoise>();
-
 class ConservedLangevinNoise : public LangevinNoise
 {
 public:
+  static InputParameters validParams();
+
   ConservedLangevinNoise(const InputParameters & parameters);
 
 protected:
@@ -30,4 +26,3 @@ protected:
 private:
   const ConservedNoiseInterface & _noise;
 };
-

@@ -12,11 +12,6 @@
 #include "EulerAngles.h"
 #include "GeneralUserObject.h"
 
-class EulerAngleProvider;
-
-template <>
-InputParameters validParams<EulerAngleProvider>();
-
 /**
  * Abstract base class for user objects that implement the Euler Angle provider
  * interface.
@@ -24,9 +19,10 @@ InputParameters validParams<EulerAngleProvider>();
 class EulerAngleProvider : public GeneralUserObject
 {
 public:
+  static InputParameters validParams();
+
   EulerAngleProvider(const InputParameters & parameters) : GeneralUserObject(parameters) {}
 
   virtual const EulerAngles & getEulerAngles(unsigned int) const = 0;
   virtual unsigned int getGrainNum() const = 0;
 };
-

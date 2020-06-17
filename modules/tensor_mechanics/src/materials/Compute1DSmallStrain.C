@@ -11,11 +11,10 @@
 
 #include "libmesh/quadrature.h"
 
-template <>
 InputParameters
-validParams<Compute1DSmallStrain>()
+Compute1DSmallStrain::validParams()
 {
-  InputParameters params = validParams<ComputeSmallStrain>();
+  InputParameters params = ComputeSmallStrain::validParams();
   params.addClassDescription("Compute a small strain in 1D problem");
   return params;
 }

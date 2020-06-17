@@ -18,11 +18,17 @@
 
 #include "MooseTestApp.h"
 
-template <>
 InputParameters
-validParams<MooseTestApp>()
+MooseTestApp::validParams()
 {
-  InputParameters params = validParams<MooseApp>();
+  InputParameters params = MooseApp::validParams();
+
+  // Flag for testing MooseApp::getRestartableDataMap error message
+  params.addCommandLineParam<bool>("test_getRestartableDataMap_error",
+                                   "--test_getRestartableDataMap_error",
+                                   false,
+                                   "Call getRestartableDataMap with a bad name.");
+
   /* MooseTestApp is special because it will have its own
    * binary and we want the default to allow test objects.
    */
@@ -32,6 +38,12 @@ validParams<MooseTestApp>()
                                    false,
                                    "Don't register test objects and syntax");
   params.set<bool>("automatic_automatic_scaling") = false;
+
+  // Do not use legacy DirichletBC, that is, set DirichletBC default for preset = true
+  params.set<bool>("use_legacy_dirichlet_bc") = false;
+
+  params.set<bool>("use_legacy_material_output") = false;
+
   return params;
 }
 
@@ -39,6 +51,9 @@ MooseTestApp::MooseTestApp(const InputParameters & parameters) : MooseApp(parame
 {
   MooseTestApp::registerAll(
       _factory, _action_factory, _syntax, !getParam<bool>("disallow_test_objects"));
+
+  if (getParam<bool>("test_getRestartableDataMap_error"))
+    getRestartableDataMap("slaughter");
 }
 
 MooseTestApp::~MooseTestApp() {}
@@ -67,6 +82,9 @@ MooseTestApp::registerAll(Factory & f, ActionFactory & af, Syntax & s, bool use_
     registerSyntax("MetaNodalNormalsAction", "MetaNodalNormals");
     // For testing the ability to create problems in user defined Actions
     registerSyntax("CreateSpecialProblemAction", "TestProblem");
+    registerSyntax("AddDGDiffusion", "DGDiffusionAction");
+    registerSyntax("MeshMetaDataDependenceAction", "AutoLineSamplerTest");
+    registerSyntax("AppendMeshGeneratorAction", "ModifyMesh/*");
   }
 }
 

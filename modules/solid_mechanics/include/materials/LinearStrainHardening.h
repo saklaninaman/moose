@@ -11,15 +11,11 @@
 
 #include "SolidModel.h"
 
-class LinearStrainHardening;
-
-template <>
-InputParameters validParams<LinearStrainHardening>();
-
 class LinearStrainHardening : public SolidModel
 {
 public:
+  static InputParameters validParams();
+
   LinearStrainHardening(const InputParameters & parameters);
   virtual ~LinearStrainHardening() {}
 };
-

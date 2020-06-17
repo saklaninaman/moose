@@ -20,11 +20,12 @@
 
 registerMooseObject("MooseApp", SideSetsAroundSubdomainGenerator);
 
-template <>
+defineLegacyParams(SideSetsAroundSubdomainGenerator);
+
 InputParameters
-validParams<SideSetsAroundSubdomainGenerator>()
+SideSetsAroundSubdomainGenerator::validParams()
 {
-  InputParameters params = validParams<SideSetsGeneratorBase>();
+  InputParameters params = SideSetsGeneratorBase::validParams();
 
   params.addRequiredParam<MeshGeneratorName>("input", "The mesh we want to modify");
   params.addRequiredParam<std::vector<BoundaryName>>(
@@ -126,8 +127,9 @@ SideSetsAroundSubdomainGenerator::generate()
       {
         if (_using_normal)
         {
+          const std::vector<Point> & normals = _fe_face->get_normals();
           _fe_face->reinit(elem, side);
-          face_normal = _fe_face->get_normals()[0];
+          face_normal = normals[0];
           add_to_bdy = (_normal * face_normal >= 1.0 - _normal_tol);
         }
 
@@ -183,8 +185,9 @@ SideSetsAroundSubdomainGenerator::generate()
         {
           if (_using_normal)
           {
+            const std::vector<Point> & normals = _fe_face->get_normals();
             _fe_face->reinit(elem, side);
-            face_normal = _fe_face->get_normals()[0];
+            face_normal = normals[0];
             add_to_bdy = (_normal * face_normal >= 1.0 - _normal_tol);
           }
 

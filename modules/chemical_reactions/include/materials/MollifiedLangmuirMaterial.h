@@ -12,10 +12,6 @@
 #include "Material.h"
 
 // Forward Declarations
-class MollifiedLangmuirMaterial;
-
-template <>
-InputParameters validParams<MollifiedLangmuirMaterial>();
 
 /**
  * Holds Langmuir parameters associated with desorption
@@ -24,6 +20,8 @@ InputParameters validParams<MollifiedLangmuirMaterial>();
 class MollifiedLangmuirMaterial : public Material
 {
 public:
+  static InputParameters validParams();
+
   MollifiedLangmuirMaterial(const InputParameters & parameters);
 
 protected:
@@ -65,4 +63,3 @@ private:
   /// derivative of mass flow rate wrt pressure
   MaterialProperty<Real> & _dmass_rate_from_matrix_dp;
 };
-

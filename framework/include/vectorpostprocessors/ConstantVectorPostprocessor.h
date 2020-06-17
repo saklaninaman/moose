@@ -20,12 +20,13 @@ InputParameters validParams<ConstantVectorPostprocessor>();
 class ConstantVectorPostprocessor : public GeneralVectorPostprocessor
 {
 public:
+  static InputParameters validParams();
+
   ConstantVectorPostprocessor(const InputParameters & parameters);
 
   virtual void initialize() override;
   virtual void execute() override;
 
 protected:
-  VectorPostprocessorValue & _value;
+  std::vector<VectorPostprocessorValue *> _value;
 };
-

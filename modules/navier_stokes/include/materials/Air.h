@@ -12,16 +12,14 @@
 #include "NavierStokesMaterial.h"
 
 // Forward Declarations
-class Air;
-
-template <>
-InputParameters validParams<Air>();
 
 // Class for Air with constant properties
 // TODO: Add thermal conductivity
 class Air : public NavierStokesMaterial
 {
 public:
+  static InputParameters validParams();
+
   Air(const InputParameters & parameters);
 
 protected:
@@ -44,4 +42,3 @@ protected:
   // 600K, 3.0180e-5
   Real _mu;
 };
-

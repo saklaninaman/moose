@@ -13,11 +13,6 @@
 #include "CompositeTensorBase.h"
 #include "RankTwoTensor.h"
 
-class CompositeEigenstrain;
-
-template <>
-InputParameters validParams<CompositeEigenstrain>();
-
 /**
  * CompositeEigenstrain provides a simple RankTwoTensor type
  * MaterialProperty that can be used as an Eigenstrain tensor in a mechanics simulation.
@@ -29,6 +24,8 @@ InputParameters validParams<CompositeEigenstrain>();
 class CompositeEigenstrain : public CompositeTensorBase<RankTwoTensor, ComputeEigenstrainBase>
 {
 public:
+  static InputParameters validParams();
+
   CompositeEigenstrain(const InputParameters & parameters);
 
 protected:
@@ -36,4 +33,3 @@ protected:
 
   const std::string _M_name;
 };
-

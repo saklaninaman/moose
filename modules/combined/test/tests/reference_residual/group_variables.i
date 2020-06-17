@@ -5,8 +5,8 @@
 
 [Problem]
   type = ReferenceResidualProblem
-  solution_variables = 'disp_x disp_y scalar_strain_zz1 scalar_strain_zz2'
-  reference_residual_variables = 'saved_x saved_y saved_scalar_strain_zz1 saved_scalar_strain_zz2'
+  extra_tag_vectors = 'ref'
+  reference_vector = 'ref'
   group_variables = 'disp_x disp_y;
                      scalar_strain_zz1 scalar_strain_zz2'
 []
@@ -126,6 +126,7 @@
     displacements = 'disp_x disp_y'
     temperature = temp
     save_in = 'saved_x saved_y'
+    extra_vector_tags = 'ref'
     block = '1 2'
   [../]
 []
@@ -218,25 +219,25 @@
 
 [BCs]
   [./bottom1x]
-    type = PresetBC
+    type = DirichletBC
     boundary = 1
     variable = disp_x
     value = 0.0
   [../]
   [./bottom1y]
-    type = PresetBC
+    type = DirichletBC
     boundary = 1
     variable = disp_y
     value = 0.0
   [../]
   [./bottom2x]
-    type = PresetBC
+    type = DirichletBC
     boundary = 2
     variable = disp_x
     value = 0.0
   [../]
   [./bottom2y]
-    type = PresetBC
+    type = DirichletBC
     boundary = 2
     variable = disp_y
     value = 0.0

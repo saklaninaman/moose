@@ -11,11 +11,7 @@
 
 #include "IntegratedBC.h"
 
-class PenaltyInclinedNoDisplacementBC;
 class Function;
-
-template <>
-InputParameters validParams<PenaltyInclinedNoDisplacementBC>();
 
 /**
  * Weakly enforce an inclined BC (u\dot n = 0) using a penalty method.
@@ -23,6 +19,8 @@ InputParameters validParams<PenaltyInclinedNoDisplacementBC>();
 class PenaltyInclinedNoDisplacementBC : public IntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   PenaltyInclinedNoDisplacementBC(const InputParameters & parameters);
 
 protected:
@@ -30,14 +28,16 @@ protected:
   virtual Real computeQpJacobian() override;
   virtual Real computeQpOffDiagJacobian(unsigned int jvar) override;
 
+  // An integer corresponding to the direction
   const unsigned int _component;
 
   /// Coupled displacement variables
   unsigned int _ndisp;
   std::vector<const VariableValue *> _disp;
+
+  /// Variable IDs of coupled displacement variables
   std::vector<unsigned int> _disp_var;
 
 private:
   Real _penalty;
 };
-

@@ -11,11 +11,6 @@
 
 #include "Compute2DFiniteStrain.h"
 
-class ComputeAxisymmetricRZFiniteStrain;
-
-template <>
-InputParameters validParams<ComputeAxisymmetricRZFiniteStrain>();
-
 /**
  * ComputeAxisymmetricRZFiniteStrain defines a strain increment and rotation
  * increment for finite strains in an Axisymmetric simulation.
@@ -24,6 +19,8 @@ InputParameters validParams<ComputeAxisymmetricRZFiniteStrain>();
 class ComputeAxisymmetricRZFiniteStrain : public Compute2DFiniteStrain
 {
 public:
+  static InputParameters validParams();
+
   ComputeAxisymmetricRZFiniteStrain(const InputParameters & parameters);
 
   void initialSetup() override;
@@ -36,4 +33,3 @@ protected:
   /// the old value of the first component of the displacements vector
   const VariableValue & _disp_old_0;
 };
-

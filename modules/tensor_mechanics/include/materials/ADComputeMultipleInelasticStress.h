@@ -10,30 +10,10 @@
 #pragma once
 
 #include "ADComputeFiniteStrainElasticStress.h"
+#include "ADRankTwoTensorForward.h"
+#include "ADRankFourTensorForward.h"
 
-#define usingComputeMultipleInelasticStressMembers                                                 \
-  usingComputeFiniteStrainElasticStressMembers;                                                    \
-  using ADComputeMultipleInelasticStress<compute_stage>::computeQpStressIntermediateConfiguration; \
-  using ADComputeMultipleInelasticStress<compute_stage>::finiteStrainRotation;                     \
-  using ADComputeMultipleInelasticStress<compute_stage>::updateQpState;                            \
-  using ADComputeMultipleInelasticStress<compute_stage>::updateQpStateSingleModel;                 \
-  using ADComputeMultipleInelasticStress<compute_stage>::computeAdmissibleState;
-
-// Forward Declarations
-template <ComputeStage>
-class ADComputeMultipleInelasticStress;
-template <ComputeStage>
 class ADStressUpdateBase;
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-typedef RankTwoTensorTempl<DualReal> DualRankTwoTensor;
-template <typename>
-class RankFourTensorTempl;
-typedef RankFourTensorTempl<Real> RankFourTensor;
-typedef RankFourTensorTempl<DualReal> DualRankFourTensor;
-
-declareADValidParams(ADComputeMultipleInelasticStress);
 
 /**
  * ADComputeMultipleInelasticStress computes the stress and a decomposition of the strain
@@ -50,10 +30,11 @@ declareADValidParams(ADComputeMultipleInelasticStress);
  * for the time increment.
  */
 
-template <ComputeStage compute_stage>
-class ADComputeMultipleInelasticStress : public ADComputeFiniteStrainElasticStress<compute_stage>
+class ADComputeMultipleInelasticStress : public ADComputeFiniteStrainElasticStress
 {
 public:
+  static InputParameters validParams();
+
   ADComputeMultipleInelasticStress(const InputParameters & parameters);
 
   virtual void initialSetup() override;
@@ -129,7 +110,7 @@ protected:
   const bool _perform_finite_strain_rotations;
 
   /// The sum of the inelastic strains that come from the plastic models
-  ADMaterialProperty(RankTwoTensor) & _inelastic_strain;
+  ADMaterialProperty<RankTwoTensor> & _inelastic_strain;
 
   /// old value of inelastic strain
   const MaterialProperty<RankTwoTensor> & _inelastic_strain_old;
@@ -152,11 +133,8 @@ protected:
    * models last to allow for the case when a creep model relaxes the stress state
    * inside of the yield surface in an iteration.
    */
-  std::vector<ADStressUpdateBase<compute_stage> *> _models;
+  std::vector<ADStressUpdateBase *> _models;
 
   /// is the elasticity tensor guaranteed to be isotropic?
   bool _is_elasticity_tensor_guaranteed_isotropic;
-
-  usingComputeFiniteStrainElasticStressMembers;
 };
-

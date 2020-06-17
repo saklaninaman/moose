@@ -19,11 +19,10 @@
 
 registerMooseObject("NavierStokesApp", NSTemperatureAux);
 
-template <>
 InputParameters
-validParams<NSTemperatureAux>()
+NSTemperatureAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
 
   params.addClassDescription("Temperature is an auxiliary value computed from the total energy "
                              "based on the FluidProperties.");
@@ -42,6 +41,8 @@ NSTemperatureAux::NSTemperatureAux(const InputParameters & parameters)
     _internal_energy(coupledValue(NS::internal_energy)),
     _fp(getUserObject<IdealGasFluidProperties>("fluid_properties"))
 {
+  mooseDeprecated("The NSTemperatureAux aux kernel has been replaced by the "
+                  "TemperatureAux kernel in the fluid properties module.");
 }
 
 Real

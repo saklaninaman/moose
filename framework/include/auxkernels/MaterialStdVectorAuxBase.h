@@ -25,6 +25,8 @@ template <typename T>
 class MaterialStdVectorAuxBase : public MaterialAuxBase<std::vector<T>>
 {
 public:
+  static InputParameters validParams();
+
   MaterialStdVectorAuxBase(const InputParameters & parameters);
 
 protected:
@@ -40,9 +42,18 @@ protected:
 };
 
 template <typename T>
+InputParameters
+MaterialStdVectorAuxBase<T>::validParams()
+{
+  InputParameters params = MaterialAuxBase<T>::validParams();
+  params.addParam<unsigned int>("index", 0, "The index to consider for this kernel");
+  return params;
+}
+
+template <typename T>
 MaterialStdVectorAuxBase<T>::MaterialStdVectorAuxBase(const InputParameters & parameters)
   : MaterialAuxBase<std::vector<T>>(parameters),
-    _index(this->template getParamTempl<unsigned int>("index"))
+    _index(this->template getParam<unsigned int>("index"))
 {
 }
 

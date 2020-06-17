@@ -12,10 +12,6 @@
 #include "Kernel.h"
 
 // Forward Declarations
-class DarcyFlux;
-
-template <>
-InputParameters validParams<DarcyFlux>();
 
 /**
  * Kernel = grad(permeability*(grad(pressure) - weight))
@@ -24,6 +20,8 @@ InputParameters validParams<DarcyFlux>();
 class DarcyFlux : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   DarcyFlux(const InputParameters & parameters);
 
 protected:

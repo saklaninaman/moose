@@ -24,16 +24,12 @@
 #include "libmesh/parallel_algebra.h"
 
 // Forward Declarations
-class ElementLoopUserObject;
 
 namespace libMesh
 {
 class Elem;
 class QBase;
 }
-
-template <>
-InputParameters validParams<ElementLoopUserObject>();
 
 /**
  * A base class that loops over elements and do things
@@ -61,6 +57,8 @@ class ElementLoopUserObject : public GeneralUserObject,
                               public MooseVariableDependencyInterface
 {
 public:
+  static InputParameters validParams();
+
   ElementLoopUserObject(const InputParameters & parameters);
   ElementLoopUserObject(ElementLoopUserObject & x, Threads::split split);
   virtual ~ElementLoopUserObject();

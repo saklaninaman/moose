@@ -10,18 +10,8 @@
 #pragma once
 
 #include "DerivativeFunctionMaterialBase.h"
-
-// Forward Declaration
-class ElasticEnergyMaterial;
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-template <typename>
-class RankFourTensorTempl;
-typedef RankFourTensorTempl<Real> RankFourTensor;
-
-template <>
-InputParameters validParams<ElasticEnergyMaterial>();
+#include "ADRankTwoTensorForward.h"
+#include "ADRankFourTensorForward.h"
 
 /**
  * Material class to compute the elastic free energy and its derivatives
@@ -29,6 +19,8 @@ InputParameters validParams<ElasticEnergyMaterial>();
 class ElasticEnergyMaterial : public DerivativeFunctionMaterialBase
 {
 public:
+  static InputParameters validParams();
+
   ElasticEnergyMaterial(const InputParameters & parameters);
 
   virtual void initialSetup() override;
@@ -57,4 +49,3 @@ protected:
   std::vector<std::vector<const MaterialProperty<RankTwoTensor> *>> _d2strain;
   ///@}
 };
-

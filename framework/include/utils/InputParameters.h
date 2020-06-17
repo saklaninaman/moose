@@ -25,7 +25,7 @@
 template <typename T>
 class FunctionParserBase
 {
-};
+}
 #endif
 
 #include <tuple>
@@ -75,6 +75,10 @@ public:
    * Override from libMesh to set user-defined attributes on our parameter
    */
   virtual void set_attributes(const std::string & name, bool inserted_only) override;
+
+  /// This functions is called in set as a 'callback' to avoid code duplication
+  template <typename T>
+  void setHelper(const std::string & name);
 
   /**
    * Returns a writable reference to the named parameters.  Note: This is not a virtual
@@ -132,6 +136,7 @@ public:
   void
   addRequiredParam(const std::string & name, const T & moose_enum, const std::string & doc_string);
 
+  ///@{
   /**
    * These methods add an option parameter and a documentation string to the InputParameters object.
    * The first version of this function takes a default value which is used if the parameter is not
@@ -142,7 +147,10 @@ public:
   void addParam(const std::string & name, const S & value, const std::string & doc_string);
   template <typename T>
   void addParam(const std::string & name, const std::string & doc_string);
+  ///@}
 
+  ///@{
+  // BEGIN RANGE CHECKED PARAMETER METHODS
   /**
    * These methods add an range checked parameters. A lower and upper bound can be supplied and the
    * supplied parameter will be checked to fall within that range.
@@ -160,6 +168,8 @@ public:
   void addRangeCheckedParam(const std::string & name,
                             const std::string & parsed_function,
                             const std::string & doc_string);
+  // END RANGE CHECKED PARAMETER METHODS
+  ///@}
 
   /**
    * These methods add an option parameter and with a customer type to the InputParameters object.
@@ -448,6 +458,19 @@ public:
   void registerBase(const std::string & value);
 
   /**
+   * This method is used to define the MOOSE system name that is used by the TheWarehouse object
+   * for storing objects to be retrieved for execution. The base class of every object class
+   * that will be called for execution (e.g., UserObject objects) should call this method.
+   *
+   * This is different from registerBase because the name supplied to registerBase is used to
+   * associate syntax, but the objects created often go to the same objects for execution, as is
+   * the case for Postprocessor object which are executed with UserObjects.
+   *
+   * See the AttribSystem object for use Attribute.h/C.
+   */
+  void registerSystemAttributeName(const std::string & value);
+
+  /**
    * This method is here to indicate which Moose types a particular Action may build. It takes a
    * space delimited list of registered MooseObjects.  TODO: For now we aren't actually checking
    * this list when we build objects. Since individual actions can do whatever they want it's not
@@ -594,24 +617,30 @@ public:
    * Get the default value for a postprocessor added with addPostprocessor
    * @param name The name of the postprocessor
    * @param suppress_error If true, the error check is suppressed
+   * @param index The index in the default postprocessor vector
    * @return The default value for the postprocessor
    */
   const PostprocessorValue & getDefaultPostprocessorValue(const std::string & name,
-                                                          bool suppress_error = false) const;
+                                                          bool suppress_error = false,
+                                                          unsigned int index = 0) const;
 
   /**
    * Set the default value for a postprocessor added with addPostprocessor
    * @param name The name of the postprocessor
    * @value value The value of the postprocessor default to set
+   * @param index The index in the default postprocessor vector
    */
-  void setDefaultPostprocessorValue(const std::string & name, const PostprocessorValue & value);
+  void setDefaultPostprocessorValue(const std::string & name,
+                                    const PostprocessorValue & value,
+                                    unsigned int index = 0);
 
   /**
    * Returns true if a default PostprocessorValue is defined
    * @param name The name of the postprocessor
+   * @param index The index in the default postprocessor vector
    * @return True if a default value exists
    */
-  bool hasDefaultPostprocessorValue(const std::string & name) const;
+  bool hasDefaultPostprocessorValue(const std::string & name, unsigned int index = 0) const;
 
   // BEGIN APPLY PARAMETER METHODS
   /**
@@ -713,14 +742,12 @@ public:
   /**
    * Return list of controllable parameters
    */
-  std::set<std::string> getControllableParameters() const
-  {
-    std::set<std::string> controllable;
-    for (auto it = _params.begin(); it != _params.end(); ++it)
-      if (it->second._controllable)
-        controllable.insert(it->first);
-    return controllable;
-  }
+  std::set<std::string> getControllableParameters() const;
+
+  /**
+   * Return names of parameters within a group.
+   */
+  std::set<std::string> getGroupParameters(const std::string & group) const;
 
   /**
    * Provide a set of reserved values for a parameter. These are values that are in addition
@@ -734,11 +761,14 @@ public:
    */
   std::set<std::string> reservedValues(const std::string & name) const;
 
+  ///@{
   /**
    * Get/set a string representing the location (i.e. filename,linenum) in the input text for the
    * block containing parameters for this object.
    */
-  std::string & blockLocation() { return _block_location; };
+  std::string & blockLocation() { return _block_location; }
+  const std::string & blockLocation() const { return _block_location; }
+  ///@}
 
   ///@{
   /**
@@ -757,8 +787,8 @@ public:
   const std::string & inputLocation(const std::string & param) const
   {
     return at(param)._input_location;
-  };
-  std::string & inputLocation(const std::string & param) { return at(param)._input_location; };
+  }
+  std::string & inputLocation(const std::string & param) { return at(param)._input_location; }
   ///@}
 
   ///@{
@@ -769,15 +799,38 @@ public:
   const std::string & paramFullpath(const std::string & param) const
   {
     return at(param)._param_fullpath;
-  };
-  std::string & paramFullpath(const std::string & param) { return at(param)._param_fullpath; };
+  }
+  std::string & paramFullpath(const std::string & param) { return at(param)._param_fullpath; }
   ///@}
 
   /**
    * Get/set a string representing the raw, unmodified token text for the given param.  This is
    * usually only set/useable for file-path type parameters.
    */
-  std::string & rawParamVal(const std::string & param) { return _params[param]._raw_val; };
+  std::string & rawParamVal(const std::string & param) { return _params[param]._raw_val; }
+
+  /**
+   * Informs this object that values for this parameter set from the input file or from the command
+   * line should be ignored
+   */
+  template <typename T>
+  void ignoreParameter(const std::string & name);
+
+  /**
+   * Whether to ignore the value of an input parameter set in the input file or from the command
+   * line.
+   */
+  bool shouldIgnore(const std::string & name);
+
+  /**
+   * Getter for the _vector_of_postprocessors flag in parameters
+   *
+   * @param pp_name The name of the postprocessor parameter
+   */
+  bool isSinglePostprocessor(const std::string & pp_name) const
+  {
+    return !_params.find(pp_name)->second._vector_of_postprocessors;
+  }
 
 private:
   // Private constructor so that InputParameters can only be created in certain places.
@@ -808,8 +861,10 @@ private:
     bool _have_coupled_default = false;
     /// The default value for optionally coupled variables
     std::vector<Real> _coupled_default = {0};
-    bool _have_default_postprocessor_val = false;
-    PostprocessorValue _default_postprocessor_val = 0;
+    /// are pps provided as single pp or as vector of pps
+    bool _vector_of_postprocessors = false;
+    std::vector<bool> _have_default_postprocessor_val = {false};
+    std::vector<PostprocessorValue> _default_postprocessor_val = {0};
     /// True if a parameters value was set by addParam, and not set again.
     bool _set_by_add_param = false;
     /// The reserved option names for a parameter
@@ -826,6 +881,8 @@ private:
     bool _controllable = false;
     /// Controllable execute flag restriction
     std::set<ExecFlagType> _controllable_flags;
+    /// whether user setting of this parameter should be ignored
+    bool _ignore = false;
   };
 
   Metadata & at(const std::string & param)
@@ -863,6 +920,24 @@ private:
    */
   template <typename T, typename S>
   void setParamHelper(const std::string & name, T & l_value, const S & r_value);
+
+  /**
+   * Reserve space for default postprocessor values
+   * @param name The name of the postprocessor
+   * @param size Number of entries required in default p
+   */
+  void reserveDefaultPostprocessorValueStorage(const std::string & name, unsigned int size);
+
+  /**
+   * Setter for the _vector_of_postprocessors flag in parameters
+   *
+   * @param pp_name The name of the postprocessor parameter
+   * @param b value that _vector_of_postprocessors is set to
+   */
+  void setVectorOfPostprocessors(const std::string & pp_name, bool b)
+  {
+    _params[pp_name]._vector_of_postprocessors = b;
+  }
 
   /// original location of input block (i.e. filename,linenum) - used for nice error messages.
   std::string _block_location;
@@ -911,7 +986,14 @@ private:
   // These are the only objects allowed to _create_ InputParameters
   friend InputParameters emptyInputParameters();
   friend class InputParameterWarehouse;
+  friend class Parser;
 };
+
+template <typename T>
+void
+InputParameters::setHelper(const std::string & /*name*/)
+{
+}
 
 // Template and inline function implementations
 template <typename T>
@@ -928,6 +1010,8 @@ InputParameters::set(const std::string & name, bool quiet_mode)
 
   if (quiet_mode)
     _params[name]._set_by_add_param = true;
+
+  setHelper<T>(name);
 
   return cast_ptr<Parameter<T> *>(_values[name])->set();
 }
@@ -1305,6 +1389,14 @@ InputParameters::suppressParameter(const std::string & name)
 
 template <typename T>
 void
+InputParameters::ignoreParameter(const std::string & name)
+{
+  suppressParameter<T>(name);
+  _params[name]._ignore = true;
+}
+
+template <typename T>
+void
 InputParameters::makeParamRequired(const std::string & name)
 {
   if (!this->have_parameter<T>(name))
@@ -1431,6 +1523,8 @@ template <>
 void InputParameters::setParamHelper<MaterialPropertyName, int>(const std::string & /*name*/,
                                                                 MaterialPropertyName & l_value,
                                                                 const int & r_value);
+template <>
+void InputParameters::setHelper<std::vector<PostprocessorName>>(const std::string & name);
 
 template <typename T>
 const T &
@@ -1470,7 +1564,12 @@ template <class T>
 InputParameters
 validParams()
 {
-  static_assert(false && sizeof(T), "Missing validParams declaration!");
-
-  mooseError("Missing validParams declaration!");
+  // If users forgot to make their (old) validParams, they screwed up and
+  // should get an error - so it is okay for us to try to call the new
+  // validParams static function - which will error if they didn't implement
+  // the new function.  We can't have the old static assert that use to be
+  // here because then the sfinae for toggling between old and new-style
+  // templating will always see this function and call it even if an object
+  // has *only* the new style validParams.
+  return T::validParams();
 }

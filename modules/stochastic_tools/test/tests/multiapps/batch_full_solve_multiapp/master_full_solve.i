@@ -1,16 +1,9 @@
-[Mesh]
-  type = GeneratedMesh
-  dim = 1
-[]
-
-[Problem]
-  kernel_coverage_check = false
-  solve = false
+[StochasticTools]
 []
 
 [Distributions]
   [uniform_0]
-    type = UniformDistribution
+    type = Uniform
     lower_bound = 0.1
     upper_bound = 0.3
   []
@@ -18,14 +11,10 @@
 
 [Samplers]
   [mc]
-    type = MonteCarloSampler
-    n_samples = 5
+    type = MonteCarlo
+    num_rows = 5
     distributions = 'uniform_0'
   []
-[]
-
-[Executioner]
-  type = Steady
 []
 
 [MultiApps]
@@ -41,8 +30,9 @@
   [data]
     type = SamplerPostprocessorTransfer
     multi_app = runner
-    vector_postprocessor = storage
-    postprocessor = average
+    sampler = mc
+    to_vector_postprocessor = storage
+    from_postprocessor = average
   []
 []
 

@@ -1,4 +1,3 @@
-#pylint: disable=missing-docstring, no-member
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -8,11 +7,10 @@
 #* Licensed under LGPL 2.1, please see LICENSE for details
 #* https://www.gnu.org/licenses/lgpl-2.1.html
 import logging
-import json
 import copy
-import anytree
+import moosetree
 import MooseDocs
-from MooseDocs.tree.base import NodeBase
+from .base import NodeBase
 
 LOG = logging.getLogger(__name__)
 
@@ -63,29 +61,29 @@ class Token(NodeBase):
         # Create string on demand
         string = self.attributes.pop('string', None)
         if string is not None:
-            String(self, content=string) #pylint: disable=no-member
+            String(self, content=string)
 
     @property
     def info(self):
         """Retrieve the Information object from a parent node."""
         node = self
         # use _info to prevent infinite loop
-        while node._info is None: #pylint: disable=protected-access
+        while node._info is None:
             if node.parent is None:
                 break
             node = node.parent
-        return node._info #pylint: disable=protected-access
+        return node._info
 
     @info.setter
     def info(self, value):
         self._info = value
 
-    def text(self, sep=u' '):
+    def text(self, sep=' '):
         """
         Convert String objects into a single string.
         """
         strings = []
-        for node in anytree.PreOrderIter(self):
+        for node in moosetree.iterate(self):
             if node.name in ['Word', 'Number', 'String']:
                 strings.append(node['content'])
         return sep.join(strings)
@@ -99,31 +97,17 @@ class Token(NodeBase):
             child.copy(_parent=tok)
         return tok
 
-    def write(self): #pylint: disable=arguments-differ
-        """
-        Return a dict() appropriate for JSON output.
-
-        Inputs:
-            _raw[bool]: An internal flag for skipping json conversion while building containers
-        """
-        return json.dumps(self.toDict(), sort_keys=True, indent=4)
-
     def copyToToken(self, token):
         """Copy the children from this token to the supplied parent."""
-        for child in self.copy():
+        for child in self.copy().children:
             child.parent = token
 
     def toDict(self):
         """Convert tree into a dict."""
-        return Token.__toDict(self)
+        return dict(name=self.name,
+                    attributes=self.attributes,
+                    children=[child.toDict() for child in self.children])
 
-    @staticmethod
-    def __toDict(node):
-        """Helper for JSON dump."""
-        return dict(name=node.name,
-                    attributes=node.attributes,
-                    children=[Token.__toDict(child) for child in node.children])
-
-String = newToken(u'String', content=u'')
-ErrorToken = newToken(u'ErrorToken', message=u'', traceback=None)
-DisabledToken = newToken(u'DisabledToken')
+String = newToken('String', content='')
+ErrorToken = newToken('ErrorToken', message='', traceback=None)
+DisabledToken = newToken('DisabledToken')

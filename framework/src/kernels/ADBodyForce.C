@@ -11,33 +11,33 @@
 
 #include "Function.h"
 
-registerADMooseObject("MooseApp", ADBodyForce);
+registerMooseObject("MooseApp", ADBodyForce);
 
-defineADValidParams(
-    ADBodyForce,
-    ADKernelValue,
-    params.addClassDescription(
-        "Demonstrates the multiple ways that scalar values can be introduced "
-        "into kernels, e.g. (controllable) constants, functions, and "
-        "postprocessors. Implements the weak form $(\\psi_i, -f)$.");
-    params.addParam<Real>("value", 1.0, "Coefficient to multiply by the body force term");
-    params.addParam<FunctionName>("function", "1", "A function that describes the body force");
-    params.addParam<PostprocessorName>(
-        "postprocessor", 1, "A postprocessor whose value is multiplied by the body force");
-    params.declareControllable("value"););
+InputParameters
+ADBodyForce::validParams()
+{
+  InputParameters params = ADKernelValue::validParams();
+  params.addClassDescription("Demonstrates the multiple ways that scalar values can be introduced "
+                             "into kernels, e.g. (controllable) constants, functions, and "
+                             "postprocessors. Implements the weak form $(\\psi_i, -f)$.");
+  params.addParam<Real>("value", 1.0, "Coefficient to multiply by the body force term");
+  params.addParam<FunctionName>("function", "1", "A function that describes the body force");
+  params.addParam<PostprocessorName>(
+      "postprocessor", 1, "A postprocessor whose value is multiplied by the body force");
+  params.declareControllable("value");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADBodyForce<compute_stage>::ADBodyForce(const InputParameters & parameters)
-  : ADKernelValue<compute_stage>(parameters),
+ADBodyForce::ADBodyForce(const InputParameters & parameters)
+  : ADKernelValue(parameters),
     _scale(getParam<Real>("value")),
     _function(getFunction("function")),
     _postprocessor(getPostprocessorValue("postprocessor"))
 {
 }
 
-template <ComputeStage compute_stage>
 ADReal
-ADBodyForce<compute_stage>::precomputeQpResidual()
+ADBodyForce::precomputeQpResidual()
 {
   return -_scale * _postprocessor * _function.value(_t, _q_point[_qp]);
 }

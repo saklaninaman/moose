@@ -3,14 +3,28 @@
 #
 
 [Mesh]
-  type = GeneratedMesh
-  dim = 2
-  nx = 50
-  ny = 50
-  xmin = -0.5
-  xmax = 0.5
-  ymin = -0.5
-  ymax = 0.5
+  [gen]
+    type = GeneratedMeshGenerator
+    dim = 2
+    nx = 50
+    ny = 50
+    xmin = -0.5
+    xmax = 0.5
+    ymin = -0.5
+    ymax = 0.5
+  []
+  [./cnode]
+    input = gen
+    type = ExtraNodesetGenerator
+    coord = '0.0 0.0'
+    new_boundary = 100
+  [../]
+  [./anode]
+    input = cnode
+    type = ExtraNodesetGenerator
+    coord = '0.0 0.5'
+    new_boundary = 101
+  [../]
 []
 
 [Modules/PhaseField/MortarPeriodicity]
@@ -18,19 +32,6 @@
     variable = 'disp_x disp_y'
     periodicity = gradient
     periodic_directions = 'x y'
-  [../]
-[]
-
-[MeshModifiers]
-  [./cnode]
-    type = AddExtraNodeset
-    coord = '0.0 0.0'
-    new_boundary = 100
-  [../]
-  [./anode]
-    type = AddExtraNodeset
-    coord = '0.0 0.5'
-    new_boundary = 101
   [../]
 []
 
@@ -233,13 +234,13 @@
 
   # fix center point location
   [./centerfix_x]
-    type = PresetBC
+    type = DirichletBC
     boundary = 100
     variable = disp_x
     value = 0
   [../]
   [./centerfix_y]
-    type = PresetBC
+    type = DirichletBC
     boundary = 100
     variable = disp_y
     value = 0
@@ -247,7 +248,7 @@
 
   # fix side point x coordinate to inhibit rotation
   [./angularfix]
-    type = PresetBC
+    type = DirichletBC
     boundary = 101
     variable = disp_x
     value = 0

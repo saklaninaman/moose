@@ -11,11 +11,6 @@
 
 #include "PorousFlowMaterialVectorBase.h"
 
-class PorousFlowConstantThermalExpansionCoefficient;
-
-template <>
-InputParameters validParams<PorousFlowConstantThermalExpansionCoefficient>();
-
 /**
  * Material designed to provide a time-invariant
  * volumetric thermal expansion coefficient
@@ -29,6 +24,8 @@ InputParameters validParams<PorousFlowConstantThermalExpansionCoefficient>();
 class PorousFlowConstantThermalExpansionCoefficient : public PorousFlowMaterialVectorBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowConstantThermalExpansionCoefficient(const InputParameters & parameters);
 
 protected:
@@ -53,4 +50,3 @@ protected:
   /// Old value of the volumetric thermal expansion coefficient.  This variable is necessary in order to keep the thermal expansion coefficient constant even if porosity is changing.
   const MaterialProperty<Real> & _coeff_old;
 };
-

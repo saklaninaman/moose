@@ -14,11 +14,7 @@
 #include "DerivativeMaterialInterface.h"
 
 // Forward Declarations
-class MaskedBodyForce;
 class Function;
-
-template <>
-InputParameters validParams<MaskedBodyForce>();
 
 /**
  * This kernel creates a body force that is modified by a mask defined
@@ -29,6 +25,8 @@ InputParameters validParams<MaskedBodyForce>();
 class MaskedBodyForce : public DerivativeMaterialInterface<JvarMapKernelInterface<BodyForce>>
 {
 public:
+  static InputParameters validParams();
+
   MaskedBodyForce(const InputParameters & parameters);
   virtual void initialSetup();
 
@@ -39,9 +37,6 @@ protected:
 
   const MaterialProperty<Real> & _mask;
 
-  /// number of coupled variables
-  const unsigned int _nvar;
-
   /// name of the nonlinear variable (needed to retrieve the derivative material properties)
   VariableName _v_name;
 
@@ -51,4 +46,3 @@ protected:
   ///  Reaction rate derivatives w.r.t. other coupled variables
   std::vector<const MaterialProperty<Real> *> _dmaskdarg;
 };
-

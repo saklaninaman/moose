@@ -10,10 +10,60 @@
 #
 
 [Mesh]
-  type = GeneratedMesh
-  dim = 3
-  elem_type = HEX8
-  displacements = 'ux uy uz'
+  [gen]
+    type = GeneratedMeshGenerator
+    dim = 3
+    elem_type = HEX8
+    displacements = 'ux uy uz'
+  []
+  [./side1n1]
+    input = gen
+    type = ExtraNodesetGenerator
+    coord = '0.0 0.0 0.0'
+    boundary = 6
+  [../]
+  [./side1n2]
+    input = side1n1
+    type = ExtraNodesetGenerator
+    coord = '1.0 0.0 0.0'
+    boundary = 7
+  [../]
+  [./side2n1]
+    input = side1n2
+    type = ExtraNodesetGenerator
+    coord = '0.0 1.0 0.0'
+    boundary = 8
+  [../]
+  [./side2n2]
+    input = side2n1
+    type = ExtraNodesetGenerator
+    coord = '1.0 1.0 0.0'
+    boundary = 9
+  [../]
+  [./side3n1]
+    input = side2n2
+    type = ExtraNodesetGenerator
+    coord = '0.0 1.0 1.0'
+    boundary = 10
+  [../]
+  [./side3n2]
+    input = side3n1
+    type = ExtraNodesetGenerator
+    coord = '1.0 1.0 1.0'
+    boundary = 11
+  [../]
+  [./side4n1]
+    input = side3n2
+    type = ExtraNodesetGenerator
+    coord = '0.0 0.0 1.0'
+    boundary = 12
+  [../]
+  [./side4n2]
+    input = side4n1
+    type = ExtraNodesetGenerator
+    coord = '1.0 0.0 1.0'
+    boundary = 13
+  [../]
 []
 
 [Variables]
@@ -58,67 +108,67 @@
 [BCs]
   active = 'bcside1 bcside2ux bcside2uy bcside4ux bcside4uy bcside3uy bcside3ux bcx'
   [./bcside1]
-    type = PresetBC
+    type = DirichletBC
     variable = 'uy uz'
     boundary = '6 7'
     value = 0
   [../]
   [./bcside2ux]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = uy
     boundary = '8 9'
     function = side2uxfunc
   [../]
   [./bcside2uy]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = uz
     boundary = '8 9'
     function = side2uyfunc
   [../]
   [./bcside3ux]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = uy
     boundary = '10 11'
     function = side3uxfunc
   [../]
   [./bcside3uy]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = uz
     boundary = '10 11'
     function = side3uyfunc
   [../]
   [./bcside4ux]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = uy
     boundary = '12 13'
     function = side4uxfunc
   [../]
   [./bcside4uy]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = uz
     boundary = '12 13'
     function = side4uyfunc
   [../]
   [./bot]
-    type = PresetBC
+    type = DirichletBC
     variable = 'ux uy uz'
     boundary = back
     value = 0
   [../]
   [./topxz]
-    type = PresetBC
+    type = DirichletBC
     variable = 'ux uz'
     boundary = front
     value = 0
   [../]
   [./topy]
-    type = PresetBC
+    type = DirichletBC
     variable = uy
     boundary = front
     value = 1
   [../]
   [./bcx]
-    type = PresetBC
+    type = DirichletBC
     variable = ux
     boundary = '6 7 8 9 10 11 12 13'
     value = 0
@@ -179,48 +229,5 @@
     disp_z = uz
     disp_y = uy
     disp_x = ux
-  [../]
-[]
-
-[MeshModifiers]
-  [./side1n1]
-    type = AddExtraNodeset
-    coord = '0.0 0.0 0.0'
-    boundary = 6
-  [../]
-  [./side1n2]
-    type = AddExtraNodeset
-    coord = '1.0 0.0 0.0'
-    boundary = 7
-  [../]
-  [./side2n1]
-    type = AddExtraNodeset
-    coord = '0.0 1.0 0.0'
-    boundary = 8
-  [../]
-  [./side2n2]
-    type = AddExtraNodeset
-    coord = '1.0 1.0 0.0'
-    boundary = 9
-  [../]
-  [./side3n1]
-    type = AddExtraNodeset
-    coord = '0.0 1.0 1.0'
-    boundary = 10
-  [../]
-  [./side3n2]
-    type = AddExtraNodeset
-    coord = '1.0 1.0 1.0'
-    boundary = 11
-  [../]
-  [./side4n1]
-    type = AddExtraNodeset
-    coord = '0.0 0.0 1.0'
-    boundary = 12
-  [../]
-  [./side4n2]
-    type = AddExtraNodeset
-    coord = '1.0 0.0 1.0'
-    boundary = 13
   [../]
 []

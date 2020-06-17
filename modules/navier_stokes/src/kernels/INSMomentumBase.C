@@ -10,11 +10,10 @@
 #include "INSMomentumBase.h"
 #include "Function.h"
 
-template <>
 InputParameters
-validParams<INSMomentumBase>()
+INSMomentumBase::validParams()
 {
-  InputParameters params = validParams<INSBase>();
+  InputParameters params = INSBase::validParams();
 
   params.addRequiredParam<unsigned>("component", "The velocity component that this is applied to.");
   params.addParam<bool>(

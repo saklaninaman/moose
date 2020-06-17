@@ -12,11 +12,10 @@
 
 registerMooseObject("PhaseFieldApp", DiscreteNucleationForce);
 
-template <>
 InputParameters
-validParams<DiscreteNucleationForce>()
+DiscreteNucleationForce::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addClassDescription(
       "Term for inserting grain nuclei or phases in non-conserved order parameter fields");
   params.addRequiredParam<UserObjectName>("map", "DiscreteNucleationMap user object");

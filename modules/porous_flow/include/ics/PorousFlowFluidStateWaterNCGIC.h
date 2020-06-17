@@ -12,10 +12,6 @@
 #include "PorousFlowFluidStateIC.h"
 
 class PorousFlowWaterNCG;
-class PorousFlowFluidStateWaterNCGIC;
-
-template <>
-InputParameters validParams<PorousFlowFluidStateWaterNCGIC>();
 
 /**
  * PorousFlowFluidStateWaterNCGIC calculates an initial value for
@@ -25,6 +21,7 @@ InputParameters validParams<PorousFlowFluidStateWaterNCGIC>();
 class PorousFlowFluidStateWaterNCGIC : public PorousFlowFluidStateIC
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowFluidStateWaterNCGIC(const InputParameters & parameters);
 };
-

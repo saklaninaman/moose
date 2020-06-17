@@ -14,10 +14,6 @@
 #include "DerivativeMaterialInterface.h"
 
 // Forward Declarations
-class MatGradSquareCoupled;
-
-template <>
-InputParameters validParams<MatGradSquareCoupled>();
 
 /*
  * This kernel calculates the prefactor * grad_psi * grad_psi in Allen-Cahn equation for phase field
@@ -28,6 +24,8 @@ InputParameters validParams<MatGradSquareCoupled>();
 class MatGradSquareCoupled : public DerivativeMaterialInterface<JvarMapKernelInterface<Kernel>>
 {
 public:
+  static InputParameters validParams();
+
   MatGradSquareCoupled(const InputParameters & parameters);
   virtual void initialSetup();
 
@@ -44,4 +42,3 @@ private:
   const MaterialProperty<Real> & _dprefactor_dphi;
   std::vector<const MaterialProperty<Real> *> _dprefactor_darg;
 };
-

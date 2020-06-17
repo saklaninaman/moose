@@ -12,11 +12,7 @@
 #include "AuxKernel.h"
 
 // Forward Declarations
-class NSTemperatureAux;
 class IdealGasFluidProperties;
-
-template <>
-InputParameters validParams<NSTemperatureAux>();
 
 /**
  * Temperature is an auxiliary value computed from the total energy
@@ -25,6 +21,8 @@ InputParameters validParams<NSTemperatureAux>();
 class NSTemperatureAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   NSTemperatureAux(const InputParameters & parameters);
 
 protected:
@@ -36,4 +34,3 @@ protected:
   // Fluid properties
   const IdealGasFluidProperties & _fp;
 };
-

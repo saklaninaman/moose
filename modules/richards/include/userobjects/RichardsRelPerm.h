@@ -11,11 +11,6 @@
 
 #include "GeneralUserObject.h"
 
-class RichardsRelPerm;
-
-template <>
-InputParameters validParams<RichardsRelPerm>();
-
 /**
  * Base class for Richards relative permeability classes
  * that provide relative permeability as a function of effective saturation
@@ -23,6 +18,8 @@ InputParameters validParams<RichardsRelPerm>();
 class RichardsRelPerm : public GeneralUserObject
 {
 public:
+  static InputParameters validParams();
+
   RichardsRelPerm(const InputParameters & parameters);
 
   void initialize();
@@ -53,4 +50,3 @@ public:
    */
   virtual Real d2relperm(Real seff) const = 0;
 };
-

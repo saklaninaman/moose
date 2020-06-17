@@ -27,11 +27,12 @@
 
 registerMooseObject("MooseApp", SideSetsFromPointsGenerator);
 
-template <>
+defineLegacyParams(SideSetsFromPointsGenerator);
+
 InputParameters
-validParams<SideSetsFromPointsGenerator>()
+SideSetsFromPointsGenerator::validParams()
 {
-  InputParameters params = validParams<SideSetsGeneratorBase>();
+  InputParameters params = SideSetsGeneratorBase::validParams();
 
   params.addRequiredParam<MeshGeneratorName>("input", "The mesh we want to modify");
   params.addClassDescription("Adds a new sideset starting at the specified point containing all "
@@ -88,8 +89,8 @@ SideSetsFromPointsGenerator::generate()
       {
         // This is the side that we want to paint our sideset with
         // First get the normal
-        _fe_face->reinit(elem, side);
         const std::vector<Point> & normals = _fe_face->get_normals();
+        _fe_face->reinit(elem, side);
 
         flood(elem, normals[0], boundary_ids[i], *mesh);
       }

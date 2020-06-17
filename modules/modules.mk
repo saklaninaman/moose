@@ -20,10 +20,12 @@ ifeq ($(ALL_MODULES),yes)
         EXTERNAL_PETSC_SOLVER       := yes
         FLUID_PROPERTIES            := yes
         FUNCTIONAL_EXPANSION_TOOLS  := yes
+        GEOCHEMISTRY                := yes
         HEAT_CONDUCTION             := yes
         LEVEL_SET                   := yes
         MISC                        := yes
         NAVIER_STOKES               := yes
+        PERIDYNAMICS                := yes
         PHASE_FIELD                 := yes
         POROUS_FLOW                 := yes
         RDG                         := yes
@@ -42,11 +44,14 @@ ifeq ($(SOLID_MECHANICS),yes)
         TENSOR_MECHANICS            := yes
 endif
 
+ifeq ($(PERIDYNAMICS),yes)
+        TENSOR_MECHANICS           := yes
+endif
+
 ifeq ($(POROUS_FLOW),yes)
         TENSOR_MECHANICS            := yes
         FLUID_PROPERTIES            := yes
         CHEMICAL_REACTIONS          := yes
-        RDG                         := yes
 endif
 
 ifeq ($(NAVIER_STOKES),yes)
@@ -59,25 +64,26 @@ ifeq ($(PHASE_FIELD),yes)
         TENSOR_MECHANICS            := yes
 endif
 
+ifeq ($(CONTACT),yes)
+        TENSOR_MECHANICS            := yes
+endif
+
 # The master list of all moose modules
-MODULE_NAMES := "chemical_reactions contact fluid_properties functional_expansion_tools heat_conduction level_set misc navier_stokes phase_field porous_flow rdg richards solid_mechanics stochastic_tools tensor_mechanics xfem external_petsc_solver"
+MODULE_NAMES := "chemical_reactions contact external_petsc_solver fluid_properties functional_expansion_tools geochemistry heat_conduction level_set misc navier_stokes peridynamics phase_field porous_flow rdg richards solid_mechanics stochastic_tools tensor_mechanics xfem"
 
 ################################################################################
 ########################## MODULE REGISTRATION #################################
 ################################################################################
 GEN_REVISION  := no
 
+# The ordering of the following is important! This is processed from the top down,
+# therefore any modules with dependencies must have their dependent module's
+# application(s) defined first.
+
 ifeq ($(CHEMICAL_REACTIONS),yes)
   APPLICATION_DIR    := $(MOOSE_DIR)/modules/chemical_reactions
   APPLICATION_NAME   := chemical_reactions
   SUFFIX             := cr
-  include $(FRAMEWORK_DIR)/app.mk
-endif
-
-ifeq ($(CONTACT),yes)
-  APPLICATION_DIR    := $(MOOSE_DIR)/modules/contact
-  APPLICATION_NAME   := contact
-  SUFFIX             := con
   include $(FRAMEWORK_DIR)/app.mk
 endif
 
@@ -92,6 +98,13 @@ ifeq ($(FUNCTIONAL_EXPANSION_TOOLS),yes)
   APPLICATION_NAME   := functional_expansion_tools
   APPLICATION_DIR    := $(MOOSE_DIR)/modules/$(APPLICATION_NAME)
   SUFFIX             := fet
+  include $(FRAMEWORK_DIR)/app.mk
+endif
+
+ifeq ($(GEOCHEMISTRY),yes)
+  APPLICATION_NAME   := geochemistry
+  APPLICATION_DIR    := $(MOOSE_DIR)/modules/$(APPLICATION_NAME)
+  SUFFIX             := gc
   include $(FRAMEWORK_DIR)/app.mk
 endif
 
@@ -140,6 +153,17 @@ ifeq ($(TENSOR_MECHANICS),yes)
   include $(FRAMEWORK_DIR)/app.mk
 endif
 
+ifeq ($(PERIDYNAMICS),yes)
+  APPLICATION_DIR    := $(MOOSE_DIR)/modules/peridynamics
+  APPLICATION_NAME   := peridynamics
+
+  # Dependency on tensor mechanics
+  DEPEND_MODULES     := tensor_mechanics
+
+  SUFFIX             := pd
+  include $(FRAMEWORK_DIR)/app.mk
+endif
+
 ifeq ($(PHASE_FIELD),yes)
   APPLICATION_DIR    := $(MOOSE_DIR)/modules/phase_field
   APPLICATION_NAME   := phase_field
@@ -155,7 +179,7 @@ ifeq ($(POROUS_FLOW),yes)
   APPLICATION_DIR    := $(MOOSE_DIR)/modules/porous_flow
   APPLICATION_NAME   := porous_flow
 
-  DEPEND_MODULES     := tensor_mechanics fluid_properties chemical_reactions rdg
+  DEPEND_MODULES     := tensor_mechanics fluid_properties chemical_reactions
   SUFFIX             := pflow
   include $(FRAMEWORK_DIR)/app.mk
 endif
@@ -199,6 +223,16 @@ ifeq ($(EXTERNAL_PETSC_SOLVER),yes)
   APPLICATION_DIR    := $(MOOSE_DIR)/modules/${APPLICATION_NAME}
 
   SUFFIX             := eps
+  include $(FRAMEWORK_DIR)/app.mk
+endif
+
+ifeq ($(CONTACT),yes)
+  APPLICATION_DIR    := $(MOOSE_DIR)/modules/contact
+  APPLICATION_NAME   := contact
+
+	# Dependency on tensor mechanics
+  DEPEND_MODULES     := tensor_mechanics
+  SUFFIX             := con
   include $(FRAMEWORK_DIR)/app.mk
 endif
 

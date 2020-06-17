@@ -18,9 +18,7 @@
 class CHInterface : public CHInterfaceBase<Real>
 {
 public:
+  static InputParameters validParams();
+
   CHInterface(const InputParameters & parameters);
 };
-
-template <>
-InputParameters validParams<CHInterface>();
-

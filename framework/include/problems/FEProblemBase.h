@@ -51,7 +51,7 @@ class MultiMooseEnum;
 class MaterialPropertyStorage;
 class MaterialData;
 class MooseEnum;
-class Resurrector;
+class RestartableDataIO;
 class Assembly;
 class JacobianBlock;
 class Control;
@@ -98,7 +98,8 @@ enum class MooseNonlinearConvergenceReason
   CONVERGED_SNORM_RELATIVE = 4,
   DIVERGED_FUNCTION_COUNT = -2,
   DIVERGED_FNORM_NAN = -4,
-  DIVERGED_LINE_SEARCH = -6
+  DIVERGED_LINE_SEARCH = -6,
+  DIVERGED_DTOL = -9
 };
 
 // The idea with these enums is to abstract the reasons for
@@ -138,17 +139,10 @@ enum class MooseLinearConvergenceReason
 class FEProblemBase : public SubProblem, public Restartable
 {
 public:
+  static InputParameters validParams();
+
   FEProblemBase(const InputParameters & parameters);
   virtual ~FEProblemBase();
-
-  bool automaticScaling() const { return _automatic_scaling; }
-  void automaticScaling(bool automatic_scaling) { _automatic_scaling = automatic_scaling; }
-
-  bool computeScalingOnce() const { return _compute_scaling_once; }
-  void computeScalingOnce(bool compute_scaling_once)
-  {
-    _compute_scaling_once = compute_scaling_once;
-  }
 
   virtual EquationSystems & es() override { return _eq; }
   virtual MooseMesh & mesh() override { return _mesh; }
@@ -177,7 +171,7 @@ public:
   // DEPRECATED METHOD
   void setCouplingMatrix(CouplingMatrix * cm);
 
-  const CouplingMatrix * couplingMatrix() { return _cm.get(); }
+  const CouplingMatrix * couplingMatrix() const override { return _cm.get(); }
 
   /// Set custom coupling matrix for variables requiring nonlocal contribution
   void setNonlocalCouplingMatrix();
@@ -197,11 +191,12 @@ public:
    * @param snorm          Norm of the change in the solution vector
    * @param fnorm          Norm of the residual vector
    * @param rtol           Relative residual convergence tolerance
+   * @param divtol           Relative residual divergence tolerance
    * @param stol           Solution change convergence tolerance
    * @param abstol         Absolute residual convergence tolerance
    * @param nfuncs         Number of function evaluations
    * @param max_funcs      Maximum Number of function evaluations
-   * @param initial_residual_before_preset_bcs      Residual norm prior to imposition of PresetBC
+   * @param initial_residual_before_preset_bcs      Residual norm prior to imposition of preset BCs
    * values on solution vector
    * @param div_threshold  Maximum value of residual before triggering divergence check
    */
@@ -212,6 +207,7 @@ public:
                             const Real snorm,
                             const Real fnorm,
                             const Real rtol,
+                            const Real divtol,
                             const Real stol,
                             const Real abstol,
                             const PetscInt nfuncs,
@@ -219,24 +215,6 @@ public:
                             const PetscBool force_iteration,
                             const Real initial_residual_before_preset_bcs,
                             const Real div_threshold);
-
-  /**
-   * Check for convergence of the linear solution
-   * @param msg            Error message that gets sent back to the solver
-   * @param n              Iteration counter
-   * @param rnorm          Norm of the residual vector
-   * @param rtol           Relative residual convergence tolerance
-   * @param atol           Absolute residual convergence tolerance
-   * @param dtol           Divergence tolerance
-   * @param maxits         Maximum number of linear iterations allowed
-   */
-  virtual MooseLinearConvergenceReason checkLinearConvergence(std::string & msg,
-                                                              const PetscInt n,
-                                                              const Real rnorm,
-                                                              const Real rtol,
-                                                              const Real atol,
-                                                              const Real dtol,
-                                                              const PetscInt maxits);
 
   virtual bool hasVariable(const std::string & var_name) const override;
   virtual MooseVariableFEBase & getVariable(
@@ -247,6 +225,8 @@ public:
   virtual MooseVariable & getStandardVariable(THREAD_ID tid, const std::string & var_name) override;
   virtual VectorMooseVariable & getVectorVariable(THREAD_ID tid,
                                                   const std::string & var_name) override;
+  virtual ArrayMooseVariable & getArrayVariable(THREAD_ID tid,
+                                                const std::string & var_name) override;
 
   virtual bool hasScalarVariable(const std::string & var_name) const override;
   virtual MooseVariableScalar & getScalarVariable(THREAD_ID tid,
@@ -332,9 +312,10 @@ public:
    */
   void checkNonlocalCoupling();
   void checkUserObjectJacobianRequirement(THREAD_ID tid);
-  void setVariableAllDoFMap(const std::vector<MooseVariableFEBase *> moose_vars);
+  void setVariableAllDoFMap(const std::vector<const MooseVariableFEBase *> & moose_vars);
 
-  const std::vector<MooseVariableFEBase *> & getUserObjectJacobianVariables(THREAD_ID tid) const
+  const std::vector<const MooseVariableFEBase *> &
+  getUserObjectJacobianVariables(THREAD_ID tid) const
   {
     return _uo_jacobian_moose_vars[tid];
   }
@@ -381,6 +362,7 @@ public:
 
   virtual void sizeZeroes(unsigned int size, THREAD_ID tid);
   virtual bool reinitDirac(const Elem * elem, THREAD_ID tid) override;
+
   virtual void reinitElem(const Elem * elem, THREAD_ID tid) override;
   virtual void reinitElemPhys(const Elem * elem,
                               const std::vector<Point> & phys_points_in_elem,
@@ -400,7 +382,7 @@ public:
   virtual void reinitNeighborPhys(const Elem * neighbor,
                                   const std::vector<Point> & physical_points,
                                   THREAD_ID tid) override;
-  virtual void reinitScalars(THREAD_ID tid) override;
+  virtual void reinitScalars(THREAD_ID tid, bool reinit_for_derivative_reordering = false) override;
   virtual void reinitOffDiagScalars(THREAD_ID tid) override;
 
   /// Fills "elems" with the elements that should be looped over for Dirac Kernels
@@ -441,7 +423,7 @@ public:
    * Note: DO NOT CALL THIS IN A THREADED REGION!  This is meant to be called just after a threaded
    * section.
    */
-  virtual void checkExceptionAndStopSolve();
+  virtual void checkExceptionAndStopSolve(bool print_message = true);
 
   virtual bool converged() override;
   virtual unsigned int nNonlinearIterations() const override;
@@ -466,10 +448,11 @@ public:
   virtual void transient(bool trans) { _transient = trans; }
   virtual bool isTransient() const override { return _transient; }
 
+  virtual void addTimeIntegrator(const std::string & type,
+                                 const std::string & name,
+                                 InputParameters & parameters);
   virtual void
-  addTimeIntegrator(const std::string & type, const std::string & name, InputParameters parameters);
-  virtual void
-  addPredictor(const std::string & type, const std::string & name, InputParameters parameters);
+  addPredictor(const std::string & type, const std::string & name, InputParameters & parameters);
 
   virtual void copySolutionsBackwards();
 
@@ -539,7 +522,8 @@ public:
 #endif // LIBMESH_HAVE_PETSC
 
   // Function /////
-  virtual void addFunction(std::string type, const std::string & name, InputParameters parameters);
+  virtual void
+  addFunction(std::string type, const std::string & name, InputParameters & parameters);
   virtual bool hasFunction(const std::string & name, THREAD_ID tid = 0);
   virtual Function & getFunction(const std::string & name, THREAD_ID tid = 0);
 
@@ -559,19 +543,19 @@ public:
   /**
    * getter for the MOOSE line search
    */
-  std::shared_ptr<LineSearch> getLineSearch() { return _line_search; }
+  LineSearch * getLineSearch() override { return _line_search.get(); }
 
   /**
    * The following functions will enable MOOSE to have the capability to import distributions
    */
   virtual void
-  addDistribution(std::string type, const std::string & name, InputParameters parameters);
+  addDistribution(std::string type, const std::string & name, InputParameters & parameters);
   virtual Distribution & getDistribution(const std::string & name);
 
   /**
    * The following functions will enable MOOSE to have the capability to import Samplers
    */
-  virtual void addSampler(std::string type, const std::string & name, InputParameters parameters);
+  virtual void addSampler(std::string type, const std::string & name, InputParameters & parameters);
   virtual Sampler & getSampler(const std::string & name, THREAD_ID tid = 0);
 
   // NL /////
@@ -586,32 +570,43 @@ public:
 
   virtual NonlinearSystem & getNonlinearSystem();
 
+  /**
+   * Canonical method for adding a non-linear variable
+   * @param var_type the type of the variable, e.g. MooseVariableScalar
+   * @param var_name the variable name, e.g. 'u'
+   * @param params the InputParameters from which to construct the variable
+   */
+  virtual void
+  addVariable(const std::string & var_type, const std::string & var_name, InputParameters & params);
+
   virtual void addVariable(const std::string & var_name,
                            const FEType & type,
                            Real scale_factor,
-                           const std::set<SubdomainID> * const active_subdomains = NULL);
+                           const std::set<SubdomainID> * const active_subdomains = nullptr);
+  virtual void addArrayVariable(const std::string & var_name,
+                                const FEType & type,
+                                unsigned int components,
+                                const std::vector<Real> & scale_factor,
+                                const std::set<SubdomainID> * const active_subdomains = nullptr);
   virtual void addScalarVariable(const std::string & var_name,
                                  Order order,
                                  Real scale_factor = 1.,
-                                 const std::set<SubdomainID> * const active_subdomains = NULL);
+                                 const std::set<SubdomainID> * const active_subdomains = nullptr);
 
-  virtual void addADKernel(const std::string & kernel_name,
-                           const std::string & name,
-                           InputParameters parameters);
-
-  virtual void
-  addKernel(const std::string & kernel_name, const std::string & name, InputParameters parameters);
+  virtual void addKernel(const std::string & kernel_name,
+                         const std::string & name,
+                         InputParameters & parameters);
   virtual void addNodalKernel(const std::string & kernel_name,
                               const std::string & name,
-                              InputParameters parameters);
+                              InputParameters & parameters);
   virtual void addScalarKernel(const std::string & kernel_name,
                                const std::string & name,
-                               InputParameters parameters);
+                               InputParameters & parameters);
   virtual void addBoundaryCondition(const std::string & bc_name,
                                     const std::string & name,
-                                    InputParameters parameters);
+                                    InputParameters & parameters);
   virtual void
-  addConstraint(const std::string & c_name, const std::string & name, InputParameters parameters);
+  addConstraint(const std::string & c_name, const std::string & name, InputParameters & parameters);
 
   virtual void setInputParametersFEProblem(InputParameters & parameters)
   {
@@ -619,58 +614,77 @@ public:
   }
 
   // Aux /////
+
+  /**
+   * Canonical method for adding an auxiliary variable
+   * @param var_type the type of the variable, e.g. MooseVariableScalar
+   * @param var_name the variable name, e.g. 'u'
+   * @param params the InputParameters from which to construct the variable
+   */
+  virtual void addAuxVariable(const std::string & var_type,
+                              const std::string & var_name,
+                              InputParameters & params);
+
   virtual void addAuxVariable(const std::string & var_name,
                               const FEType & type,
                               const std::set<SubdomainID> * const active_subdomains = NULL);
+  virtual void addAuxArrayVariable(const std::string & var_name,
+                                   const FEType & type,
+                                   unsigned int components,
+                                   const std::set<SubdomainID> * const active_subdomains = NULL);
   virtual void addAuxScalarVariable(const std::string & var_name,
                                     Order order,
                                     Real scale_factor = 1.,
                                     const std::set<SubdomainID> * const active_subdomains = NULL);
   virtual void addAuxKernel(const std::string & kernel_name,
                             const std::string & name,
-                            InputParameters parameters);
+                            InputParameters & parameters);
   virtual void addAuxScalarKernel(const std::string & kernel_name,
                                   const std::string & name,
-                                  InputParameters parameters);
+                                  InputParameters & parameters);
 
   AuxiliarySystem & getAuxiliarySystem() { return *_aux; }
 
   // Dirac /////
   virtual void addDiracKernel(const std::string & kernel_name,
                               const std::string & name,
-                              InputParameters parameters);
+                              InputParameters & parameters);
 
   // DG /////
   virtual void addDGKernel(const std::string & kernel_name,
                            const std::string & name,
-                           InputParameters parameters);
+                           InputParameters & parameters);
+
+  virtual void addFVKernel(const std::string & kernel_name,
+                           const std::string & name,
+                           InputParameters & parameters);
+
+  virtual void
+  addFVBC(const std::string & fv_bc_name, const std::string & name, InputParameters & parameters);
 
   // Interface /////
   virtual void addInterfaceKernel(const std::string & kernel_name,
                                   const std::string & name,
-                                  InputParameters parameters);
+                                  InputParameters & parameters);
 
   // IC /////
   virtual void addInitialCondition(const std::string & ic_name,
                                    const std::string & name,
-                                   InputParameters parameters);
+                                   InputParameters & parameters);
 
   void projectSolution();
 
   // Materials /////
   virtual void addMaterial(const std::string & kernel_name,
                            const std::string & name,
-                           InputParameters parameters);
-  virtual void addADResidualMaterial(const std::string & kernel_name,
-                                     const std::string & name,
-                                     InputParameters parameters);
-  virtual void addADJacobianMaterial(const std::string & kernel_name,
-                                     const std::string & name,
-                                     InputParameters parameters);
+                           InputParameters & parameters);
   virtual void addMaterialHelper(std::vector<MaterialWarehouse *> warehouse,
                                  const std::string & kernel_name,
                                  const std::string & name,
-                                 InputParameters parameters);
+                                 InputParameters & parameters);
+  virtual void addInterfaceMaterial(const std::string & kernel_name,
+                                    const std::string & name,
+                                    InputParameters & parameters);
 
   /**
    * Add the MooseVariables that the current materials depend on to the dependency list.
@@ -680,25 +694,86 @@ public:
   virtual void prepareMaterials(SubdomainID blk_id, THREAD_ID tid);
 
   virtual void reinitMaterials(SubdomainID blk_id, THREAD_ID tid, bool swap_stateful = true);
-  virtual void reinitMaterialsFace(SubdomainID blk_id, THREAD_ID tid, bool swap_stateful = true);
+
+  /**
+   * reinit materials on element faces
+   * @param blk_id The subdomain on which the element owning the face lives
+   * @param tid The thread id
+   * @param swap_stateful Whether to swap stateful material properties between \p MaterialData and
+   * \p MaterialPropertyStorage
+   * @param execute_stateful Whether to execute material objects that have stateful properties. This
+   * should be \p false when for example executing material objects for mortar contexts in which
+   * stateful properties don't make sense
+   */
+  virtual void reinitMaterialsFace(SubdomainID blk_id,
+                                   THREAD_ID tid,
+                                   bool swap_stateful = true,
+                                   bool execute_stateful = true);
+
+  /**
+   * reinit materials on the neighboring element face
+   * @param blk_id The subdomain on which the neighbor element lives
+   * @param tid The thread id
+   * @param swap_stateful Whether to swap stateful material properties between \p MaterialData and
+   * \p MaterialPropertyStorage
+   * @param execute_stateful Whether to execute material objects that have stateful properties. This
+   * should be \p false when for example executing material objects for mortar contexts in which
+   * stateful properties don't make sense
+   */
+  virtual void reinitMaterialsNeighbor(SubdomainID blk_id,
+                                       THREAD_ID tid,
+                                       bool swap_stateful = true,
+                                       bool execute_stateful = true);
+
+  /**
+   * For finite volume bcs, we need to be able to initialize and compute
+   * materials on ghost elements (elements that don't exist on the mesh - on
+   * the outside side of a boundary face).  To be able to reinit materials
+   * under these circumstances without crashing, we provide a special function
+   * here that reinits the neighbor material properties using the elem element
+   * instead of the neighbor element.
+   */
   virtual void
-  reinitMaterialsNeighbor(SubdomainID blk_id, THREAD_ID tid, bool swap_stateful = true);
+  reinitMaterialsNeighborGhost(SubdomainID blk_id, THREAD_ID tid, bool swap_stateful = true);
+
+  /**
+   * reinit materials on a boundary
+   * @param boundary_id The boundary on which to reinit corresponding materials
+   * @param tid The thread id
+   * @param swap_stateful Whether to swap stateful material properties between \p MaterialData and
+   * \p MaterialPropertyStorage
+   * @param execute_stateful Whether to execute material objects that have stateful properties. This
+   * should be \p false when for example executing material objects for mortar contexts in which
+   * stateful properties don't make sense
+   */
+  virtual void reinitMaterialsBoundary(BoundaryID boundary_id,
+                                       THREAD_ID tid,
+                                       bool swap_stateful = true,
+                                       bool execute_stateful = true);
+
   virtual void
-  reinitMaterialsBoundary(BoundaryID boundary_id, THREAD_ID tid, bool swap_stateful = true);
+  reinitMaterialsInterface(BoundaryID boundary_id, THREAD_ID tid, bool swap_stateful = true);
   /*
    * Swap back underlying data storing stateful material properties
    */
   virtual void swapBackMaterials(THREAD_ID tid);
   virtual void swapBackMaterialsFace(THREAD_ID tid);
   virtual void swapBackMaterialsNeighbor(THREAD_ID tid);
+  /**
+   * This is the special materials swap-back function to be paired with
+   * reinitMaterialsNeighborGhost.  Always use it (and only it) to swap back whenever you
+   * reinit with that function.
+   */
+  virtual void swapBackMaterialsNeighborGhost(THREAD_ID tid);
 
   // Postprocessors /////
   virtual void
-  addPostprocessor(std::string pp_name, const std::string & name, InputParameters parameters);
+  addPostprocessor(std::string pp_name, const std::string & name, InputParameters & parameters);
 
   // VectorPostprocessors /////
-  virtual void
-  addVectorPostprocessor(std::string pp_name, const std::string & name, InputParameters parameters);
+  virtual void addVectorPostprocessor(std::string pp_name,
+                                      const std::string & name,
+                                      InputParameters & parameters);
 
   /**
    * Initializes the postprocessor data
@@ -710,8 +785,9 @@ public:
   void initVectorPostprocessorData(const std::string & name);
 
   // UserObjects /////
-  virtual void
-  addUserObject(std::string user_object_name, const std::string & name, InputParameters parameters);
+  virtual void addUserObject(std::string user_object_name,
+                             const std::string & name,
+                             InputParameters & parameters);
 
   // TODO: delete this function after apps have been updated to not call it
   const ExecuteMooseObjectWarehouse<UserObject> & getUserObjects() const
@@ -727,7 +803,7 @@ public:
    * @return Const reference to the user object
    */
   template <class T>
-  T & getUserObjectTempl(const std::string & name, unsigned int tid = 0) const
+  T & getUserObject(const std::string & name, unsigned int tid = 0) const
   {
     std::vector<T *> objs;
     theWarehouse().query().condition<AttribThread>(tid).condition<AttribName>(name).queryInto(objs);
@@ -889,7 +965,8 @@ public:
   VectorPostprocessorValue & declareVectorPostprocessorVector(const VectorPostprocessorName & name,
                                                               const std::string & vector_name,
                                                               bool contains_complete_history,
-                                                              bool is_broadcast);
+                                                              bool is_broadcast,
+                                                              bool is_distributed);
 
   /**
    * Whether or not the specified VectorPostprocessor has declared any vectors
@@ -908,7 +985,7 @@ public:
 
   // Dampers /////
   virtual void
-  addDamper(std::string damper_name, const std::string & name, InputParameters parameters);
+  addDamper(std::string damper_name, const std::string & name, InputParameters & parameters);
   void setupDampers();
 
   /**
@@ -918,18 +995,18 @@ public:
 
   // Indicators /////
   void
-  addIndicator(std::string indicator_name, const std::string & name, InputParameters parameters);
+  addIndicator(std::string indicator_name, const std::string & name, InputParameters & parameters);
 
   // Markers //////
   virtual void
-  addMarker(std::string marker_name, const std::string & name, InputParameters parameters);
+  addMarker(std::string marker_name, const std::string & name, InputParameters & parameters);
 
   /**
    * Add a MultiApp to the problem.
    */
   virtual void addMultiApp(const std::string & multi_app_name,
                            const std::string & name,
-                           InputParameters parameters);
+                           InputParameters & parameters);
 
   /**
    * Get a MultiApp object by name.
@@ -940,20 +1017,21 @@ public:
    * Get Transfers by ExecFlagType and direction
    */
   std::vector<std::shared_ptr<Transfer>> getTransfers(ExecFlagType type,
-                                                      MultiAppTransfer::DIRECTION direction) const;
+                                                      Transfer::DIRECTION direction) const;
+  std::vector<std::shared_ptr<Transfer>> getTransfers(Transfer::DIRECTION direction) const;
 
   /**
    * Return the complete warehouse for MultiAppTransfer object for the given direction
    */
   const ExecuteMooseObjectWarehouse<Transfer> &
-  getMultiAppTransferWarehouse(MultiAppTransfer::DIRECTION direction) const;
+  getMultiAppTransferWarehouse(Transfer::DIRECTION direction) const;
 
   /**
    * Execute MultiAppTransfers associate with execution flag and direction.
    * @param type The execution flag to execute.
    * @param direction The direction (to or from) to transfer.
    */
-  void execMultiAppTransfers(ExecFlagType type, MultiAppTransfer::DIRECTION direction);
+  void execMultiAppTransfers(ExecFlagType type, Transfer::DIRECTION direction);
 
   /**
    * Execute the MultiApps associated with the ExecFlagType
@@ -1004,7 +1082,7 @@ public:
    */
   virtual void addTransfer(const std::string & transfer_name,
                            const std::string & name,
-                           InputParameters parameters);
+                           InputParameters & parameters);
 
   /**
    * Execute the Transfers associated with the ExecFlagType
@@ -1071,6 +1149,7 @@ public:
   virtual void computeResidualType(const NumericVector<Number> & soln,
                                    NumericVector<Number> & residual,
                                    TagID tag);
+
   /**
    * Form a residual vector for a set of tags. It should not be called directly
    * by users.
@@ -1213,6 +1292,13 @@ public:
                                 const DofMap & dof_map,
                                 std::vector<dof_id_type> & dof_indices,
                                 THREAD_ID tid) override;
+  virtual void addJacobianBlockTags(SparseMatrix<Number> & jacobian,
+                                    unsigned int ivar,
+                                    unsigned int jvar,
+                                    const DofMap & dof_map,
+                                    std::vector<dof_id_type> & dof_indices,
+                                    const std::set<TagID> & tags,
+                                    THREAD_ID tid);
   virtual void addJacobianNeighbor(SparseMatrix<Number> & jacobian,
                                    unsigned int ivar,
                                    unsigned int jvar,
@@ -1406,6 +1492,7 @@ public:
    * @return Boolean indicating whether material properties need to be stored
    */
   bool needBoundaryMaterialOnSide(BoundaryID bnd_id, THREAD_ID tid);
+  bool needInterfaceMaterialOnSide(BoundaryID bnd_id, THREAD_ID tid);
   bool needSubdomainMaterialOnSide(SubdomainID subdomain_id, THREAD_ID tid);
   ///@}
 
@@ -1429,21 +1516,26 @@ public:
   /*
    * Return a reference to the material warehouse of Material objects to be computed.
    */
-  const MaterialWarehouse & getResidualMaterialsWarehouse() const { return _residual_materials; }
-  const MaterialWarehouse & getJacobianMaterialsWarehouse() const { return _jacobian_materials; }
+  const MaterialWarehouse & getRegularMaterialsWarehouse() const { return _materials; }
   const MaterialWarehouse & getDiscreteMaterialWarehouse() const { return _discrete_materials; }
+  const MaterialWarehouse & getInterfaceMaterialsWarehouse() const { return _interface_materials; }
 
   /**
-   * Return a pointer to a Material object.  If no_warn is true, suppress
+   * Return a pointer to a MaterialBase object.  If no_warn is true, suppress
    * warning about retrieving a material reference potentially during the
    * material's calculation.
    *
    * This will return enabled or disabled objects, the main purpose is for iterative materials.
    */
-  std::shared_ptr<Material> getMaterial(std::string name,
-                                        Moose::MaterialDataType type,
-                                        THREAD_ID tid = 0,
-                                        bool no_warn = false);
+  std::shared_ptr<MaterialBase> getMaterial(std::string name,
+                                            Moose::MaterialDataType type,
+                                            THREAD_ID tid = 0,
+                                            bool no_warn = false);
+
+  std::shared_ptr<MaterialBase> getInterfaceMaterial(std::string name,
+                                                     Moose::MaterialDataType type,
+                                                     THREAD_ID tid = 0,
+                                                     bool no_warn = false);
 
   /*
    * Return a pointer to the MaterialData
@@ -1525,11 +1617,13 @@ public:
   std::vector<Real> _real_zero;
   std::vector<VariableValue> _scalar_zero;
   std::vector<VariableValue> _zero;
-  std::vector<MooseArray<DualReal>> _ad_zero;
+  std::vector<VariablePhiValue> _phi_zero;
+  std::vector<MooseArray<ADReal>> _ad_zero;
   std::vector<VariableGradient> _grad_zero;
-  std::vector<MooseArray<DualRealVectorValue>> _ad_grad_zero;
+  std::vector<MooseArray<ADRealVectorValue>> _ad_grad_zero;
+  std::vector<VariablePhiGradient> _grad_phi_zero;
   std::vector<VariableSecond> _second_zero;
-  std::vector<MooseArray<DualRealTensorValue>> _ad_second_zero;
+  std::vector<MooseArray<ADRealTensorValue>> _ad_second_zero;
   std::vector<VariablePhiSecond> _second_phi_zero;
   std::vector<Point> _point_zero;
   std::vector<VectorVariableValue> _vector_zero;
@@ -1581,7 +1675,7 @@ public:
   /**
    * Adds an Output object.
    */
-  void addOutput(const std::string &, const std::string &, InputParameters);
+  void addOutput(const std::string &, const std::string &, InputParameters &);
 
   inline TheWarehouse & theWarehouse() const { return _app.theWarehouse(); }
 
@@ -1599,15 +1693,37 @@ public:
   bool useSNESMFReuseBase() { return _snesmf_reuse_base; }
 
   /**
+   * Set a flag that indicates if we want to skip exception and stop solve
+   */
+  void skipExceptionCheck(bool skip_exception_check)
+  {
+    _skip_exception_check = skip_exception_check;
+  }
+
+  /**
    * Return a flag to indicate if _snesmf_reuse_base is set by users
    */
   bool isSNESMFReuseBaseSetbyUser() { return _snesmf_reuse_base_set_by_user; }
 
   /**
+   * If petsc options are already inserted
+   */
+  bool & petscOptionsInserted() { return _is_petsc_options_inserted; }
+
+#if !PETSC_RELEASE_LESS_THAN(3, 12, 0)
+  PetscOptions & petscOptionsDatabase() { return _petsc_option_data_base; }
+#endif
+
+  /**
    * Set the global automatic differentiaion (AD) flag which indicates whether any consumer has
    * requested an AD material property or whether any suppier has declared an AD material property
    */
-  void usingADMatProps(bool using_ad_mat_props) { _using_ad_mat_props = using_ad_mat_props; }
+  void usingADMatProps(bool using_ad_mat_props)
+  {
+    _using_ad_mat_props = using_ad_mat_props;
+    if (_using_ad_mat_props)
+      haveADObjects(true);
+  }
 
   /**
    * Whether any object has requested/supplied an AD material property
@@ -1673,6 +1789,71 @@ public:
    */
   const MortarData & mortarData() const { return _mortar_data; }
 
+  /**
+   * Whether the simulation has neighbor coupling
+   */
+  virtual bool hasNeighborCoupling() const { return _has_internal_edge_residual_objects; }
+
+  /**
+   * Whether the simulation has mortar coupling
+   */
+  virtual bool hasMortarCoupling() const { return _has_mortar; }
+
+  using SubProblem::computingNonlinearResid;
+  void computingNonlinearResid(bool computing_nonlinear_residual) override;
+
+  /**
+   * Set the number of steps in a grid sequences
+   */
+  void numGridSteps(unsigned int num_grid_steps) { _num_grid_steps = num_grid_steps; }
+
+  /**
+   * uniformly refine the problem mesh(es). This will also prolong the the solution, and in order
+   * for that to be safe, we can only perform one refinement at a time
+   */
+  void uniformRefine();
+
+  using SubProblem::automaticScaling;
+  void automaticScaling(bool automatic_scaling) override;
+
+  ///@{
+  /**
+   * Helpers for calling the necessary setup/execute functions for the supplied objects
+   */
+  template <typename T>
+  static void objectSetupHelper(const std::vector<T *> & objects, const ExecFlagType & exec_flag);
+  template <typename T>
+  static void objectExecuteHelper(const std::vector<T *> & objects);
+  ///@}
+
+  /**
+   * reinitialize FE objects on a given element on a given side at a given set of reference
+   * points and then compute variable data. Note that this method makes no assumptions about what's
+   * been called beforehand, e.g. you don't have to call some prepare method before this one. This
+   * is an all-in-one reinit
+   */
+  virtual void reinitElemFaceRef(const Elem * elem,
+                                 unsigned int side,
+                                 BoundaryID bnd_id,
+                                 Real tolerance,
+                                 const std::vector<Point> * const pts,
+                                 const std::vector<Real> * const weights = nullptr,
+                                 THREAD_ID tid = 0) override;
+
+  /**
+   * reinitialize FE objects on a given neighbor element on a given side at a given set of reference
+   * points and then compute variable data. Note that this method makes no assumptions about what's
+   * been called beforehand, e.g. you don't have to call some prepare method before this one. This
+   * is an all-in-one reinit
+   */
+  virtual void reinitNeighborFaceRef(const Elem * neighbor_elem,
+                                     unsigned int neighbor_side,
+                                     BoundaryID bnd_id,
+                                     Real tolerance,
+                                     const std::vector<Point> * const pts,
+                                     const std::vector<Real> * const weights = nullptr,
+                                     THREAD_ID tid = 0) override;
+
 protected:
   /// Create extra tagged vectors and matrices
   void createTagVectors();
@@ -1686,7 +1867,7 @@ protected:
   std::set<TagID> _fe_matrix_tags;
 
   /// Whether or not to actually solve the nonlinear system
-  bool _solve;
+  const bool & _solve;
 
   bool _transient;
   Real & _time;
@@ -1708,12 +1889,6 @@ protected:
 
   /// functions
   MooseObjectWarehouse<Function> _functions;
-
-  /// distributions
-  MooseObjectWarehouseBase<Distribution> _distributions;
-
-  /// Samplers
-  ExecuteMooseObjectWarehouse<Sampler> _samplers;
 
   /// nonlocal kernels
   MooseObjectWarehouse<KernelBase> _nonlocal_kernels;
@@ -1738,11 +1913,9 @@ protected:
 
   ///@{
   // Material Warehouses
-  MaterialWarehouse _residual_materials; // Residual materials. This is the union of traditional
-                                         // materials and the residual copy of an ADMaterial
-  MaterialWarehouse _jacobian_materials; // Jacobian materials. This is the union of traditional
-                                         // materials and the Jacobian copy of an ADMaterial
-  MaterialWarehouse _discrete_materials; // Materials that the user must compute
+  MaterialWarehouse _materials;           // regular materials
+  MaterialWarehouse _interface_materials; // interface materials
+  MaterialWarehouse _discrete_materials;  // Materials that the user must compute
   MaterialWarehouse _all_materials; // All materials for error checking and MaterialData storage
   ///@}
 
@@ -1788,6 +1961,9 @@ protected:
   /// Cache for calculating materials on side
   std::vector<std::unordered_map<BoundaryID, bool>> _bnd_mat_side_cache;
 
+  /// Cache for calculating materials on interface
+  std::vector<std::unordered_map<BoundaryID, bool>> _interface_mat_side_cache;
+
   /// Objects to be notified when the mesh changes
   std::vector<MeshChangedInterface *> _notify_when_mesh_changes;
 
@@ -1818,7 +1994,7 @@ protected:
    * @see checkProblemIntegrity
    */
   void checkDependMaterialsHelper(
-      const std::map<SubdomainID, std::vector<std::shared_ptr<Material>>> & materials_map);
+      const std::map<SubdomainID, std::vector<std::shared_ptr<MaterialBase>>> & materials_map);
 
   /// Verify that there are no element type/coordinate type conflicts
   void checkCoordinateSystems();
@@ -1857,6 +2033,9 @@ protected:
   /// If or not to resuse the base vector for matrix-free calculation
   bool _snesmf_reuse_base;
 
+  /// If or not skip 'exception and stop solve'
+  bool _skip_exception_check;
+
   /// If or not _snesmf_reuse_base is set by user
   bool _snesmf_reuse_base_set_by_user;
 
@@ -1864,7 +2043,7 @@ protected:
   bool _has_initialized_stateful;
 
   /// Object responsible for restart (read/write)
-  std::unique_ptr<Resurrector> _resurrector;
+  std::unique_ptr<RestartableDataIO> _restart_io;
 
   /// true if the Jacobian is constant
   bool _const_jacobian;
@@ -1879,7 +2058,7 @@ protected:
   bool _has_nonlocal_coupling;
   bool _calculate_jacobian_in_uo;
 
-  std::vector<std::vector<MooseVariableFEBase *>> _uo_jacobian_moose_vars;
+  std::vector<std::vector<const MooseVariableFEBase *>> _uo_jacobian_moose_vars;
 
   SolverParams _solver_params;
 
@@ -1888,6 +2067,9 @@ protected:
 
   /// Determines whether a check to verify an active material on every subdomain
   bool _material_coverage_check;
+
+  /// Determines whether a check to verify material dependencies on every subdomain
+  const bool _material_dependency_check;
 
   /// Maximum number of quadrature points used in the problem
   unsigned int _max_qps;
@@ -1919,7 +2101,12 @@ protected:
 #ifdef LIBMESH_HAVE_PETSC
   /// PETSc option storage
   Moose::PetscSupport::PetscOptions _petsc_options;
+#if !PETSC_RELEASE_LESS_THAN(3, 12, 0)
+  PetscOptions _petsc_option_data_base;
+#endif
 #endif // LIBMESH_HAVE_PETSC
+  /// If or not petsc options have been added to database
+  bool _is_petsc_options_inserted;
 
   std::shared_ptr<LineSearch> _line_search;
 
@@ -2004,14 +2191,6 @@ private:
   /// Whether old solution second time derivative needs to be stored
   bool _u_dotdot_old_requested;
 
-  /// Whether to automatically scale the variables
-  bool _automatic_scaling;
-
-  /// Whether the scaling factors should only be computed once at the beginning of the simulation
-  /// through an extra Jacobian evaluation. If this is set to false, then the scaling factors will
-  /// be computed during an extra Jacobian evaluation at the beginning of every time step.
-  bool _compute_scaling_once;
-
   friend class AuxiliarySystem;
   friend class NonlinearSystemBase;
   friend class MooseEigenSystem;
@@ -2019,6 +2198,16 @@ private:
   friend class RestartableDataIO;
   friend class Restartable;
   friend class DisplacedProblem;
+
+  /// Whether the simulation requires mortar coupling
+  bool _has_mortar;
+
+  /// Number of steps in a grid sequence
+  unsigned int _num_grid_steps;
+
+  /// MooseEnum describing how to obtain reference points for displaced mesh dgkernels and/or
+  /// interface kernels. Options are invert_elem_phys, use_undisplaced_ref, and the default unset.
+  MooseEnum _displaced_neighbor_ref_pts;
 };
 
 template <typename T>
@@ -2026,4 +2215,46 @@ void
 FEProblemBase::allowOutput(bool state)
 {
   _app.getOutputWarehouse().allowOutput<T>(state);
+}
+
+template <typename T>
+void
+FEProblemBase::objectSetupHelper(const std::vector<T *> & objects, const ExecFlagType & exec_flag)
+{
+  if (exec_flag == EXEC_INITIAL)
+  {
+    for (T * obj_ptr : objects)
+      obj_ptr->initialSetup();
+  }
+
+  else if (exec_flag == EXEC_TIMESTEP_BEGIN)
+  {
+    for (const auto obj_ptr : objects)
+      obj_ptr->timestepSetup();
+  }
+  else if (exec_flag == EXEC_SUBDOMAIN)
+  {
+    for (const auto obj_ptr : objects)
+      obj_ptr->subdomainSetup();
+  }
+
+  else if (exec_flag == EXEC_NONLINEAR)
+  {
+    for (const auto obj_ptr : objects)
+      obj_ptr->jacobianSetup();
+  }
+
+  else if (exec_flag == EXEC_LINEAR)
+  {
+    for (const auto obj_ptr : objects)
+      obj_ptr->residualSetup();
+  }
+}
+
+template <typename T>
+void
+FEProblemBase::objectExecuteHelper(const std::vector<T *> & objects)
+{
+  for (T * obj_ptr : objects)
+    obj_ptr->execute();
 }

@@ -12,10 +12,6 @@
 #include "NSEnergyInviscidBC.h"
 
 // Forward Declarations
-class NSEnergyInviscidUnspecifiedBC;
-
-template <>
-InputParameters validParams<NSEnergyInviscidUnspecifiedBC>();
 
 /**
  * The inviscid energy BC term with specified pressure.
@@ -23,6 +19,8 @@ InputParameters validParams<NSEnergyInviscidUnspecifiedBC>();
 class NSEnergyInviscidUnspecifiedBC : public NSEnergyInviscidBC
 {
 public:
+  static InputParameters validParams();
+
   NSEnergyInviscidUnspecifiedBC(const InputParameters & parameters);
 
 protected:
@@ -37,4 +35,3 @@ private:
   // Helper Jacobian function
   Real computeJacobianHelper(unsigned var_number);
 };
-

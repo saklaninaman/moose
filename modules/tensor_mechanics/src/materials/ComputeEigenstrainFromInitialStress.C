@@ -14,11 +14,10 @@
 
 registerMooseObject("TensorMechanicsApp", ComputeEigenstrainFromInitialStress);
 
-template <>
 InputParameters
-validParams<ComputeEigenstrainFromInitialStress>()
+ComputeEigenstrainFromInitialStress::validParams()
 {
-  InputParameters params = validParams<ComputeEigenstrainBase>();
+  InputParameters params = ComputeEigenstrainBase::validParams();
   params.addClassDescription("Computes an eigenstrain from an initial stress");
   params.addRequiredParam<std::vector<FunctionName>>(
       "initial_stress",

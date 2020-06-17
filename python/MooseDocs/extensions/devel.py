@@ -1,4 +1,3 @@
-#pylint: disable=missing-docstring
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -9,10 +8,10 @@
 #* https://www.gnu.org/licenses/lgpl-2.1.html
 
 import importlib
-from MooseDocs.base import LatexRenderer
-from MooseDocs.common import exceptions
-from MooseDocs.tree import tokens, latex
-from MooseDocs.extensions import core, floats, command, table
+from ..base import LatexRenderer
+from ..common import exceptions
+from ..tree import tokens, latex
+from . import core, floats, command, table
 
 def make_extension(**kwargs):
     return DevelExtension(**kwargs)
@@ -56,7 +55,7 @@ class Example(command.CommandComponent):
     def defaultSettings():
         settings = command.CommandComponent.defaultSettings()
         settings.update(floats.caption_settings())
-        settings['prefix'] = (u'Example', settings['prefix'][1])
+        settings['prefix'] = ('Example', settings['prefix'][1])
         return settings
 
     def createToken(self, parent, info, page):
@@ -80,7 +79,7 @@ class ComponentSettings(command.CommandComponent):
         settings['module'] = (None, "The name of the module containing the object.")
         settings['object'] = (None, "The name of the object to import from the 'module'.")
         settings.update(floats.caption_settings())
-        settings['prefix'] = (u'Table', settings['prefix'][1])
+        settings['prefix'] = ('Table', settings['prefix'][1])
 
         return settings
 
@@ -115,8 +114,8 @@ class ComponentSettings(command.CommandComponent):
                   "'defaultConfig' method."
             raise exceptions.MooseDocsException(msg, mod, obj)
 
-        rows = [[key, value[0], value[1]] for key, value in settings.iteritems()]
-        tbl = table.builder(rows, headings=[u'Key', u'Default', u'Description'])
+        rows = [[key, value[0], value[1]] for key, value in settings.items()]
+        tbl = table.builder(rows, headings=['Key', 'Default', 'Description'])
         tbl.parent = master
 
         if master is parent:

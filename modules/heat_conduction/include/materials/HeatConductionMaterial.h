@@ -10,35 +10,42 @@
 #pragma once
 
 #include "Material.h"
+#include "MooseTypes.h"
 
 // Forward Declarations
-class HeatConductionMaterial;
 class Function;
-
-template <>
-InputParameters validParams<HeatConductionMaterial>();
 
 /**
  * Simple material with constant properties.
  */
-class HeatConductionMaterial : public Material
+template <bool is_ad>
+class HeatConductionMaterialTempl : public Material
 {
 public:
-  HeatConductionMaterial(const InputParameters & parameters);
+  static InputParameters validParams();
+
+  HeatConductionMaterialTempl(const InputParameters & parameters);
 
 protected:
   virtual void computeProperties();
 
   const bool _has_temp;
   const VariableValue & _temperature;
+  const ADVariableValue & _ad_temperature;
 
   const Real _my_thermal_conductivity;
   const Real _my_specific_heat;
 
-  MaterialProperty<Real> & _thermal_conductivity;
+  GenericMaterialProperty<Real, is_ad> & _thermal_conductivity;
   MaterialProperty<Real> & _thermal_conductivity_dT;
   const Function * _thermal_conductivity_temperature_function;
 
-  MaterialProperty<Real> & _specific_heat;
+  GenericMaterialProperty<Real, is_ad> & _specific_heat;
   const Function * _specific_heat_temperature_function;
+
+private:
+  void setDerivatives(GenericReal<is_ad> & prop, Real dprop_dT, const ADReal & ad_T);
 };
+
+typedef HeatConductionMaterialTempl<false> HeatConductionMaterial;
+typedef HeatConductionMaterialTempl<true> ADHeatConductionMaterial;

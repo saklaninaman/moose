@@ -9,14 +9,17 @@
 
 #include "ADGrainGrowthBase.h"
 
-defineADValidParams(ADGrainGrowthBase,
-                    ADAllenCahnBase,
-                    params.addRequiredCoupledVar(
-                        "v", "Array of coupled order parameter names for other order parameters"););
+InputParameters
+ADGrainGrowthBase::validParams()
+{
+  InputParameters params = ADAllenCahnBase<Real>::validParams();
+  params.addRequiredCoupledVar("v",
+                               "Array of coupled order parameter names for other order parameters");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADGrainGrowthBase<compute_stage>::ADGrainGrowthBase(const InputParameters & parameters)
-  : ADAllenCahnBase<compute_stage, Real>(parameters),
+ADGrainGrowthBase::ADGrainGrowthBase(const InputParameters & parameters)
+  : ADAllenCahnBase<Real>(parameters),
     _op_num(coupledComponents("v")),
     _vals(_op_num),
     _mu(getADMaterialProperty<Real>("mu"))
@@ -25,5 +28,3 @@ ADGrainGrowthBase<compute_stage>::ADGrainGrowthBase(const InputParameters & para
   for (unsigned int i = 0; i < _op_num; ++i)
     _vals[i] = &adCoupledValue("v", i);
 }
-
-adBaseClass(ADGrainGrowthBase);

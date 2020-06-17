@@ -10,9 +10,13 @@
 #pragma once
 
 #include "Moose.h"
-#include "DualReal.h"
+#include "ADRankTwoTensorForward.h"
+#include "ADRankThreeTensorForward.h"
+#include "ADRankFourTensorForward.h"
 
 #include "libmesh/libmesh.h"
+
+#include "metaphysicl/raw_type.h"
 
 using libMesh::Real;
 namespace libMesh
@@ -27,15 +31,9 @@ class VectorValue;
 
 // Forward declarations
 class MooseEnum;
-template <typename>
-class RankThreeTensorTempl;
 
-template <typename>
-class RankTwoTensorTempl;
-
-template <typename>
-class RankFourTensorTempl;
-
+namespace MathUtils
+{
 template <typename T>
 void mooseSetToZero(T & v);
 
@@ -47,6 +45,7 @@ template <>
 void mooseSetToZero<RankThreeTensorTempl<Real>>(RankThreeTensorTempl<Real> & v);
 template <>
 void mooseSetToZero<RankThreeTensorTempl<DualReal>>(RankThreeTensorTempl<DualReal> & v);
+}
 
 /**
  * RankThreeTensor is designed to handle any N-dimensional third order tensor, r.
@@ -76,6 +75,9 @@ public:
 
   /// Default constructor; fills to zero
   RankThreeTensorTempl();
+
+  /// Copy assignment operator must be defined if used
+  RankThreeTensorTempl(const RankThreeTensorTempl<T> & a) = default;
 
   /**
    * Construct from other class template instantiation
@@ -112,6 +114,9 @@ public:
 
   /// copies values from "a" into this tensor
   RankThreeTensorTempl<T> & operator=(const RankThreeTensorTempl<T> & a);
+
+  template <typename T2>
+  RankThreeTensorTempl<T> & operator=(const RankThreeTensorTempl<T2> & a);
 
   /// b_i = r_ijk * a_jk
   VectorValue<T> operator*(const RankTwoTensorTempl<T> & a) const;
@@ -219,8 +224,25 @@ protected:
   friend class RankFourTensorTempl;
 };
 
-typedef RankThreeTensorTempl<Real> RankThreeTensor;
-typedef RankThreeTensorTempl<DualReal> DualRankThreeTensor;
+namespace MetaPhysicL
+{
+template <typename T>
+struct RawType<RankThreeTensorTempl<T>>
+{
+  typedef RankThreeTensorTempl<typename RawType<T>::value_type> value_type;
+
+  static value_type value(const RankThreeTensorTempl<T> & in)
+  {
+    value_type ret;
+    for (unsigned int i = 0; i < LIBMESH_DIM; ++i)
+      for (unsigned int j = 0; j < LIBMESH_DIM; ++j)
+        for (unsigned int k = 0; k < LIBMESH_DIM; ++k)
+          ret(i, j, k) = raw_value(in(i, j, k));
+
+    return ret;
+  }
+};
+}
 
 template <typename T>
 template <typename T2>
@@ -276,3 +298,15 @@ RankTwoTensorTempl<T> operator*(const VectorValue<T> & p, const RankThreeTensorT
   return result;
 }
 
+template <typename T>
+template <typename T2>
+RankThreeTensorTempl<T> &
+RankThreeTensorTempl<T>::operator=(const RankThreeTensorTempl<T2> & a)
+{
+  for (unsigned int i = 0; i < LIBMESH_DIM; ++i)
+    for (unsigned int j = 0; j < LIBMESH_DIM; ++j)
+      for (unsigned int k = 0; k < LIBMESH_DIM; ++k)
+        (*this)(i, j, k) = a(i, j, k);
+
+  return *this;
+}

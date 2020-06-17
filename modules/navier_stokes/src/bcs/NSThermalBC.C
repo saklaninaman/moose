@@ -16,11 +16,10 @@
 
 registerMooseObject("NavierStokesApp", NSThermalBC);
 
-template <>
 InputParameters
-validParams<NSThermalBC>()
+NSThermalBC::validParams()
 {
-  InputParameters params = validParams<NodalBC>();
+  InputParameters params = NodalBC::validParams();
   params.addClassDescription("NS thermal BC.");
   params.addRequiredCoupledVar(NS::density, "density");
   params.addRequiredParam<Real>("initial", "Initial temperature");

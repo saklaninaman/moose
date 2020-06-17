@@ -17,16 +17,13 @@
  * For grain level, voronoi tesellation with random grain centers are generated;
  * Element center points used for assigning properties
  * Usable for generated mesh
-*/
-
-class ElementPropertyReadFile;
-
-template <>
-InputParameters validParams<ElementPropertyReadFile>();
+ */
 
 class ElementPropertyReadFile : public GeneralUserObject
 {
 public:
+  static InputParameters validParams();
+
   ElementPropertyReadFile(const InputParameters & parameters);
   virtual ~ElementPropertyReadFile() {}
 
@@ -98,4 +95,3 @@ private:
   Point _range;
   Real _max_range;
 };
-

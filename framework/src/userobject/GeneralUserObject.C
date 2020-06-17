@@ -9,15 +9,20 @@
 
 #include "GeneralUserObject.h"
 
-template <>
+defineLegacyParams(GeneralUserObject);
+
 InputParameters
-validParams<GeneralUserObject>()
+GeneralUserObject::validParams()
 {
-  InputParameters params = validParams<UserObject>();
-  params += validParams<MaterialPropertyInterface>();
+  InputParameters params = UserObject::validParams();
+  params += MaterialPropertyInterface::validParams();
   params.addParam<bool>(
       "force_preaux", false, "Forces the GeneralUserObject to be executed in PREAUX");
-  params.addParamNamesToGroup("force_preaux", "Advanced");
+  params.addParam<bool>(
+      "force_preic",
+      false,
+      "Forces the GeneralUserObject to be executed in PREIC during initial setup");
+  params.addParamNamesToGroup("force_preaux force_preic", "Advanced");
   return params;
 }
 
@@ -25,10 +30,7 @@ GeneralUserObject::GeneralUserObject(const InputParameters & parameters)
   : UserObject(parameters),
     MaterialPropertyInterface(this, Moose::EMPTY_BLOCK_IDS, Moose::EMPTY_BOUNDARY_IDS),
     TransientInterface(this),
-    DependencyResolverInterface(),
-    UserObjectInterface(this),
-    PostprocessorInterface(this),
-    VectorPostprocessorInterface(this)
+    DependencyResolverInterface()
 {
   _supplied_vars.insert(name());
 }
@@ -46,17 +48,22 @@ GeneralUserObject::getSuppliedItems()
 }
 
 const PostprocessorValue &
-GeneralUserObject::getPostprocessorValue(const std::string & name)
+GeneralUserObject::getPostprocessorValue(const std::string & name, unsigned int index)
 {
-  _depend_vars.insert(_pars.get<PostprocessorName>(name));
-  return PostprocessorInterface::getPostprocessorValue(name);
+  // is this a vector of pp names, we use the number of default entries
+  // to figure that out
+  if (_pars.isSinglePostprocessor(name))
+    _depend_vars.insert(_pars.get<PostprocessorName>(name));
+  else
+    _depend_vars.insert(_pars.get<std::vector<PostprocessorName>>(name)[index]);
+  return UserObject::getPostprocessorValue(name, index);
 }
 
 const PostprocessorValue &
 GeneralUserObject::getPostprocessorValueByName(const PostprocessorName & name)
 {
   _depend_vars.insert(name);
-  return PostprocessorInterface::getPostprocessorValueByName(name);
+  return UserObject::getPostprocessorValueByName(name);
 }
 
 const VectorPostprocessorValue &
@@ -64,7 +71,7 @@ GeneralUserObject::getVectorPostprocessorValue(const std::string & name,
                                                const std::string & vector_name)
 {
   _depend_vars.insert(_pars.get<VectorPostprocessorName>(name));
-  return VectorPostprocessorInterface::getVectorPostprocessorValue(name, vector_name);
+  return UserObject::getVectorPostprocessorValue(name, vector_name);
 }
 
 const VectorPostprocessorValue &
@@ -72,7 +79,7 @@ GeneralUserObject::getVectorPostprocessorValueByName(const VectorPostprocessorNa
                                                      const std::string & vector_name)
 {
   _depend_vars.insert(name);
-  return VectorPostprocessorInterface::getVectorPostprocessorValueByName(name, vector_name);
+  return UserObject::getVectorPostprocessorValueByName(name, vector_name);
 }
 
 const VectorPostprocessorValue &
@@ -81,8 +88,7 @@ GeneralUserObject::getVectorPostprocessorValue(const std::string & name,
                                                bool use_broadcast)
 {
   _depend_vars.insert(_pars.get<VectorPostprocessorName>(name));
-  return VectorPostprocessorInterface::getVectorPostprocessorValue(
-      name, vector_name, use_broadcast);
+  return UserObject::getVectorPostprocessorValue(name, vector_name, use_broadcast);
 }
 
 const VectorPostprocessorValue &
@@ -91,8 +97,7 @@ GeneralUserObject::getVectorPostprocessorValueByName(const VectorPostprocessorNa
                                                      bool use_broadcast)
 {
   _depend_vars.insert(name);
-  return VectorPostprocessorInterface::getVectorPostprocessorValueByName(
-      name, vector_name, use_broadcast);
+  return UserObject::getVectorPostprocessorValueByName(name, vector_name, use_broadcast);
 }
 
 void

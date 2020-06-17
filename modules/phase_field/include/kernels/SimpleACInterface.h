@@ -11,17 +11,14 @@
 
 #include "Kernel.h"
 
-class SimpleACInterface;
-
-template <>
-InputParameters validParams<SimpleACInterface>();
-
 /**
  * Compute the Allen-Cahn interface term with constant Mobility and Interfacial parameter
  */
 class SimpleACInterface : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   SimpleACInterface(const InputParameters & parameters);
 
 protected:
@@ -33,4 +30,3 @@ protected:
   /// Interfacial parameter
   const MaterialProperty<Real> & _kappa;
 };
-

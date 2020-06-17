@@ -18,6 +18,8 @@
 class PolycrystalColoringICAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   PolycrystalColoringICAction(const InputParameters & params);
 
   virtual void act() override;
@@ -26,7 +28,3 @@ private:
   const unsigned int _op_num;
   const std::string _var_name_base;
 };
-
-template <>
-InputParameters validParams<PolycrystalColoringICAction>();
-

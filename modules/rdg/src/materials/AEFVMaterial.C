@@ -14,11 +14,10 @@
 
 registerMooseObject("RdgApp", AEFVMaterial);
 
-template <>
 InputParameters
-validParams<AEFVMaterial>()
+AEFVMaterial::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   params.addClassDescription(
       "A material kernel for the advection equation using a cell-centered finite volume method.");
   params.addRequiredCoupledVar("u", "Cell-averge variable");

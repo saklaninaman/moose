@@ -16,6 +16,7 @@
 #include "MooseEnum.h"
 #include "Parser.h"
 #include "Factory.h"
+#include "AddVariableAction.h"
 
 #include "GeometricCutUserObject.h"
 #include "CrackFrontDefinition.h"
@@ -38,16 +39,21 @@ registerMooseAction("XFEMApp", XFEMAction, "add_kernel");
 
 registerMooseAction("XFEMApp", XFEMAction, "add_bc");
 
-template <>
 InputParameters
-validParams<XFEMAction>()
+XFEMAction::validParams()
 {
-  InputParameters params = validParams<Action>();
+  InputParameters params = Action::validParams();
 
   params.addParam<std::vector<UserObjectName>>(
       "geometric_cut_userobjects",
       "List of names of GeometricCutUserObjects with cut info and methods");
   params.addParam<std::string>("qrule", "volfrac", "XFEM quadrature rule to use");
+  params.addRangeCheckedParam<unsigned int>(
+      "debug_output_level",
+      1,
+      "debug_output_level <= 3",
+      "Controls the amount of debug output from XFEM.  0: None, 1: Summary, 2: Details on "
+      "modifications to mesh, 3: Full dump of element fragment algorithm mesh");
   params.addParam<bool>("output_cut_plane", false, "Output the XFEM cut plane and volume fraction");
   params.addParam<bool>("use_crack_growth_increment", false, "Use fixed crack growth increment");
   params.addParam<Real>("crack_growth_increment", 0.1, "Crack growth increment");
@@ -68,6 +74,8 @@ validParams<XFEMAction>()
   params.addParam<Real>("cut_off_radius",
                         "The cut off radius of crack tip enrichment functions (only needed if "
                         "'use_crack_tip_enrichment=true')");
+  params.addClassDescription("Action to input general parameters and simulation options for use "
+                             "in XFEM.");
   return params;
 }
 
@@ -142,14 +150,16 @@ XFEMAction::act()
     xfem->setXFEMQRule(_xfem_qrule);
 
     xfem->setCrackGrowthMethod(_xfem_use_crack_growth_increment, _xfem_crack_growth_increment);
+    xfem->setDebugOutputLevel(getParam<unsigned int>("debug_output_level"));
   }
   else if (_current_task == "add_variable" && _use_crack_tip_enrichment)
   {
+    auto var_params = _factory.getValidParams("MooseVariable");
+    var_params.set<MooseEnum>("family") = "LAGRANGE";
+    var_params.set<MooseEnum>("order") = "FIRST";
+
     for (const auto & enrich_disp : _enrich_displacements)
-      _problem->addVariable(enrich_disp,
-                            FEType(Utility::string_to_enum<Order>("FIRST"),
-                                   Utility::string_to_enum<FEFamily>("LAGRANGE")),
-                            1.0);
+      _problem->addVariable("MooseVariable", enrich_disp, var_params);
   }
   else if (_current_task == "add_kernel" && _use_crack_tip_enrichment)
   {
@@ -182,47 +192,21 @@ XFEMAction::act()
   }
   else if (_current_task == "add_aux_variable" && _xfem_cut_plane)
   {
-    _problem->addAuxVariable(
-        "xfem_cut_origin_x",
-        FEType(Utility::string_to_enum<Order>(_order), Utility::string_to_enum<FEFamily>(_family)));
-    _problem->addAuxVariable(
-        "xfem_cut_origin_y",
-        FEType(Utility::string_to_enum<Order>(_order), Utility::string_to_enum<FEFamily>(_family)));
-    _problem->addAuxVariable(
-        "xfem_cut_origin_z",
-        FEType(Utility::string_to_enum<Order>(_order), Utility::string_to_enum<FEFamily>(_family)));
-    _problem->addAuxVariable(
-        "xfem_cut_normal_x",
-        FEType(Utility::string_to_enum<Order>(_order), Utility::string_to_enum<FEFamily>(_family)));
-    _problem->addAuxVariable(
-        "xfem_cut_normal_y",
-        FEType(Utility::string_to_enum<Order>(_order), Utility::string_to_enum<FEFamily>(_family)));
-    _problem->addAuxVariable(
-        "xfem_cut_normal_z",
-        FEType(Utility::string_to_enum<Order>(_order), Utility::string_to_enum<FEFamily>(_family)));
+    auto var_params = _factory.getValidParams("MooseVariableConstMonomial");
 
-    _problem->addAuxVariable(
-        "xfem_cut2_origin_x",
-        FEType(Utility::string_to_enum<Order>(_order), Utility::string_to_enum<FEFamily>(_family)));
-    _problem->addAuxVariable(
-        "xfem_cut2_origin_y",
-        FEType(Utility::string_to_enum<Order>(_order), Utility::string_to_enum<FEFamily>(_family)));
-    _problem->addAuxVariable(
-        "xfem_cut2_origin_z",
-        FEType(Utility::string_to_enum<Order>(_order), Utility::string_to_enum<FEFamily>(_family)));
-    _problem->addAuxVariable(
-        "xfem_cut2_normal_x",
-        FEType(Utility::string_to_enum<Order>(_order), Utility::string_to_enum<FEFamily>(_family)));
-    _problem->addAuxVariable(
-        "xfem_cut2_normal_y",
-        FEType(Utility::string_to_enum<Order>(_order), Utility::string_to_enum<FEFamily>(_family)));
-    _problem->addAuxVariable(
-        "xfem_cut2_normal_z",
-        FEType(Utility::string_to_enum<Order>(_order), Utility::string_to_enum<FEFamily>(_family)));
-
-    _problem->addAuxVariable(
-        "xfem_volfrac",
-        FEType(Utility::string_to_enum<Order>(_order), Utility::string_to_enum<FEFamily>(_family)));
+    _problem->addAuxVariable("MooseVariableConstMonomial", "xfem_cut_origin_x", var_params);
+    _problem->addAuxVariable("MooseVariableConstMonomial", "xfem_cut_origin_y", var_params);
+    _problem->addAuxVariable("MooseVariableConstMonomial", "xfem_cut_origin_z", var_params);
+    _problem->addAuxVariable("MooseVariableConstMonomial", "xfem_cut_normal_x", var_params);
+    _problem->addAuxVariable("MooseVariableConstMonomial", "xfem_cut_normal_y", var_params);
+    _problem->addAuxVariable("MooseVariableConstMonomial", "xfem_cut_normal_z", var_params);
+    _problem->addAuxVariable("MooseVariableConstMonomial", "xfem_cut2_origin_x", var_params);
+    _problem->addAuxVariable("MooseVariableConstMonomial", "xfem_cut2_origin_y", var_params);
+    _problem->addAuxVariable("MooseVariableConstMonomial", "xfem_cut2_origin_z", var_params);
+    _problem->addAuxVariable("MooseVariableConstMonomial", "xfem_cut2_normal_x", var_params);
+    _problem->addAuxVariable("MooseVariableConstMonomial", "xfem_cut2_normal_y", var_params);
+    _problem->addAuxVariable("MooseVariableConstMonomial", "xfem_cut2_normal_z", var_params);
+    _problem->addAuxVariable("MooseVariableConstMonomial", "xfem_volfrac", var_params);
   }
   else if (_current_task == "add_aux_kernel" && _xfem_cut_plane)
   {

@@ -20,6 +20,8 @@
 class DisplacementGradientsAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   DisplacementGradientsAction(const InputParameters & params);
 
   virtual void act();
@@ -28,7 +30,3 @@ private:
   std::vector<VariableName> _displacements;
   std::vector<VariableName> _displacement_gradients;
 };
-
-template <>
-InputParameters validParams<DisplacementGradientsAction>();
-

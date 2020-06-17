@@ -8,15 +8,15 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "PenaltyDirichletBC.h"
-#include "Function.h"
 
 registerMooseObject("MooseApp", PenaltyDirichletBC);
 
-template <>
+defineLegacyParams(PenaltyDirichletBC);
+
 InputParameters
-validParams<PenaltyDirichletBC>()
+PenaltyDirichletBC::validParams()
 {
-  InputParameters params = validParams<IntegratedBC>();
+  InputParameters params = IntegratedBC::validParams();
   params.addRequiredParam<Real>("penalty", "Penalty scalar");
   params.addParam<Real>("value", 0.0, "Boundary value of the variable");
   params.declareControllable("value");

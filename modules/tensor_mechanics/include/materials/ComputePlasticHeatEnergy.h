@@ -14,11 +14,6 @@
 #include "RankTwoTensor.h"
 #include "RankFourTensor.h"
 
-class ComputePlasticHeatEnergy;
-
-template <>
-InputParameters validParams<ComputePlasticHeatEnergy>();
-
 /**
  * ComputePlasticHeatEnergy computes stress * (plastic_strain - plastic_strain_old)
  * and, if currentlyComputingJacobian, then the derivative of this quantity wrt total strain
@@ -26,6 +21,8 @@ InputParameters validParams<ComputePlasticHeatEnergy>();
 class ComputePlasticHeatEnergy : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   ComputePlasticHeatEnergy(const InputParameters & parameters);
 
 protected:
@@ -55,4 +52,3 @@ protected:
   /// d(plastic_heat)/d(total strain)
   MaterialProperty<RankTwoTensor> & _dplastic_heat_dstrain;
 };
-

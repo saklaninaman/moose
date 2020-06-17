@@ -14,11 +14,10 @@
 
 registerMooseObject("NavierStokesApp", NSSUPGEnergy);
 
-template <>
 InputParameters
-validParams<NSSUPGEnergy>()
+NSSUPGEnergy::validParams()
 {
-  InputParameters params = validParams<NSSUPGBase>();
+  InputParameters params = NSSUPGBase::validParams();
   params.addClassDescription(
       "Compute residual and Jacobian terms form the SUPG terms in the energy equation.");
   return params;

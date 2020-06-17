@@ -13,11 +13,10 @@
 
 registerMooseObject("SolidMechanicsApp", ElasticModel);
 
-template <>
 InputParameters
-validParams<ElasticModel>()
+ElasticModel::validParams()
 {
-  InputParameters params = validParams<ConstitutiveModel>();
+  InputParameters params = ConstitutiveModel::validParams();
   return params;
 }
 

@@ -11,11 +11,6 @@
 
 #include "HEVPStrengthUOBase.h"
 
-class HEVPLinearHardening;
-
-template <>
-InputParameters validParams<HEVPLinearHardening>();
-
 /**
  * This user object classs
  * Computes linear hardening
@@ -23,6 +18,8 @@ InputParameters validParams<HEVPLinearHardening>();
 class HEVPLinearHardening : public HEVPStrengthUOBase
 {
 public:
+  static InputParameters validParams();
+
   HEVPLinearHardening(const InputParameters & parameters);
 
   virtual bool computeValue(unsigned int, Real &) const;
@@ -32,4 +29,3 @@ protected:
   Real _sig0;
   Real _slope;
 };
-

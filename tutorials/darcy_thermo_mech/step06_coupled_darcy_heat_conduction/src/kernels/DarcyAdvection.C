@@ -9,16 +9,18 @@
 
 #include "DarcyAdvection.h"
 
-registerADMooseObject("DarcyThermoMechApp", DarcyAdvection);
+registerMooseObject("DarcyThermoMechApp", DarcyAdvection);
 
-defineADValidParams(DarcyAdvection,
-                    ADKernelValue,
-                    params.addRequiredCoupledVar("pressure",
-                                                 "The variable representing the pressure."););
+InputParameters
+DarcyAdvection::validParams()
+{
+  InputParameters params = ADKernelValue::validParams();
+  params.addRequiredCoupledVar("pressure", "The variable representing the pressure.");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-DarcyAdvection<compute_stage>::DarcyAdvection(const InputParameters & parameters)
-  : ADKernelValue<compute_stage>(parameters),
+DarcyAdvection::DarcyAdvection(const InputParameters & parameters)
+  : ADKernelValue(parameters),
     // Couple to the gradient of the pressure
     _pressure_grad(adCoupledGradient("pressure")),
     // Grab necessary material properties
@@ -30,9 +32,8 @@ DarcyAdvection<compute_stage>::DarcyAdvection(const InputParameters & parameters
 {
 }
 
-template <ComputeStage compute_stage>
 ADReal
-DarcyAdvection<compute_stage>::precomputeQpResidual()
+DarcyAdvection::precomputeQpResidual()
 {
   // See also: E. Majchrzak and L. Turchan, "The Finite Difference
   // Method For Transient Convection Diffusion", Scientific Research

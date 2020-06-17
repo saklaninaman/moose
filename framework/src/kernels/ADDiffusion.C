@@ -9,25 +9,21 @@
 
 #include "ADDiffusion.h"
 
-registerADMooseObject("MooseApp", ADDiffusion);
+registerMooseObject("MooseApp", ADDiffusion);
 
-defineADValidParams(
-    ADDiffusion,
-    ADKernelGrad,
-    params.addClassDescription("Same as `Diffusion` in terms of physics/residual, but the Jacobian "
-                               "is computed using forward automatic differentiation"););
-
-template <ComputeStage compute_stage>
-ADDiffusion<compute_stage>::ADDiffusion(const InputParameters & parameters)
-  : ADKernelGrad<compute_stage>(parameters)
+InputParameters
+ADDiffusion::validParams()
 {
+  auto params = ADKernelGrad::validParams();
+  params.addClassDescription("Same as `Diffusion` in terms of physics/residual, but the Jacobian "
+                             "is computed using forward automatic differentiation");
+  return params;
 }
 
-template <ComputeStage compute_stage>
-ADVectorResidual
-ADDiffusion<compute_stage>::precomputeQpResidual()
+ADDiffusion::ADDiffusion(const InputParameters & parameters) : ADKernelGrad(parameters) {}
+
+ADRealVectorValue
+ADDiffusion::precomputeQpResidual()
 {
   return _grad_u[_qp];
 }
-
-adBaseClass(ADDiffusion);

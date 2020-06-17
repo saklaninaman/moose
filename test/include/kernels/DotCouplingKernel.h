@@ -11,17 +11,14 @@
 
 #include "Kernel.h"
 
-class DotCouplingKernel;
-
-template <>
-InputParameters validParams<DotCouplingKernel>();
-
 /**
  * Kernel that is calling coupledDot
  */
 class DotCouplingKernel : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   DotCouplingKernel(const InputParameters & parameters);
   virtual ~DotCouplingKernel(){};
 
@@ -32,4 +29,3 @@ protected:
   const VariableValue & _v_dot;
   const VariableValue & _dv_dot_dv;
 };
-

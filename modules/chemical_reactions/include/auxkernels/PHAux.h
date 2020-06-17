@@ -11,11 +11,6 @@
 
 #include "AuxKernel.h"
 
-class PHAux;
-
-template <>
-InputParameters validParams<PHAux>();
-
 /**
  * The pH of the solution is defined as
  *
@@ -31,6 +26,8 @@ InputParameters validParams<PHAux>();
 class PHAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   PHAux(const InputParameters & parameters);
 
 protected:
@@ -41,4 +38,3 @@ protected:
   /// Activity coefficient of H+ ions
   const VariableValue & _gamma;
 };
-

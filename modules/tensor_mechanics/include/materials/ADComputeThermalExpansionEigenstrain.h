@@ -11,27 +11,19 @@
 
 #include "ADComputeThermalExpansionEigenstrainBase.h"
 
-template <ComputeStage>
-class ADComputeThermalExpansionEigenstrain;
-
-declareADValidParams(ADComputeThermalExpansionEigenstrain);
-
 /**
  * ADComputeThermalExpansionEigenstrain computes an eigenstrain for thermal expansion
  * with a constant expansion coefficient.
  */
-template <ComputeStage compute_stage>
-class ADComputeThermalExpansionEigenstrain
-  : public ADComputeThermalExpansionEigenstrainBase<compute_stage>
+class ADComputeThermalExpansionEigenstrain : public ADComputeThermalExpansionEigenstrainBase
 {
 public:
+  static InputParameters validParams();
+
   ADComputeThermalExpansionEigenstrain(const InputParameters & parameters);
 
 protected:
-  virtual void computeThermalStrain(ADReal & thermal_strain, ADReal & instantaneous_cte) override;
+  virtual void computeThermalStrain(ADReal & thermal_strain) override;
 
   const Real & _thermal_expansion_coeff;
-
-  usingComputeThermalExpansionEigenstrainBaseMembers;
 };
-

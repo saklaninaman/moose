@@ -11,15 +11,11 @@
 
 #include "Reaction.h"
 
-// Forward Declarations
-class CoefReaction;
-
-template <>
-InputParameters validParams<CoefReaction>();
-
 class CoefReaction : public Reaction
 {
 public:
+  static InputParameters validParams();
+
   CoefReaction(const InputParameters & parameters);
 
 protected:
@@ -29,4 +25,3 @@ protected:
   /// input parameter multiplied by the reaction kernel
   const Real _coef;
 };
-

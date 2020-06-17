@@ -11,11 +11,6 @@
 
 #include "ComputeIncrementalStrainBase.h"
 
-class ComputeIncrementalSmallStrain;
-
-template <>
-InputParameters validParams<ComputeIncrementalSmallStrain>();
-
 /**
  * ComputeIncrementalSmallStrain defines a strain increment and rotation increment (=1), for small
  * strains.
@@ -23,6 +18,8 @@ InputParameters validParams<ComputeIncrementalSmallStrain>();
 class ComputeIncrementalSmallStrain : public ComputeIncrementalStrainBase
 {
 public:
+  static InputParameters validParams();
+
   ComputeIncrementalSmallStrain(const InputParameters & parameters);
 
   virtual void computeProperties() override;
@@ -32,4 +29,3 @@ protected:
   /// total strain increment tensor
   virtual void computeTotalStrainIncrement(RankTwoTensor & total_strain_increment);
 };
-

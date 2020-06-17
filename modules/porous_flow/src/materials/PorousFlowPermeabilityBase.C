@@ -9,11 +9,10 @@
 
 #include "PorousFlowPermeabilityBase.h"
 
-template <>
 InputParameters
-validParams<PorousFlowPermeabilityBase>()
+PorousFlowPermeabilityBase::validParams()
 {
-  InputParameters params = validParams<PorousFlowMaterialVectorBase>();
+  InputParameters params = PorousFlowMaterialVectorBase::validParams();
   params.addClassDescription("Base class for material permeability");
   params.addPrivateParam<std::string>("pf_material_type", "permeability");
   params.set<bool>("at_nodes") = false;

@@ -19,11 +19,12 @@
 
 registerMooseObject("MooseApp", ConcentricCircleMesh);
 
-template <>
+defineLegacyParams(ConcentricCircleMesh);
+
 InputParameters
-validParams<ConcentricCircleMesh>()
+ConcentricCircleMesh::validParams()
 {
-  InputParameters params = validParams<MooseMesh>();
+  InputParameters params = MooseMesh::validParams();
   MooseEnum portion(
       "full top_right top_left bottom_left bottom_right right_half left_half top_half bottom_half",
       "full");
@@ -439,8 +440,8 @@ ConcentricCircleMesh::buildMesh()
       MeshTools::Modification::change_boundary_id(other_mesh, 5, 2);
       MeshTools::Modification::change_boundary_id(other_mesh, 6, 3);
       MeshTools::Modification::change_boundary_id(other_mesh, 7, 4);
-      mesh.prepare_for_use(false);
-      other_mesh.prepare_for_use(false);
+      mesh.prepare_for_use(false, false);
+      other_mesh.prepare_for_use(false, false);
       mesh.stitch_meshes(other_mesh, 1, 3, TOLERANCE, true);
       mesh.get_boundary_info().sideset_name(1) = "left";
       mesh.get_boundary_info().sideset_name(2) = "bottom";
@@ -452,8 +453,8 @@ ConcentricCircleMesh::buildMesh()
       MeshTools::Modification::change_boundary_id(other_mesh, 1, 5);
       MeshTools::Modification::change_boundary_id(other_mesh, 2, 1);
       MeshTools::Modification::change_boundary_id(other_mesh, 5, 2);
-      mesh.prepare_for_use(false);
-      other_mesh.prepare_for_use(false);
+      mesh.prepare_for_use(false, false);
+      other_mesh.prepare_for_use(false, false);
       mesh.stitch_meshes(other_mesh, 1, 1, TOLERANCE, true);
 
       MeshTools::Modification::change_boundary_id(mesh, 2, 1);
@@ -478,8 +479,8 @@ ConcentricCircleMesh::buildMesh()
       MeshTools::Modification::change_boundary_id(other_mesh, 5, 4);
       MeshTools::Modification::change_boundary_id(other_mesh, 6, 1);
       MeshTools::Modification::change_boundary_id(other_mesh, 7, 2);
-      mesh.prepare_for_use(false);
-      other_mesh.prepare_for_use(false);
+      mesh.prepare_for_use(false, false);
+      other_mesh.prepare_for_use(false, false);
       mesh.stitch_meshes(other_mesh, 2, 4, TOLERANCE, true);
       mesh.get_boundary_info().sideset_name(1) = "left";
       mesh.get_boundary_info().sideset_name(2) = "bottom";
@@ -491,8 +492,8 @@ ConcentricCircleMesh::buildMesh()
       MeshTools::Modification::change_boundary_id(other_mesh, 1, 5);
       MeshTools::Modification::change_boundary_id(other_mesh, 2, 1);
       MeshTools::Modification::change_boundary_id(other_mesh, 5, 2);
-      mesh.prepare_for_use(false);
-      other_mesh.prepare_for_use(false);
+      mesh.prepare_for_use(false, false);
+      other_mesh.prepare_for_use(false, false);
       mesh.stitch_meshes(other_mesh, 2, 2, TOLERANCE, true);
 
       MeshTools::Modification::change_boundary_id(mesh, 3, 2);
@@ -526,8 +527,8 @@ ConcentricCircleMesh::buildMesh()
       MeshTools::Modification::change_boundary_id(mesh, 5, 3);
       MeshTools::Modification::change_boundary_id(mesh, 6, 4);
       MeshTools::Modification::change_boundary_id(mesh, 7, 1);
-      mesh.prepare_for_use(false);
-      other_mesh.prepare_for_use(false);
+      mesh.prepare_for_use(false, false);
+      other_mesh.prepare_for_use(false, false);
       mesh.stitch_meshes(other_mesh, 4, 2, TOLERANCE, true);
       mesh.get_boundary_info().sideset_name(1) = "left";
       mesh.get_boundary_info().sideset_name(2) = "bottom";
@@ -539,8 +540,8 @@ ConcentricCircleMesh::buildMesh()
       MeshTools::Modification::change_boundary_id(mesh, 1, 5);
       MeshTools::Modification::change_boundary_id(mesh, 2, 1);
       MeshTools::Modification::change_boundary_id(mesh, 5, 2);
-      mesh.prepare_for_use(false);
-      other_mesh.prepare_for_use(false);
+      mesh.prepare_for_use(false, false);
+      other_mesh.prepare_for_use(false, false);
       mesh.stitch_meshes(other_mesh, 1, 1, TOLERANCE, true);
 
       MeshTools::Modification::change_boundary_id(mesh, 2, 1);
@@ -574,8 +575,8 @@ ConcentricCircleMesh::buildMesh()
       MeshTools::Modification::change_boundary_id(mesh, 5, 4);
       MeshTools::Modification::change_boundary_id(mesh, 6, 1);
       MeshTools::Modification::change_boundary_id(mesh, 7, 2);
-      mesh.prepare_for_use(false);
-      other_mesh.prepare_for_use(false);
+      mesh.prepare_for_use(false, false);
+      other_mesh.prepare_for_use(false, false);
       mesh.stitch_meshes(other_mesh, 1, 3, TOLERANCE, true);
       mesh.get_boundary_info().sideset_name(1) = "left";
       mesh.get_boundary_info().sideset_name(2) = "bottom";
@@ -587,8 +588,8 @@ ConcentricCircleMesh::buildMesh()
       MeshTools::Modification::change_boundary_id(mesh, 1, 5);
       MeshTools::Modification::change_boundary_id(mesh, 2, 1);
       MeshTools::Modification::change_boundary_id(mesh, 5, 2);
-      mesh.prepare_for_use(false);
-      other_mesh.prepare_for_use(false);
+      mesh.prepare_for_use(false, false);
+      other_mesh.prepare_for_use(false, false);
       mesh.stitch_meshes(other_mesh, 1, 1, TOLERANCE, true);
 
       MeshTools::Modification::change_boundary_id(mesh, 2, 1);
@@ -615,8 +616,8 @@ ConcentricCircleMesh::buildMesh()
       MeshTools::Modification::change_boundary_id(portion_two, 5, 2);
       MeshTools::Modification::change_boundary_id(portion_two, 6, 3);
       MeshTools::Modification::change_boundary_id(portion_two, 7, 4);
-      mesh.prepare_for_use(false);
-      portion_two.prepare_for_use(false);
+      mesh.prepare_for_use(false, false);
+      portion_two.prepare_for_use(false, false);
       // 'top_half'
       mesh.stitch_meshes(portion_two, 1, 3, TOLERANCE, true);
 
@@ -630,8 +631,8 @@ ConcentricCircleMesh::buildMesh()
       MeshTools::Modification::change_boundary_id(portion_bottom, 5, 3);
       MeshTools::Modification::change_boundary_id(portion_bottom, 6, 4);
       MeshTools::Modification::change_boundary_id(portion_bottom, 7, 1);
-      mesh.prepare_for_use(false);
-      portion_bottom.prepare_for_use(false);
+      mesh.prepare_for_use(false, false);
+      portion_bottom.prepare_for_use(false, false);
       // 'full'
       mesh.stitch_meshes(portion_bottom, 2, 4, TOLERANCE, true);
 
@@ -647,15 +648,15 @@ ConcentricCircleMesh::buildMesh()
       MeshTools::Modification::change_boundary_id(portion_two, 2, 1);
       MeshTools::Modification::change_boundary_id(portion_two, 5, 2);
       // 'top half'
-      mesh.prepare_for_use(false);
-      portion_two.prepare_for_use(false);
+      mesh.prepare_for_use(false, false);
+      portion_two.prepare_for_use(false, false);
       mesh.stitch_meshes(portion_two, 1, 1, TOLERANCE, true);
       // 'bottom half'
       ReplicatedMesh portion_bottom(mesh);
       MeshTools::Modification::rotate(portion_bottom, 180, 0, 0);
       // 'full'
-      mesh.prepare_for_use(false);
-      portion_bottom.prepare_for_use(false);
+      mesh.prepare_for_use(false, false);
+      portion_bottom.prepare_for_use(false, false);
       mesh.stitch_meshes(portion_bottom, 2, 2, TOLERANCE, true);
       MeshTools::Modification::change_boundary_id(mesh, 3, 1);
       mesh.get_boundary_info().sideset_name(1) = "outer";
@@ -665,5 +666,5 @@ ConcentricCircleMesh::buildMesh()
   }
   if (_portion != "top_half" && _portion != "right_half" && _portion != "left_half" &&
       _portion != "bottom_half" && _portion != "full")
-    mesh.prepare_for_use(false);
+    mesh.prepare_for_use(false, false);
 }

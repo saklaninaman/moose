@@ -11,30 +11,22 @@
 
 #include "ADStressDivergenceTensors.h"
 
-// Forward Declarations
-template <ComputeStage>
-class ADStressDivergenceRSphericalTensors;
-
-declareADValidParams(ADStressDivergenceRSphericalTensors);
-
 /**
  * ADStressDivergenceRSphericalTensors is the automatic differentiation version of
  * StressDivergenceTensors. Within this kernel the first displacement component refers to
  * displacement in the radial direction. The COORD_TYPE in the Problem block must be set to
  * RSPHERICAL.
  */
-template <ComputeStage compute_stage>
-class ADStressDivergenceRSphericalTensors : public ADStressDivergenceTensors<compute_stage>
+class ADStressDivergenceRSphericalTensors : public ADStressDivergenceTensors
 {
 public:
+  static InputParameters validParams();
+
   ADStressDivergenceRSphericalTensors(const InputParameters & parameters);
 
 protected:
   void initialSetup() override;
 
-  ADResidual computeQpResidual() override;
+  ADReal computeQpResidual() override;
   void precalculateResidual() override {}
-
-  usingStressDivergenceTensorsMembers;
 };
-

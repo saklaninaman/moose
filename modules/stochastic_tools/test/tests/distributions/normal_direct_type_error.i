@@ -1,18 +1,9 @@
-[Mesh]
-  type = GeneratedMesh
-  dim = 1
-  nx = 1
-  ny = 1
-[]
-
-[Variables]
-  [u]
-  []
+[StochasticTools]
 []
 
 [Distributions]
   [this_is_the_wrong_type]
-    type = UniformDistribution
+    type = Uniform
     lower_bound = 0
     upper_bound = 1
   []
@@ -26,15 +17,6 @@
     method = cdf
     execute_on = initial
   []
-[]
-
-[Executioner]
-  type = Steady
-[]
-
-[Problem]
-  solve = false
-  kernel_coverage_check = false
 []
 
 [Outputs]

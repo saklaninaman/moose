@@ -11,11 +11,6 @@
 
 #include "CrystalPlasticityUOBase.h"
 
-class CrystalPlasticityStateVarRateComponent;
-
-template <>
-InputParameters validParams<CrystalPlasticityStateVarRateComponent>();
-
 /**
  * Crystal plasticity state variable evolution rate component userobject base class.
  * The virtual functions written below must be
@@ -24,9 +19,10 @@ InputParameters validParams<CrystalPlasticityStateVarRateComponent>();
 class CrystalPlasticityStateVarRateComponent : public CrystalPlasticityUOBase
 {
 public:
+  static InputParameters validParams();
+
   CrystalPlasticityStateVarRateComponent(const InputParameters & parameters);
 
   virtual bool calcStateVariableEvolutionRateComponent(unsigned int qp,
                                                        std::vector<Real> & val) const = 0;
 };
-

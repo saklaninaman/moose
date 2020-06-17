@@ -9,13 +9,16 @@
 
 #include "RankFourAux.h"
 
-registerMooseObject("TensorMechanicsApp", RankFourAux);
+#include "metaphysicl/raw_type.h"
 
-template <>
+registerMooseObject("TensorMechanicsApp", RankFourAux);
+registerMooseObject("TensorMechanicsApp", ADRankFourAux);
+
+template <bool is_ad>
 InputParameters
-validParams<RankFourAux>()
+RankFourAuxTempl<is_ad>::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   params.addClassDescription("Access a component of a RankFourTensor");
 
   // add stuff here
@@ -41,9 +44,10 @@ validParams<RankFourAux>()
   return params;
 }
 
-RankFourAux::RankFourAux(const InputParameters & parameters)
+template <bool is_ad>
+RankFourAuxTempl<is_ad>::RankFourAuxTempl(const InputParameters & parameters)
   : AuxKernel(parameters),
-    _tensor(getMaterialProperty<RankFourTensor>("rank_four_tensor")),
+    _tensor(getGenericMaterialProperty<RankFourTensor, is_ad>("rank_four_tensor")),
     _i(getParam<unsigned int>("index_i")),
     _j(getParam<unsigned int>("index_j")),
     _k(getParam<unsigned int>("index_k")),
@@ -51,8 +55,12 @@ RankFourAux::RankFourAux(const InputParameters & parameters)
 {
 }
 
+template <bool is_ad>
 Real
-RankFourAux::computeValue()
+RankFourAuxTempl<is_ad>::computeValue()
 {
-  return _tensor[_qp](_i, _j, _k, _l);
+  return MetaPhysicL::raw_value(_tensor[_qp](_i, _j, _k, _l));
 }
+
+template class RankFourAuxTempl<false>;
+template class RankFourAuxTempl<true>;

@@ -31,6 +31,7 @@
 Adaptivity::Adaptivity(FEProblemBase & subproblem)
   : ConsoleStreamInterface(subproblem.getMooseApp()),
     PerfGraphInterface(subproblem.getMooseApp().perfGraph(), "Adaptivity"),
+    ParallelObject(subproblem.getMooseApp()),
     _subproblem(subproblem),
     _mesh(_subproblem.mesh()),
     _mesh_refinement_on(false),
@@ -204,14 +205,15 @@ Adaptivity::initialAdaptMesh()
 }
 
 void
-Adaptivity::uniformRefine(MooseMesh * mesh)
+Adaptivity::uniformRefine(MooseMesh * mesh, unsigned int level /*=libMesh::invalid_uint*/)
 {
   mooseAssert(mesh, "Mesh pointer must not be NULL");
 
   // NOTE: we are using a separate object here, since adaptivity may not be on, but we need to be
   // able to do refinements
   MeshRefinement mesh_refinement(*mesh);
-  unsigned int level = mesh->uniformRefineLevel();
+  if (level == libMesh::invalid_uint)
+    level = mesh->uniformRefineLevel();
   mesh_refinement.uniformly_refine(level);
 }
 

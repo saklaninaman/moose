@@ -12,11 +12,6 @@
 #include "HelmholtzFluidProperties.h"
 #include <array>
 
-class CO2FluidProperties;
-
-template <>
-InputParameters validParams<CO2FluidProperties>();
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Woverloaded-virtual"
 
@@ -45,6 +40,8 @@ InputParameters validParams<CO2FluidProperties>();
 class CO2FluidProperties : public HelmholtzFluidProperties
 {
 public:
+  static InputParameters validParams();
+
   CO2FluidProperties(const InputParameters & parameters);
   virtual ~CO2FluidProperties();
 
@@ -60,12 +57,12 @@ public:
 
   virtual Real mu_from_rho_T(Real density, Real temperature) const override;
 
-  virtual void mu_from_rho_T(Real density,
-                             Real temperature,
-                             Real ddensity_dT,
-                             Real & mu,
-                             Real & dmu_drho,
-                             Real & dmu_dT) const override;
+  void mu_from_rho_T(Real density,
+                     Real temperature,
+                     Real ddensity_dT,
+                     Real & mu,
+                     Real & dmu_drho,
+                     Real & dmu_dT) const;
 
   virtual void
   rho_mu_from_p_T(Real pressure, Real temperature, Real & rho, Real & mu) const override;
@@ -145,9 +142,7 @@ public:
 
   virtual Real p_from_rho_T(Real density, Real temperature) const override;
 
-  virtual Real henryConstant(Real temperature) const override;
-
-  virtual void henryConstant(Real temperature, Real & Kh, Real & dKh_dT) const override;
+  virtual std::vector<Real> henryCoefficients() const override;
 
   /**
    * Partial density of dissolved CO2
@@ -257,4 +252,3 @@ protected:
 };
 
 #pragma GCC diagnostic pop
-

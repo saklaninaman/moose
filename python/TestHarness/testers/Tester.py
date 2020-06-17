@@ -7,11 +7,12 @@
 #* Licensed under LGPL 2.1, please see LICENSE for details
 #* https://www.gnu.org/licenses/lgpl-2.1.html
 
-import platform, re, os, pkgutil
+import platform, re, os, sys, pkgutil, shutil
+import mooseutils
 from TestHarness import util
 from TestHarness.StatusSystem import StatusSystem
 from FactorySystem.MooseObject import MooseObject
-from tempfile import TemporaryFile
+from tempfile import SpooledTemporaryFile
 import subprocess
 from signal import SIGTERM
 
@@ -43,6 +44,7 @@ class Tester(MooseObject):
         params.addParam('tags',      [], "A list of strings")
         params.addParam('max_buffer_size', None, "Bytes allowed in stdout/stderr before it is subjected to being trimmed. Set to -1 to ignore output size restrictions. "
                                                  "If 'max_buffer_size' is not set, the default value of 'None' triggers a reasonable value (e.g. 100 kB)")
+        params.addParam('parallel_scheduling', False, "Allow all tests in test spec file to run in parallel (adheres to prereq rules).")
 
         # Test Filters
         params.addParam('platform',      ['ALL'], "A list of platforms for which this test will run on. ('ALL', 'DARWIN', 'LINUX', 'SL', 'LION', 'ML')")
@@ -51,6 +53,7 @@ class Tester(MooseObject):
         params.addParam('petsc_version_release', ['ALL'], "A test that runs against PETSc master if FALSE ('ALL', 'TRUE', 'FALSE')")
         params.addParam('slepc_version', [], "A list of slepc versions for which this test will run on, supports normal comparison operators ('<', '>', etc...)")
         params.addParam('mesh_mode',     ['ALL'], "A list of mesh modes for which this test will run ('DISTRIBUTED', 'REPLICATED')")
+        params.addParam('ad_mode',       ['ALL'], "A list of AD modes for which this test will run ('SPARSE', 'NONSPARSE')")
         params.addParam('method',        ['ALL'], "A test that runs under certain executable configurations ('ALL', 'OPT', 'DBG', 'DEVEL', 'OPROF', 'PRO')")
         params.addParam('library_mode',  ['ALL'], "A test that only runs when libraries are built under certain configurations ('ALL', 'STATIC', 'DYNAMIC')")
         params.addParam('dtk',           ['ALL'], "A test that runs only if DTK is detected ('ALL', 'TRUE', 'FALSE')")
@@ -71,7 +74,9 @@ class Tester(MooseObject):
         params.addParam('unique_id',     ['ALL'], "A test that runs only if libmesh is configured with --enable-unique-id ('ALL', 'TRUE', 'FALSE')")
         params.addParam('cxx11',         ['ALL'], "A test that runs only if CXX11 is available ('ALL', 'TRUE', 'FALSE')")
         params.addParam('asio',          ['ALL'], "A test that runs only if ASIO is available ('ALL', 'TRUE', 'FALSE')")
-        params.addParam("fparser_jit",   ['ALL'], "A test that runs only if FParser JIT is available ('ALL', 'TRUE', 'FALSE')")
+        params.addParam('fparser_jit',   ['ALL'], "A test that runs only if FParser JIT is available ('ALL', 'TRUE', 'FALSE')")
+        params.addParam('libpng',        ['ALL'], "A test that runs only if libpng is available ('ALL', 'TRUE', 'FALSE')")
+
         params.addParam('depend_files',  [], "A test that only runs if all depend files exist (files listed are expected to be relative to the base directory, not the test directory")
         params.addParam('env_vars',      [], "A test that only runs if all the environment variables listed exist")
         params.addParam('should_execute', True, 'Whether or not the executable needs to be run.  Use this to chain together multiple tests based off of one executeable invocation')
@@ -82,14 +87,19 @@ class Tester(MooseObject):
         params.addParam('display_required', False, "The test requires and active display for rendering (i.e., ImageDiff tests).")
         params.addParam('timing',         True, "If True, the test will be allowed to run with the timing flag (i.e. Manually turning on performance logging).")
         params.addParam('boost',         ['ALL'], "A test that runs only if BOOST is detected ('ALL', 'TRUE', 'FALSE')")
-        params.addParam('sympy', False, "If True, sympy is required.")
+        params.addParam('python',        None, "Restrict the test to s specific version of python (e.g., 3.6 or 3.7.1).")
+        params.addParam('required_python_packages', None, "Test will only run if the supplied python packages exist.")
+        params.addParam('requires', None, "A list of programs required for the test to operate, as tested with shutil.which.")
 
         # SQA
         params.addParam("requirement", None, "The SQA requirement that this test satisfies (e.g., 'The Marker system shall provide means to mark elements for refinement within a box region.')")
         params.addParam("design", [], "The list of markdown files that contain the design(s) associated with this test (e.g., '/Markers/index.md /BoxMarker.md').")
         params.addParam("issues", [], "The list of github issues associated with this test (e.g., '#1234 #4321')")
+        params.addParam("detail", None, "Details of SQA requirement for use within sub-blocks.")
         params.addParam("validation", False, "Set to True to mark test as a validation problem.")
         params.addParam("verification", False, "Set to True to mark test as a verification problem.")
+        params.addParam("deprecated", False, "When True the test is no longer considered part SQA process and as such does not include the need for a requirement definition.")
+        params.addParam("working_directory", None, "When set, TestHarness will enter this directory before running test")
         return params
 
     # This is what will be checked for when we look for valid testers
@@ -146,15 +156,15 @@ class Tester(MooseObject):
 
     # Return a tuple (status, message, caveats) for this tester as found
     # in the .previous_test_results.json file (or supplied json object)
-    def previousTesterStatus(self, options, previous_results=None):
-        if not previous_results:
-            previous_results = options.results_storage
+    def previousTesterStatus(self, options, previous_storage=None):
+        if not previous_storage:
+            previous_storage = options.results_storage
 
-        status_exists = previous_results.get(self.getTestDir(), {}).get(self.getTestName(), None)
+        status_exists = previous_storage.get(self.getTestDir(), {}).get(self.getTestName(), None)
         status = (self.test_status.createStatus(), '', '')
         if status_exists:
-            status = (self.test_status.createStatus(status_exists['STATUS'].encode('ascii', 'ignore')),
-                      status_exists['STATUS_MESSAGE'].encode('ascii', 'ignore'),
+            status = (self.test_status.createStatus(str(status_exists['STATUS'])),
+                      str(status_exists['STATUS_MESSAGE']),
                       status_exists['CAVEATS'])
         return (status)
 
@@ -193,6 +203,8 @@ class Tester(MooseObject):
 
     def getTestDir(self):
         """ return directory in which this tester is located """
+        if self.specs['working_directory']:
+            return os.path.join(self.specs['test_dir'], self.specs['working_directory'])
         return self.specs['test_dir']
 
     def getMinReportTime(self):
@@ -284,8 +296,8 @@ class Tester(MooseObject):
 
         self.process = None
         try:
-            f = TemporaryFile()
-            e = TemporaryFile()
+            f = SpooledTemporaryFile(max_size=1000000) # 1M character buffer
+            e = SpooledTemporaryFile(max_size=100000)  # 100K character buffer
 
             # On Windows, there is an issue with path translation when the command is passed in
             # as a list.
@@ -312,7 +324,7 @@ class Tester(MooseObject):
         self.errfile.flush()
 
         # store the contents of output, and close the file
-        self.joined_out = util.readOutput(self.outfile, self.errfile)
+        self.joined_out = util.readOutput(self.outfile, self.errfile, self)
         self.outfile.close()
         self.errfile.close()
 
@@ -362,7 +374,7 @@ class Tester(MooseObject):
 
     def getRedirectedOutputFiles(self, options):
         """ return a list of redirected output """
-        return [os.path.join(self.getTestDir(), self.name() + '.processor.{}'.format(p)) for p in xrange(self.getProcs(options))]
+        return [os.path.join(self.getTestDir(), self.name() + '.processor.{}'.format(p)) for p in range(self.getProcs(options))]
 
     def addCaveats(self, *kwargs):
         """ Add caveat(s) which will be displayed with the final test status """
@@ -416,10 +428,10 @@ class Tester(MooseObject):
             return False
 
         # Are we running only tests in a specific group?
-        if options.group <> 'ALL' and options.group not in self.specs['group']:
+        if options.group != 'ALL' and options.group not in self.specs['group']:
             self.setStatus(self.silent)
             return False
-        if options.not_group <> '' and options.not_group in self.specs['group']:
+        if options.not_group != '' and options.not_group in self.specs['group']:
             self.setStatus(self.silent)
             return False
 
@@ -487,9 +499,9 @@ class Tester(MooseObject):
                 reasons['slepc_version'] = 'SLEPc is not installed'
 
         # PETSc and SLEPc is being explicitly checked above
-        local_checks = ['platform', 'compiler', 'mesh_mode', 'method', 'library_mode', 'dtk', 'unique_ids', 'vtk', 'tecplot', \
+        local_checks = ['platform', 'compiler', 'mesh_mode', 'ad_mode', 'method', 'library_mode', 'dtk', 'unique_ids', 'vtk', 'tecplot',
                         'petsc_debug', 'curl', 'superlu', 'cxx11', 'asio', 'unique_id', 'slepc', 'petsc_version_release', 'boost', 'fparser_jit',
-                        'parmetis', 'chaco', 'party', 'ptscotch', 'threading']
+                        'parmetis', 'chaco', 'party', 'ptscotch', 'threading', 'libpng']
         for check in local_checks:
             test_platforms = set()
             operator_display = '!='
@@ -556,17 +568,50 @@ class Tester(MooseObject):
 
         # Check to make sure environment variable exists
         for var in self.specs['env_vars']:
-            if not os.environ.has_key(var):
+            if not os.environ.get(var):
                 reasons['env_vars'] = 'ENV VAR NOT SET'
 
         # Check for display
         if self.specs['display_required'] and not os.getenv('DISPLAY', False):
             reasons['display_required'] = 'NO DISPLAY'
 
-        # Check for sympy
-        if self.specs['sympy'] and pkgutil.find_loader('sympy') is None:
-            reasons['python_package_required'] = 'NO SYMPY'
+        # Check python version
+        py_version = self.specs['python']
+        if (py_version is not None):
+            if isinstance(py_version, int) and (py_version != sys.version_info[0]):
+                reasons['python'] = 'PYTHON != {}'.format(py_version)
+            elif isinstance(py_version, float) and (py_version != float('{}.{}'.format(*sys.version_info[0:2]))):
+                reasons['python'] = 'PYTHON != {}'.format(py_version)
+            elif isinstance(py_version, str):
+                ver = py_version.split('.')
+                if any(sys.version_info[i] != int(v) for i, v in enumerate(ver)):
+                    reasons['python'] = 'PYTHON != {}'.format(py_version)
 
+        # Check python packages
+        py_packages = self.specs['required_python_packages']
+        if py_packages is not None:
+            missing = mooseutils.check_configuration(py_packages.split(), message=False)
+            if missing:
+                reasons['python_packages_required'] = ', '.join(['no {}'.format(p) for p in missing])
+
+        # Check for programs
+        programs = self.specs['requires']
+        if (programs is not None):
+            missing = []
+            for prog in programs.split():
+                if shutil.which(prog) is None:
+                    missing.append(prog)
+            if missing:
+                reasons['requires'] = ', '.join(['no {}'.format(p) for p in missing])
+
+        # Verify working_directory is relative and available
+        if self.specs['working_directory']:
+            if self.specs['working_directory'][:1] == os.path.sep:
+                self.setStatus(self.fail, 'ABSOLUTE PATH DETECTED')
+            elif not os.path.exists(self.getTestDir()):
+                self.setStatus(self.fail, 'WORKING DIRECTORY NOT FOUND')
+
+        ##### The below must be performed last to register all above caveats #####
         # Remove any matching user supplied caveats from accumulated checkRunnable caveats that
         # would normally produce a skipped test.
         caveat_list = set()
@@ -575,7 +620,7 @@ class Tester(MooseObject):
 
         if len(set(reasons.keys()) - caveat_list) > 0:
             tmp_reason = []
-            for key, value in reasons.iteritems():
+            for key, value in reasons.items():
                 if key.lower() not in caveat_list:
                     tmp_reason.append(value)
 
@@ -588,6 +633,8 @@ class Tester(MooseObject):
                     self.setStatus(self.deleted)
                 else:
                     self.setStatus(self.silent)
+            elif self.getStatus() == self.fail:
+                return False
             else:
                 self.setStatus(self.skip)
             return False

@@ -12,10 +12,6 @@
 #include "SmoothCircleBaseIC.h"
 
 // Forward Declarations
-class LatticeSmoothCircleIC;
-
-template <>
-InputParameters validParams<LatticeSmoothCircleIC>();
 
 /**
  * LatticeSmoothcircleIC creates a lattice of smoothcircles as an initial condition.
@@ -24,6 +20,8 @@ InputParameters validParams<LatticeSmoothCircleIC>();
 class LatticeSmoothCircleIC : public SmoothCircleBaseIC
 {
 public:
+  static InputParameters validParams();
+
   LatticeSmoothCircleIC(const InputParameters & parameters);
 
   virtual void initialSetup();
@@ -46,4 +44,3 @@ protected:
   Point _top_right;
   Point _range;
 };
-

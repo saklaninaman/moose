@@ -41,19 +41,19 @@
 
 [BCs]
   [./t_bdy]
-    type = PresetBC
+    type = DirichletBC
     variable = temp
     boundary = 'left right'
     value = 323.15
   [../]
   [./p_bdy]
-    type = PresetBC
+    type = DirichletBC
     variable = pp
     boundary = 'left right'
     value = 20E6
   [../]
   [./nacl_bdy]
-    type = PresetBC
+    type = DirichletBC
     variable = nacl
     boundary = 'left right'
     value = 0.1047
@@ -71,7 +71,6 @@
   # Specific heat capacity
   [./rock_heat]
     type = PorousFlowMatrixInternalEnergy
-    at_nodes = true
     specific_heat_capacity = 850
     density = 2700
   [../]
@@ -83,12 +82,7 @@
   [../]
 
   # Porosity
-  [./porosity_nodal]
-    type = PorousFlowPorosityConst
-    at_nodes = true
-    porosity = 0.3
-  [../]
-  [./porosity_qp]
+  [./porosity]
     type = PorousFlowPorosityConst
     porosity = 0.3
   [../]

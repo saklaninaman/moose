@@ -12,11 +12,12 @@
 
 registerMooseObject("MooseApp", FunctionValuePostprocessor);
 
-template <>
+defineLegacyParams(FunctionValuePostprocessor);
+
 InputParameters
-validParams<FunctionValuePostprocessor>()
+FunctionValuePostprocessor::validParams()
 {
-  InputParameters params = validParams<GeneralPostprocessor>();
+  InputParameters params = GeneralPostprocessor::validParams();
   params.addRequiredParam<FunctionName>("function",
                                         "The function which supplies the postprocessor value.");
   params.addParam<Point>(
@@ -24,7 +25,8 @@ validParams<FunctionValuePostprocessor>()
   params.addParam<Real>("scale_factor", 1, "A scale factor to be applied to the function");
 
   params.declareControllable("point scale_factor");
-
+  params.addClassDescription(
+      "Computes the value of a supplied function at a single point (scalable)");
   return params;
 }
 

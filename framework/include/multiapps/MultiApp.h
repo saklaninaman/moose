@@ -12,6 +12,7 @@
 #include "MooseObject.h"
 #include "SetupInterface.h"
 #include "Restartable.h"
+#include "PerfGraphInterface.h"
 
 #include "libmesh/communicator.h"
 #include "libmesh/point.h"
@@ -54,9 +55,14 @@ class SubAppBackups : public std::vector<std::shared_ptr<Backup>>
  * path using "MOOSE_LIBRARY_PATH" or by specifying a single input file library path
  * in Multiapps InputParameters object.
  */
-class MultiApp : public MooseObject, public SetupInterface, public Restartable
+class MultiApp : public MooseObject,
+                 public SetupInterface,
+                 public Restartable,
+                 public PerfGraphInterface
 {
 public:
+  static InputParameters validParams();
+
   MultiApp(const InputParameters & parameters);
 
   virtual void preExecute() {}
@@ -321,6 +327,12 @@ protected:
    */
   void init(unsigned int num);
 
+  /**
+   * Reserve the solution from the previous simulation,
+   *  and it is used as an initial guess for the next run
+   */
+  void keepSolutionDuringRestore(bool keep_solution_during_restore);
+
   /// The FEProblemBase this MultiApp is part of
   FEProblemBase & _fe_problem;
 
@@ -422,6 +434,18 @@ protected:
 
   /// Storage for command line arguments
   const std::vector<std::string> & _cli_args;
+
+  /// Flag indicates if or not restart from the latest solution
+  bool _keep_solution_during_restore;
+
+  /// The solution from the end of the previous solve, this is cloned from the Nonlinear solution during restore
+  std::vector<std::unique_ptr<NumericVector<Real>>> _end_solutions;
+
+private:
+  PerfID _perf_backup;
+  PerfID _perf_restore;
+  PerfID _perf_init;
+  PerfID _perf_reset_app;
 };
 
 template <>

@@ -17,11 +17,10 @@
 
 registerMooseAction("PorousFlowApp", PorousFlowAddMaterialJoiner, "add_joiners");
 
-template <>
 InputParameters
-validParams<PorousFlowAddMaterialJoiner>()
+PorousFlowAddMaterialJoiner::validParams()
 {
-  InputParameters params = validParams<Action>();
+  InputParameters params = Action::validParams();
   params.addClassDescription(
       "Adds PorousFlowJoiner materials as required for each phase-dependent property");
   return params;

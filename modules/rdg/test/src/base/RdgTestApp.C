@@ -13,11 +13,10 @@
 #include "AppFactory.h"
 #include "MooseSyntax.h"
 
-template <>
 InputParameters
-validParams<RdgTestApp>()
+RdgTestApp::validParams()
 {
-  InputParameters params = validParams<RdgApp>();
+  InputParameters params = RdgApp::validParams();
   return params;
 }
 
@@ -25,8 +24,7 @@ registerKnownLabel("RdgTestApp");
 
 RdgTestApp::RdgTestApp(InputParameters parameters) : MooseApp(parameters)
 {
-  RdgTestApp::registerAll(
-      _factory, _action_factory, _syntax, getParam<bool>("allow_test_objects"));
+  RdgTestApp::registerAll(_factory, _action_factory, _syntax, getParam<bool>("allow_test_objects"));
 }
 
 RdgTestApp::~RdgTestApp() {}

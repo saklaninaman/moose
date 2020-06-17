@@ -1,7 +1,7 @@
 [Tests]
-  [./CheckPostprocessor]
+  [CheckPostprocessor]
     type = PythonUnitTest
     input = test_check_postprocessor.py
-    display_required = True
-  [../]
+    display_required = true
+  []
 []

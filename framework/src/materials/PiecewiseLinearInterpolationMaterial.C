@@ -14,11 +14,13 @@
 
 registerMooseObject("MooseApp", PiecewiseLinearInterpolationMaterial);
 
-template <>
+defineLegacyParams(PiecewiseLinearInterpolationMaterial);
+
 InputParameters
-validParams<PiecewiseLinearInterpolationMaterial>()
+PiecewiseLinearInterpolationMaterial::validParams()
 {
-  InputParameters params = validParams<Material>();
+
+  InputParameters params = Material::validParams();
   params.addClassDescription("Compute a property using a piecewise linear interpolation to define "
                              "its dependence on a variable");
   params.addRequiredParam<std::string>("property",
@@ -31,6 +33,11 @@ validParams<PiecewiseLinearInterpolationMaterial>()
   params.addParam<std::vector<Real>>("xy_data",
                                      "All function data, supplied in abscissa, ordinate pairs");
   params.addParam<Real>("scale_factor", 1.0, "Scale factor to be applied to the ordinate values");
+  params.addParam<bool>(
+      "extrapolation",
+      false,
+      "Use linear extrapolation to evaluate points that lie outside given data set domain. ");
+  params.declareControllable("scale_factor");
   return params;
 }
 
@@ -40,6 +47,7 @@ PiecewiseLinearInterpolationMaterial::PiecewiseLinearInterpolationMaterial(
     _prop_name(getParam<std::string>("property")),
     _coupled_var(coupledValue("variable")),
     _scale_factor(getParam<Real>("scale_factor")),
+    _extrap(getParam<bool>("extrapolation")),
     _property(declareProperty<Real>(_prop_name)),
     _dproperty(declarePropertyDerivative<Real>(_prop_name, getVar("variable", 0)->name()))
 {
@@ -82,7 +90,7 @@ PiecewiseLinearInterpolationMaterial::PiecewiseLinearInterpolationMaterial(
 
   try
   {
-    _linear_interp = libmesh_make_unique<LinearInterpolation>(x, y);
+    _linear_interp = libmesh_make_unique<LinearInterpolation>(x, y, _extrap);
   }
   catch (std::domain_error & e)
   {

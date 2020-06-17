@@ -13,11 +13,11 @@
 
 registerMooseObject("XFEMApp", XFEMMarkerAux);
 
-template <>
 InputParameters
-validParams<XFEMMarkerAux>()
+XFEMMarkerAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
+  params.addClassDescription("Identify the crack tip elements.");
   return params;
 }
 

@@ -12,10 +12,6 @@
 #include "KKSACBulkBase.h"
 
 // Forward Declarations
-class KKSACBulkC;
-
-template <>
-InputParameters validParams<KKSACBulkC>();
 
 /**
  * KKSACBulkBase child class for the phase concentration difference term
@@ -27,6 +23,8 @@ InputParameters validParams<KKSACBulkC>();
 class KKSACBulkC : public KKSACBulkBase
 {
 public:
+  static InputParameters validParams();
+
   KKSACBulkC(const InputParameters & parameters);
 
 protected:
@@ -43,20 +41,13 @@ protected:
   unsigned int _cb_var;
   const VariableValue & _cb;
 
-  /// Value of the switching function \f$ h(\eta) \f$
-  const MaterialProperty<Real> & _prop_h;
-
   /// Derivative of the free energy function \f$ \frac d{dc_a} F_a \f$
   const MaterialProperty<Real> & _prop_dFadca;
 
   /// Second derivative of the free energy function \f$ \frac {d^2}{dc_a^2} F_a \f$
   const MaterialProperty<Real> & _prop_d2Fadca2;
 
-  /// Second derivative of the free energy function \f$ \frac {d^2}{dc_b^2} F_b \f$
-  const MaterialProperty<Real> & _prop_d2Fbdcb2;
-
   /// Mixed partial derivatives of the free energy function wrt ca and
   /// any other coupled variables \f$ \frac {d^2}{dc_a dq} F_a \f$
   std::vector<const MaterialProperty<Real> *> _prop_d2Fadcadarg;
 };
-

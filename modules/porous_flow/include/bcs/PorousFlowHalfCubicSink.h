@@ -11,11 +11,6 @@
 
 #include "PorousFlowSinkPTDefiner.h"
 
-class PorousFlowHalfCubicSink;
-
-template <>
-InputParameters validParams<PorousFlowHalfCubicSink>();
-
 /**
  * Applies a flux sink to a boundary.  The base flux
  * defined by PorousFlowSink is multiplied by a cubic.
@@ -30,6 +25,8 @@ InputParameters validParams<PorousFlowHalfCubicSink>();
 class PorousFlowHalfCubicSink : public PorousFlowSinkPTDefiner
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowHalfCubicSink(const InputParameters & parameters);
 
 protected:

@@ -10,18 +10,16 @@
 #pragma once
 
 #include "Action.h"
-#include "MooseTypes.h"
-
-class CavityPressureAction;
-
-template <>
-InputParameters validParams<CavityPressureAction>();
 
 class CavityPressureAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   CavityPressureAction(const InputParameters & params);
 
   virtual void act() override;
-};
 
+  /// Flag to use automatic differentiation where possible
+  const bool _use_ad;
+};

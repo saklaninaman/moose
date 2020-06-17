@@ -18,6 +18,7 @@
 #include "MooseVariableScalar.h"
 #include "NonlocalKernel.h"
 #include "NonlocalIntegratedBC.h"
+#include "FVElementalKernel.h"
 #include "libmesh/threads.h"
 
 ComputeFullJacobianThread::ComputeFullJacobianThread(FEProblemBase & fe_problem,
@@ -38,12 +39,15 @@ ComputeFullJacobianThread::~ComputeFullJacobianThread() {}
 void
 ComputeFullJacobianThread::computeJacobian()
 {
-  std::vector<std::pair<MooseVariableFEBase *, MooseVariableFEBase *>> & ce =
-      _fe_problem.couplingEntries(_tid);
+  auto & ce = _fe_problem.couplingEntries(_tid);
   for (const auto & it : ce)
   {
-    MooseVariableFEBase & ivariable = *(it.first);
-    MooseVariableFEBase & jvariable = *(it.second);
+    MooseVariableFieldBase & ivariable = *(it.first);
+    MooseVariableFieldBase & jvariable = *(it.second);
+
+    // We don't currently support coupling with FV variables
+    if (ivariable.isFV() || jvariable.isFV())
+      continue;
 
     unsigned int ivar = ivariable.number();
     unsigned int jvar = jvariable.number();
@@ -63,23 +67,18 @@ ComputeFullJacobianThread::computeJacobian()
     }
   }
 
-  if (_adjk_warehouse->hasActiveBlockObjects(_subdomain, _tid))
-  {
-    auto & kernels = _adjk_warehouse->getActiveBlockObjects(_subdomain, _tid);
-    for (const auto & kernel : kernels)
-      if (kernel->isImplicit())
-        kernel->computeADOffDiagJacobian();
-  }
-
   /// done only when nonlocal kernels exist in the system
   if (_fe_problem.checkNonlocalCouplingRequirement())
   {
-    std::vector<std::pair<MooseVariableFEBase *, MooseVariableFEBase *>> & cne =
-        _fe_problem.nonlocalCouplingEntries(_tid);
+    auto & cne = _fe_problem.nonlocalCouplingEntries(_tid);
     for (const auto & it : cne)
     {
-      MooseVariableFEBase & ivariable = *(it.first);
-      MooseVariableFEBase & jvariable = *(it.second);
+      MooseVariableFieldBase & ivariable = *(it.first);
+      MooseVariableFieldBase & jvariable = *(it.second);
+
+      // We don't currently support coupling with FV variables
+      if (ivariable.isFV() || jvariable.isFV())
+        continue;
 
       unsigned int ivar = ivariable.number();
       unsigned int jvar = jvariable.number();
@@ -107,7 +106,7 @@ ComputeFullJacobianThread::computeJacobian()
   if (scalar_vars.size() > 0)
   {
     // go over nl-variables (non-scalar)
-    const std::vector<MooseVariableFEBase *> & vars = _nl.getVariables(_tid);
+    const std::vector<MooseVariableFieldBase *> & vars = _nl.getVariables(_tid);
     for (const auto & ivariable : vars)
       if (ivariable->activeOnSubdomain(_subdomain) > 0 &&
           _warehouse->hasActiveVariableBlockObjects(ivariable->number(), _subdomain, _tid))
@@ -119,8 +118,7 @@ ComputeFullJacobianThread::computeJacobian()
           if (kernel->isImplicit())
           {
             // now, get the list of coupled scalar vars and compute their off-diag jacobians
-            const std::vector<MooseVariableScalar *> coupled_scalar_vars =
-                kernel->getCoupledMooseScalarVars();
+            const auto & coupled_scalar_vars = kernel->getCoupledMooseScalarVars();
 
             // Do: dvar / dscalar_var, only want to process only nl-variables (not aux ones)
             for (const auto & jvariable : coupled_scalar_vars)
@@ -129,28 +127,48 @@ ComputeFullJacobianThread::computeJacobian()
           }
       }
   }
+
+  if (_fe_problem.haveFV())
+  {
+    std::vector<FVElementalKernel *> fv_kernels;
+    _fe_problem.theWarehouse()
+        .query()
+        .template condition<AttribSystem>("FVElementalKernel")
+        .template condition<AttribSubdomains>(_subdomain)
+        .template condition<AttribThread>(_tid)
+        .template condition<AttribMatrixTags>(_tags)
+        .queryInto(fv_kernels);
+
+    for (auto fv_kernel : fv_kernels)
+      if (fv_kernel->isImplicit())
+        fv_kernel->computeOffDiagJacobian();
+  }
 }
 
 void
 ComputeFullJacobianThread::computeFaceJacobian(BoundaryID bnd_id)
 {
-  std::vector<std::pair<MooseVariableFEBase *, MooseVariableFEBase *>> & ce =
-      _fe_problem.couplingEntries(_tid);
+  auto & ce = _fe_problem.couplingEntries(_tid);
   for (const auto & it : ce)
   {
-    MooseVariableFEBase & ivar = *(it.first);
-    MooseVariableFEBase & jvar = *(it.second);
-    if (ivar.activeOnSubdomain(_subdomain) && jvar.activeOnSubdomain(_subdomain) &&
+    MooseVariableFieldBase & ivariable = *(it.first);
+    MooseVariableFieldBase & jvariable = *(it.second);
+
+    // We don't currently support coupling with FV variables
+    if (ivariable.isFV() || jvariable.isFV())
+      continue;
+
+    if (ivariable.activeOnSubdomain(_subdomain) && jvariable.activeOnSubdomain(_subdomain) &&
         _ibc_warehouse->hasActiveBoundaryObjects(bnd_id, _tid))
     {
       // only if there are dofs for j-variable (if it is subdomain restricted var, there may not be
       // any)
       const auto & bcs = _ibc_warehouse->getActiveBoundaryObjects(bnd_id, _tid);
       for (const auto & bc : bcs)
-        if (bc->shouldApply() && bc->variable().number() == ivar.number() && bc->isImplicit())
+        if (bc->shouldApply() && bc->variable().number() == ivariable.number() && bc->isImplicit())
         {
-          bc->subProblem().prepareFaceShapes(jvar.number(), _tid);
-          bc->computeJacobianBlock(jvar);
+          bc->subProblem().prepareFaceShapes(jvariable.number(), _tid);
+          bc->computeJacobianBlock(jvariable);
         }
     }
   }
@@ -158,12 +176,15 @@ ComputeFullJacobianThread::computeFaceJacobian(BoundaryID bnd_id)
   /// done only when nonlocal integrated_bcs exist in the system
   if (_fe_problem.checkNonlocalCouplingRequirement())
   {
-    std::vector<std::pair<MooseVariableFEBase *, MooseVariableFEBase *>> & cne =
-        _fe_problem.nonlocalCouplingEntries(_tid);
+    auto & cne = _fe_problem.nonlocalCouplingEntries(_tid);
     for (const auto & it : cne)
     {
-      MooseVariableFEBase & ivariable = *(it.first);
-      MooseVariableFEBase & jvariable = *(it.second);
+      MooseVariableFieldBase & ivariable = *(it.first);
+      MooseVariableFieldBase & jvariable = *(it.second);
+
+      // We don't currently support coupling with FV variables
+      if (ivariable.isFV() || jvariable.isFV())
+        continue;
 
       unsigned int ivar = ivariable.number();
       unsigned int jvar = jvariable.number();
@@ -192,7 +213,7 @@ ComputeFullJacobianThread::computeFaceJacobian(BoundaryID bnd_id)
   if (scalar_vars.size() > 0)
   {
     // go over nl-variables (non-scalar)
-    const std::vector<MooseVariableFEBase *> & vars = _nl.getVariables(_tid);
+    const std::vector<MooseVariableFieldBase *> & vars = _nl.getVariables(_tid);
     for (const auto & ivar : vars)
       if (ivar->activeOnSubdomain(_subdomain) > 0 &&
           _ibc_warehouse->hasActiveBoundaryObjects(bnd_id, _tid))
@@ -223,14 +244,19 @@ ComputeFullJacobianThread::computeInternalFaceJacobian(const Elem * neighbor)
     const auto & ce = _fe_problem.couplingEntries(_tid);
     for (const auto & it : ce)
     {
+      MooseVariableFieldBase & ivariable = *(it.first);
+      MooseVariableFieldBase & jvariable = *(it.second);
+
+      // We don't currently support coupling with FV variables
+      if (ivariable.isFV() || jvariable.isFV())
+        continue;
+
+      unsigned int ivar = ivariable.number();
+      unsigned int jvar = jvariable.number();
+
       const auto & dgks = _dg_warehouse->getActiveBlockObjects(_subdomain, _tid);
       for (const auto & dg : dgks)
       {
-        MooseVariableFEBase & ivariable = *(it.first);
-        MooseVariableFEBase & jvariable = *(it.second);
-
-        unsigned int ivar = ivariable.number();
-        unsigned int jvar = jvariable.number();
 
         if (dg->variable().number() == ivar && dg->isImplicit() &&
             dg->hasBlocks(neighbor->subdomain_id()) && jvariable.activeOnSubdomain(_subdomain))
@@ -252,15 +278,22 @@ ComputeFullJacobianThread::computeInternalInterFaceJacobian(BoundaryID bnd_id)
     const auto & ce = _fe_problem.couplingEntries(_tid);
     for (const auto & it : ce)
     {
+      MooseVariableFieldBase & ivariable = *(it.first);
+      MooseVariableFieldBase & jvariable = *(it.second);
+
+      // We don't currently support coupling with FV variables
+      if (ivariable.isFV() || jvariable.isFV())
+        continue;
+
+      unsigned int ivar = ivariable.number();
+      unsigned int jvar = jvariable.number();
+
       const std::vector<std::shared_ptr<InterfaceKernelBase>> & int_ks =
           _ik_warehouse->getActiveBoundaryObjects(bnd_id, _tid);
       for (const auto & interface_kernel : int_ks)
       {
         if (!interface_kernel->isImplicit())
           continue;
-
-        unsigned int ivar = it.first->number();
-        unsigned int jvar = it.second->number();
 
         interface_kernel->subProblem().prepareFaceShapes(jvar, _tid);
         interface_kernel->subProblem().prepareNeighborShapes(jvar, _tid);

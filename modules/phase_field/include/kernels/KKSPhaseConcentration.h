@@ -13,10 +13,6 @@
 #include "DerivativeMaterialInterface.h"
 
 // Forward Declarations
-class KKSPhaseConcentration;
-
-template <>
-InputParameters validParams<KKSPhaseConcentration>();
 
 /**
  * Enforce sum of phase concentrations to be the real concentration.
@@ -34,6 +30,8 @@ InputParameters validParams<KKSPhaseConcentration>();
 class KKSPhaseConcentration : public DerivativeMaterialInterface<Kernel>
 {
 public:
+  static InputParameters validParams();
+
   KKSPhaseConcentration(const InputParameters & parameters);
 
 protected:
@@ -57,4 +55,3 @@ private:
   /// Derivative of the switching function \f$ \frac d{d\eta} h(\eta) \f$
   const MaterialProperty<Real> & _prop_dh;
 };
-

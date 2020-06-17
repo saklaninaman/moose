@@ -26,14 +26,15 @@
 # are the same as for the unit 1-D gap heat transfer between two unit cubes.
 
 [Mesh]
-  file = simple_2D.e
-[]
-
-[MeshModifiers]
+  [file]
+    type = FileMeshGenerator
+    file = simple_2D.e
+  []
   [./rotate]
-    type = Transform
+    type = TransformGenerator
     transform = ROTATE
     vector_value = '0 90 0'
+    input = file
   [../]
 []
 
@@ -51,6 +52,8 @@
     variable = temp
     master = 3
     slave = 2
+    emissivity_master = 0
+    emissivity_slave = 0
   [../]
 []
 
@@ -79,13 +82,13 @@
 
 [BCs]
   [./temp_far_bottom]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     boundary = 1
     variable = temp
     function = temp
   [../]
   [./temp_far_top]
-    type = PresetBC
+    type = DirichletBC
     boundary = 4
     variable = temp
     value = 100

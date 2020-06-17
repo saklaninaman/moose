@@ -2,11 +2,12 @@
 # The global stress is determined by switching the stress based on level set values
 # The material interface is marked by a level set function
 # The two layer materials are glued together
+# This case is also meant to test for a bug in moving interfaces on displaced meshes
+# It should fail during the healing step of the 2nd timestep if the bug is present.
 
 [GlobalParams]
   order = FIRST
   family = LAGRANGE
-  displacements = 'disp_x disp_y'
 []
 
 [XFEM]
@@ -23,28 +24,29 @@
 []
 
 [Mesh]
-  type = GeneratedMesh
-  dim = 2
-  nx = 5
-  ny = 5
-  xmin = 0.0
-  xmax = 5.
-  ymin = 0.0
-  ymax = 5.
-  elem_type = QUAD4
   displacements = 'disp_x disp_y'
-[]
-
-[MeshModifiers]
+  [generated_mesh]
+    type = GeneratedMeshGenerator
+    dim = 2
+    nx = 5
+    ny = 5
+    xmin = 0.0
+    xmax = 5.
+    ymin = 0.0
+    ymax = 5.
+    elem_type = QUAD4
+  []
   [./left_bottom]
-    type = AddExtraNodeset
+    type = ExtraNodesetGenerator
     new_boundary = 'left_bottom'
     coord = '0.0 0.0'
+    input = generated_mesh
   [../]
   [./left_top]
-    type = AddExtraNodeset
+    type = ExtraNodesetGenerator
     new_boundary = 'left_top'
     coord = '0.0 5.'
+    input = left_bottom
   [../]
 []
 
@@ -73,7 +75,7 @@
 [Functions]
   [./ls_func]
     type = ParsedFunction
-    value = 'y-2.5 + t'
+    value = 'y-3.153 + t'
   [../]
 []
 
@@ -118,6 +120,7 @@
 
 [Kernels]
   [./TensorMechanics]
+    displacements = 'disp_x disp_y'
   [../]
 []
 
@@ -206,25 +209,25 @@
 
 [BCs]
   [./bottomx]
-    type = PresetBC
+    type = DirichletBC
     boundary = bottom
     variable = disp_x
     value = 0.0
   [../]
   [./bottomy]
-    type = PresetBC
+    type = DirichletBC
     boundary = bottom
     variable = disp_y
     value = 0.0
   [../]
   [./topx]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     boundary = top
     variable = disp_x
     function = 0.03*t
   [../]
   [./topy]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     boundary = top
     variable = disp_y
     function = '0.03*t'
@@ -241,6 +244,7 @@
   [./strain_A]
     type = ComputeSmallStrain
     base_name = A
+    displacements = 'disp_x disp_y'
   [../]
   [./stress_A]
     type = ComputeLinearElasticStress
@@ -255,6 +259,7 @@
   [./strain_B]
     type = ComputeSmallStrain
     base_name = B
+    displacements = 'disp_x disp_y'
   [../]
   [./stress_B]
     type = ComputeLinearElasticStress
@@ -296,8 +301,8 @@
 
 # time control
   start_time = 0.0
-  dt = 0.1
-  num_steps = 2
+  dt = 0.15
+  num_steps = 3
 
   max_xfem_update = 1
 []

@@ -12,10 +12,6 @@
 #include "TotalFreeEnergyBase.h"
 
 // Forward Declarations
-class CrossTermGradientFreeEnergy;
-
-template <>
-InputParameters validParams<CrossTermGradientFreeEnergy>();
 
 /**
  * Cross term gradient free energy contribution used by ACMultiInterface
@@ -23,6 +19,8 @@ InputParameters validParams<CrossTermGradientFreeEnergy>();
 class CrossTermGradientFreeEnergy : public TotalFreeEnergyBase
 {
 public:
+  static InputParameters validParams();
+
   CrossTermGradientFreeEnergy(const InputParameters & parameters);
 
 protected:
@@ -30,4 +28,3 @@ protected:
 
   std::vector<std::vector<const MaterialProperty<Real> *>> _kappas;
 };
-

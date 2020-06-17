@@ -13,11 +13,10 @@
 
 registerMooseObject("MooseApp", LineSegmentLevelSetAux);
 
-template <>
 InputParameters
-validParams<LineSegmentLevelSetAux>()
+LineSegmentLevelSetAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   params.addClassDescription(
       "Auxiliary Kernel that calcuates level set value using line segments' description.");
   params.addParam<UserObjectName>(

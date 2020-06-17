@@ -15,12 +15,11 @@
 
 registerMooseAction("PhaseFieldApp", PolycrystalColoringICAction, "add_ic");
 
-template <>
 InputParameters
-validParams<PolycrystalColoringICAction>()
+PolycrystalColoringICAction::validParams()
 {
-  InputParameters params = validParams<Action>();
-  params.addClassDescription("Random Voronoi tesselation polycrystal action");
+  InputParameters params = Action::validParams();
+  params.addClassDescription("Random Voronoi tessellation polycrystal action");
   params.addRequiredParam<unsigned int>("op_num", "number of order parameters to create");
   params.addRequiredParam<std::string>("var_name_base", "specifies the base name of the variables");
   params.addRequiredParam<UserObjectName>("polycrystal_ic_uo", "Optional: TODO");

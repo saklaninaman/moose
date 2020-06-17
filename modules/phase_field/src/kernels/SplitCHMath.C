@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", SplitCHMath);
 
-template <>
 InputParameters
-validParams<SplitCHMath>()
+SplitCHMath::validParams()
 {
-  InputParameters params = validParams<SplitCHCRes>();
+  InputParameters params = SplitCHCRes::validParams();
   params.addClassDescription("Simple demonstration split formulation Cahn-Hilliard Kernel using an "
                              "algebraic double-well potential");
   return params;

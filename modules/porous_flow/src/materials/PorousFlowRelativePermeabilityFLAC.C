@@ -11,11 +11,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowRelativePermeabilityFLAC);
 
-template <>
 InputParameters
-validParams<PorousFlowRelativePermeabilityFLAC>()
+PorousFlowRelativePermeabilityFLAC::validParams()
 {
-  InputParameters params = validParams<PorousFlowRelativePermeabilityBase>();
+  InputParameters params = PorousFlowRelativePermeabilityBase::validParams();
   params.addRequiredRangeCheckedParam<Real>(
       "m", "m >= 0", "relperm = (1 + m)seff^m - m seff^(m+1)");
   params.addClassDescription(

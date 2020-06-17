@@ -9,26 +9,27 @@
 
 #include "INSADMass.h"
 
-registerADMooseObject("NavierStokesApp", INSADMass);
+registerMooseObject("NavierStokesApp", INSADMass);
 
-defineADValidParams(
-    INSADMass,
-    ADKernelValue,
-    params.addClassDescription("This class computes the mass equation residual and Jacobian "
-                               "contributions (the latter using automatic differentiation) for the "
-                               "incompressible Navier-Stokes "
-                               "equations."););
+InputParameters
+INSADMass::validParams()
+{
+  InputParameters params = ADKernelValue::validParams();
+  params.addClassDescription("This class computes the mass equation residual and Jacobian "
+                             "contributions (the latter using automatic differentiation) for the "
+                             "incompressible Navier-Stokes "
+                             "equations.");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-INSADMass<compute_stage>::INSADMass(const InputParameters & parameters)
-  : ADKernelValue<compute_stage>(parameters),
+INSADMass::INSADMass(const InputParameters & parameters)
+  : ADKernelValue(parameters),
     _mass_strong_residual(getADMaterialProperty<Real>("mass_strong_residual"))
 {
 }
 
-template <ComputeStage compute_stage>
-ADResidual
-INSADMass<compute_stage>::precomputeQpResidual()
+ADReal
+INSADMass::precomputeQpResidual()
 {
   return _mass_strong_residual[_qp];
 }

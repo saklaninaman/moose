@@ -1,18 +1,26 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # LaplacianJumpIndicator
 
-!alert construction title=Undocumented Class
-The LaplacianJumpIndicator has not been documented. The content contained on this page includes the
-typical automatic documentation associated with a MooseObject; however, what is contained is
-ultimately determined by what is necessary to make the documentation clear for users.
-
 !syntax description /Adaptivity/Indicators/LaplacianJumpIndicator
+
+## Description
+
+The LaplacianJumpIndicator object computes the error as computed by the change in the
+Laplacian of a variable across element interfaces.
+
+!alert warning title=LaplacianJumpIndicator requires second derivatives
+The Laplacian ($\nabla^2 u$ or $\nabla\cdot\nabla u$) operator requires second derivaties with
+respect to the spacial dimensions. As such, the selected finite elements must be at least
+second order for the calculation to be valid.
+
+## Example Input File Syntax
+
+The following code snippet demonstrates the use of the LaplacianJumpIndicator object within a
+typical input file.
+
+!listing biharmonic.i block=Adaptivity
 
 !syntax parameters /Adaptivity/Indicators/LaplacianJumpIndicator
 
 !syntax inputs /Adaptivity/Indicators/LaplacianJumpIndicator
 
 !syntax children /Adaptivity/Indicators/LaplacianJumpIndicator
-
-!bibtex bibliography

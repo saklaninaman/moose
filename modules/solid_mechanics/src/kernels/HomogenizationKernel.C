@@ -11,13 +11,12 @@
 #include "Material.h"
 #include "SymmElasticityTensor.h"
 
-registerMooseObject("SolidMechanicsApp", HomogenizationKernel);
+registerMooseObjectDeprecated("SolidMechanicsApp", HomogenizationKernel, "07/30/2020 24:00");
 
-template <>
 InputParameters
-validParams<HomogenizationKernel>()
+HomogenizationKernel::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addRequiredRangeCheckedParam<unsigned int>("component",
                                                     "component >= 0 & component < 3",
                                                     "An integer corresponding to the direction "
@@ -43,6 +42,12 @@ HomogenizationKernel::HomogenizationKernel(const InputParameters & parameters)
     _component(getParam<unsigned int>("component")),
     _column(getParam<unsigned int>("column"))
 {
+  mooseDeprecated(name(), ": HomogenizationKernel is deprecated. \
+                  The solid_mechanics module will be removed from MOOSE on July 31, 2020. \
+                  Please update your input files to utilize the tensor_mechanics equivalents of \
+                  models based on solid_mechanics. A detailed migration guide that was developed \
+                  for BISON, but which is generally applicable to any MOOSE model is available at: \
+                  https://mooseframework.org/bison/tutorials/mechanics_conversion/overview.html");
 }
 
 Real

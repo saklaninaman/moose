@@ -17,11 +17,6 @@
 #include "TensorMechanicsPlasticModel.h"
 #include "UserObjectInterface.h"
 
-class MultiPlasticityRawComponentAssembler;
-
-template <>
-InputParameters validParams<MultiPlasticityRawComponentAssembler>();
-
 /**
  * MultiPlasticityRawComponentAssembler holds and computes yield functions,
  * flow directions, etc, for use in FiniteStrainMultiPlasticity
@@ -44,6 +39,8 @@ InputParameters validParams<MultiPlasticityRawComponentAssembler>();
 class MultiPlasticityRawComponentAssembler : public UserObjectInterface
 {
 public:
+  static InputParameters validParams();
+
   MultiPlasticityRawComponentAssembler(const MooseObject * moose_object);
 
   virtual ~MultiPlasticityRawComponentAssembler() {}
@@ -329,4 +326,3 @@ private:
                                    const RankFourTensor & Eijkl,
                                    std::vector<bool> & act);
 };
-

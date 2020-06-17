@@ -10,16 +10,18 @@
 #include "BoundingBoxNodeSetGenerator.h"
 #include "MooseMeshUtils.h"
 #include "CastUniquePointer.h"
+#include "MooseUtils.h"
 
 #include "libmesh/node.h"
 
 registerMooseObject("MooseApp", BoundingBoxNodeSetGenerator);
 
-template <>
+defineLegacyParams(BoundingBoxNodeSetGenerator);
+
 InputParameters
-validParams<BoundingBoxNodeSetGenerator>()
+BoundingBoxNodeSetGenerator::validParams()
 {
-  InputParameters params = validParams<MeshGenerator>();
+  InputParameters params = MeshGenerator::validParams();
   MooseEnum location("INSIDE OUTSIDE", "INSIDE");
 
   params.addRequiredParam<MeshGeneratorName>("input", "The mesh we want to modify");
@@ -42,7 +44,8 @@ BoundingBoxNodeSetGenerator::BoundingBoxNodeSetGenerator(const InputParameters &
   : MeshGenerator(parameters),
     _input(getMesh("input")),
     _location(getParam<MooseEnum>("location")),
-    _bounding_box(getParam<RealVectorValue>("bottom_left"), getParam<RealVectorValue>("top_right"))
+    _bounding_box(MooseUtils::buildBoundingBox(getParam<RealVectorValue>("bottom_left"),
+                                               getParam<RealVectorValue>("top_right")))
 {
 }
 

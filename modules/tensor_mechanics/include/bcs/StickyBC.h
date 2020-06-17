@@ -11,11 +11,6 @@
 
 #include "NodalBC.h"
 
-class StickyBC;
-
-template <>
-InputParameters validParams<StickyBC>();
-
 /**
  * Sticky-type boundary condition, where if
  * the old variable value exceeds the bounds provided
@@ -24,6 +19,8 @@ InputParameters validParams<StickyBC>();
 class StickyBC : public NodalBC
 {
 public:
+  static InputParameters validParams();
+
   StickyBC(const InputParameters & parameters);
 
 protected:
@@ -37,4 +34,3 @@ protected:
   /// The maximum bound
   const Real _max_value;
 };
-

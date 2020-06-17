@@ -12,11 +12,10 @@
 
 registerMooseObject("NavierStokesApp", INSChorinPredictor);
 
-template <>
 InputParameters
-validParams<INSChorinPredictor>()
+INSChorinPredictor::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
 
   params.addClassDescription("This class computes the 'Chorin' Predictor equation in "
                              "fully-discrete (both time and space) form.");

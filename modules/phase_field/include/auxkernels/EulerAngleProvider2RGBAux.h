@@ -12,15 +12,10 @@
 #include "AuxKernel.h"
 #include "EBSDReader.h"
 #include "EulerAngleProvider.h"
-#include "GrainTracker.h"
+#include "GrainTrackerInterface.h"
 
 // Forward Declarations
-class EulerAngleProvider2RGBAux;
-class GrainTracker;
 class EulerAngleProvider;
-
-template <>
-InputParameters validParams<EulerAngleProvider2RGBAux>();
 
 /**
  * Output euler angles from user object to an AuxVariable.
@@ -28,6 +23,8 @@ InputParameters validParams<EulerAngleProvider2RGBAux>();
 class EulerAngleProvider2RGBAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   EulerAngleProvider2RGBAux(const InputParameters & parameters);
   virtual unsigned int getNumGrains() const;
 
@@ -54,7 +51,7 @@ protected:
   const EBSDReader * _ebsd_reader;
 
   /// Grain tracker object
-  const GrainTracker & _grain_tracker;
+  const GrainTrackerInterface & _grain_tracker;
 
   /// precalculated element value
   Real _value;
@@ -62,4 +59,3 @@ protected:
   /// Vector containing values for color in regions without grains
   const Point _no_grain_color;
 };
-

@@ -11,11 +11,10 @@
 
 registerMooseObject("NavierStokesApp", NSMomentumViscousFlux);
 
-template <>
 InputParameters
-validParams<NSMomentumViscousFlux>()
+NSMomentumViscousFlux::validParams()
 {
-  InputParameters params = validParams<NSKernel>();
+  InputParameters params = NSKernel::validParams();
   params.addClassDescription(
       "Derived instance of the NSViscousFluxBase class for the momentum equations.");
   params.addRequiredParam<unsigned int>("component", "");

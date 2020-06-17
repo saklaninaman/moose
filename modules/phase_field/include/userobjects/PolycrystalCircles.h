@@ -14,10 +14,6 @@
 #include "DelimitedFileReader.h"
 
 // Forward Declarations
-class PolycrystalCircles;
-
-template <>
-InputParameters validParams<PolycrystalCircles>();
 
 /**
  * PolycrystalCircles creates a polycrystal made up of circles.
@@ -30,6 +26,8 @@ InputParameters validParams<PolycrystalCircles>();
 class PolycrystalCircles : public PolycrystalUserObjectBase
 {
 public:
+  static InputParameters validParams();
+
   PolycrystalCircles(const InputParameters & parameters);
 
   // Required functions from PolycrystalUserObjectBase

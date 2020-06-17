@@ -11,12 +11,6 @@
 
 #include "CoupledSusceptibilityTimeDerivative.h"
 
-// Forward Declaration
-class AntitrappingCurrent;
-
-template <>
-InputParameters validParams<AntitrappingCurrent>();
-
 /**
  * This calculates a modified coupled time derivative that multiplies the time derivative of a
  * coupled variable by a function of the variables and interface normal
@@ -24,6 +18,8 @@ InputParameters validParams<AntitrappingCurrent>();
 class AntitrappingCurrent : public CoupledSusceptibilityTimeDerivative
 {
 public:
+  static InputParameters validParams();
+
   AntitrappingCurrent(const InputParameters & parameters);
 
 protected:

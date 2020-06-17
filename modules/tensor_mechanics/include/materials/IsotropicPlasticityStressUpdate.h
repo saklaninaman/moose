@@ -11,11 +11,6 @@
 
 #include "RadialReturnStressUpdate.h"
 
-class IsotropicPlasticityStressUpdate;
-
-template <>
-InputParameters validParams<IsotropicPlasticityStressUpdate>();
-
 /**
  * This class uses the Discrete material in a radial return isotropic plasticity
  * model.  This class is one of the basic radial return constitutive models;
@@ -37,6 +32,8 @@ InputParameters validParams<IsotropicPlasticityStressUpdate>();
 class IsotropicPlasticityStressUpdate : public RadialReturnStressUpdate
 {
 public:
+  static InputParameters validParams();
+
   IsotropicPlasticityStressUpdate(const InputParameters & parameters);
 
 protected:

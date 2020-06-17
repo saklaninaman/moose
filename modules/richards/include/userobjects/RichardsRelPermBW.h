@@ -11,11 +11,6 @@
 
 #include "RichardsRelPerm.h"
 
-class RichardsRelPermBW;
-
-template <>
-InputParameters validParams<RichardsRelPermBW>();
-
 /**
  * "Broadbridge-White" form of relative permeability as a function of effective saturation
  * P Broadbridge and I White ``Constant rate rainfall infiltration: A versatile nonlinear model 1.
@@ -24,6 +19,8 @@ InputParameters validParams<RichardsRelPermBW>();
 class RichardsRelPermBW : public RichardsRelPerm
 {
 public:
+  static InputParameters validParams();
+
   RichardsRelPermBW(const InputParameters & parameters);
 
   /**
@@ -63,4 +60,3 @@ protected:
   // (_ks - _kn)*(_c - 1)
   Real _coef;
 };
-

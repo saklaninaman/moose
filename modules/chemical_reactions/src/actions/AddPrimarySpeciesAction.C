@@ -12,11 +12,10 @@
 
 registerMooseAction("ChemicalReactionsApp", AddPrimarySpeciesAction, "add_variable");
 
-template <>
 InputParameters
-validParams<AddPrimarySpeciesAction>()
+AddPrimarySpeciesAction::validParams()
 {
-  InputParameters params = validParams<AddVariableAction>();
+  InputParameters params = AddVariableAction::validParams();
   params.addRequiredParam<std::vector<NonlinearVariableName>>(
       "primary_species", "The list of primary variables to add");
   params.addClassDescription("Adds Variables for all primary species");
@@ -26,13 +25,20 @@ validParams<AddPrimarySpeciesAction>()
 AddPrimarySpeciesAction::AddPrimarySpeciesAction(const InputParameters & params)
   : AddVariableAction(params),
     _vars(getParam<std::vector<NonlinearVariableName>>("primary_species")),
-    _scaling(getParam<Real>("scaling"))
+    _scaling(isParamValid("scaling") ? getParam<std::vector<Real>>("scaling")
+                                     : std::vector<Real>(1, 1.0))
 {
 }
 
 void
 AddPrimarySpeciesAction::act()
 {
+  auto fe_type = AddVariableAction::feType(_pars);
+  auto type = AddVariableAction::determineType(fe_type, 1);
+  auto var_params = _factory.getValidParams(type);
+
+  var_params.applySpecificParameters(_pars, {"family", "order", "scaling"});
+
   for (auto & var : _vars)
-    _problem->addVariable(var, _fe_type, _scaling);
+    _problem->addVariable(type, var, var_params);
 }

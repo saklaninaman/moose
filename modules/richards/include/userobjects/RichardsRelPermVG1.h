@@ -11,11 +11,6 @@
 
 #include "RichardsRelPermVG.h"
 
-class RichardsRelPermVG1;
-
-template <>
-InputParameters validParams<RichardsRelPermVG1>();
-
 /**
  * Van-Genuchten form of relative permeability when seff <= _scut
  * cubic relative permeability for seff >= _scut
@@ -25,6 +20,8 @@ InputParameters validParams<RichardsRelPermVG1>();
 class RichardsRelPermVG1 : public RichardsRelPermVG
 {
 public:
+  static InputParameters validParams();
+
   RichardsRelPermVG1(const InputParameters & parameters);
 
   /// just prints some (maybe) useful info to the console
@@ -70,4 +67,3 @@ protected:
   /// coefficient of cubic term in cubic relperm relation
   Real _vg1_cub;
 };
-

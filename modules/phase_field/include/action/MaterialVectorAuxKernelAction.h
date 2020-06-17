@@ -14,6 +14,8 @@
 class MaterialVectorAuxKernelAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   MaterialVectorAuxKernelAction(const InputParameters & params);
 
   virtual void act();
@@ -34,7 +36,3 @@ protected:
   /// number of properties
   const unsigned int _num_prop;
 };
-
-template <>
-InputParameters validParams<MaterialVectorAuxKernelAction>();
-

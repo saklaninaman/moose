@@ -12,10 +12,6 @@
 #include "AuxKernel.h"
 
 // Forward Declarations
-class AccumulateAux;
-
-template <>
-InputParameters validParams<AccumulateAux>();
 
 /**
  * Accumulate values from one auxiliary variable into another
@@ -23,6 +19,8 @@ InputParameters validParams<AccumulateAux>();
 class AccumulateAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   AccumulateAux(const InputParameters & parameters);
 
 protected:
@@ -31,4 +29,3 @@ protected:
   // coupled variable values to be aggregated
   std::vector<const VariableValue *> _values;
 };
-

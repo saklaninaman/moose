@@ -13,11 +13,10 @@
 #include "AppFactory.h"
 #include "MooseSyntax.h"
 
-template <>
 InputParameters
-validParams<LevelSetTestApp>()
+LevelSetTestApp::validParams()
 {
-  InputParameters params = validParams<LevelSetApp>();
+  InputParameters params = LevelSetApp::validParams();
   return params;
 }
 

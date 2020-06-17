@@ -11,17 +11,14 @@
 
 #include "PorousFlowCapillaryPressure.h"
 
-class PorousFlowCapillaryPressureRSC;
-
-template <>
-InputParameters validParams<PorousFlowCapillaryPressureRSC>();
-
 /**
  * Rogers-Stallybrass-Clements form of capillary pressure
  */
 class PorousFlowCapillaryPressureRSC : public PorousFlowCapillaryPressure
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowCapillaryPressureRSC(const InputParameters & parameters);
 
   virtual Real capillaryPressureCurve(Real saturation, unsigned qp = 0) const override;
@@ -42,4 +39,3 @@ protected:
   /// Scale = 0.25 * scale_ratio * oil_viscosity
   const Real _scale;
 };
-

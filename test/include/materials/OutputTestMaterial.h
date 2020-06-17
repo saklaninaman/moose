@@ -11,22 +11,9 @@
 
 // MOOSE includes
 #include "Material.h"
+#include "RankTwoTensorForward.h"
+#include "RankFourTensorForward.h"
 
-// Forward declarations
-class OutputTestMaterial;
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-template <typename>
-class RankFourTensorTempl;
-typedef RankFourTensorTempl<Real> RankFourTensor;
-
-template <>
-InputParameters validParams<OutputTestMaterial>();
-
-/**
- *
- */
 class OutputTestMaterial : public Material
 {
 public:
@@ -34,6 +21,8 @@ public:
    * Class constructor
    * @param prop_name
    */
+  static InputParameters validParams();
+
   OutputTestMaterial(const InputParameters & parameters);
 
   // Used for testing if hidden compiler warning shows up
@@ -55,4 +44,3 @@ protected:
   Real _factor;
   const VariableValue & _variable;
 };
-

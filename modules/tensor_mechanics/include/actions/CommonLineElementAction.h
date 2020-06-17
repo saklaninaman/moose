@@ -11,19 +11,15 @@
 
 #include "Action.h"
 
-class CommonLineElementAction;
-
-template <>
-InputParameters validParams<CommonLineElementAction>();
-
 /**
  * Store common line element action parameters
  */
 class CommonLineElementAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   CommonLineElementAction(const InputParameters & parameters);
 
   virtual void act() override{};
 };
-

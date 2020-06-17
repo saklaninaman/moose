@@ -10,31 +10,16 @@
 #pragma once
 
 #include "ADMaterial.h"
-
-#define usingComputeEigenstrainBaseMembers                                                         \
-  usingMaterialMembers;                                                                            \
-  using ADComputeEigenstrainBase<compute_stage>::_eigenstrain;                                     \
-  using ADComputeEigenstrainBase<compute_stage>::_eigenstrain_name
-
-// Forward Declarations
-template <ComputeStage>
-class ADComputeEigenstrainBase;
-
-template <typename>
-class RankTwoTensorTempl;
-
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-typedef RankTwoTensorTempl<DualReal> DualRankTwoTensor;
-
-declareADValidParams(ADComputeEigenstrainBase);
+#include "ADRankTwoTensorForward.h"
 
 /**
  * ADComputeEigenstrainBase is the base class for eigenstrain tensors
  */
-template <ComputeStage compute_stage>
-class ADComputeEigenstrainBase : public ADMaterial<compute_stage>
+class ADComputeEigenstrainBase : public ADMaterial
 {
 public:
+  static InputParameters validParams();
+
   ADComputeEigenstrainBase(const InputParameters & parameters);
 
 protected:
@@ -51,7 +36,7 @@ protected:
   std::string _eigenstrain_name;
 
   ///Stores the current total eigenstrain
-  ADMaterialProperty(RankTwoTensor) & _eigenstrain;
+  ADMaterialProperty<RankTwoTensor> & _eigenstrain;
 
   /**
    * Helper function for models that compute the eigenstrain based on a volumetric
@@ -65,7 +50,4 @@ protected:
 
   /// Restartable data to check for the zeroth and first time steps for thermal calculations
   bool & _step_zero;
-
-  usingMaterialMembers;
 };
-

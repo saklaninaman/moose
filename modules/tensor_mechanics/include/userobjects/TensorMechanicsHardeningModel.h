@@ -11,11 +11,6 @@
 
 #include "GeneralUserObject.h"
 
-class TensorMechanicsHardeningModel;
-
-template <>
-InputParameters validParams<TensorMechanicsHardeningModel>();
-
 /**
  * Hardening Model base class.  The derived classes will provide
  * a value and a derivative of that value with respect to a
@@ -27,6 +22,8 @@ InputParameters validParams<TensorMechanicsHardeningModel>();
 class TensorMechanicsHardeningModel : public GeneralUserObject
 {
 public:
+  static InputParameters validParams();
+
   TensorMechanicsHardeningModel(const InputParameters & parameters);
 
   void initialize();
@@ -50,4 +47,3 @@ public:
    */
   virtual std::string modelName() const = 0;
 };
-

@@ -11,17 +11,14 @@
 
 #include "PorousFlowMaterialVectorBase.h"
 
-class PorousFlowPermeabilityBase;
-
-template <>
-InputParameters validParams<PorousFlowPermeabilityBase>();
-
 /**
  * Base class Material designed to provide the permeability tensor.
  */
 class PorousFlowPermeabilityBase : public PorousFlowMaterialVectorBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowPermeabilityBase(const InputParameters & parameters);
 
 protected:
@@ -34,4 +31,3 @@ protected:
   /// d(quadpoint permeability)/d(grad(PorousFlow variable))
   MaterialProperty<std::vector<std::vector<RealTensorValue>>> & _dpermeability_qp_dgradvar;
 };
-

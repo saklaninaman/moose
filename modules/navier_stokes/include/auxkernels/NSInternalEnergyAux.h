@@ -12,10 +12,6 @@
 #include "AuxKernel.h"
 
 // Forward Declarations
-class NSInternalEnergyAux;
-
-template <>
-InputParameters validParams<NSInternalEnergyAux>();
 
 /**
  * Auxiliary kernel for computing the internal energy of the fluid.
@@ -23,6 +19,8 @@ InputParameters validParams<NSInternalEnergyAux>();
 class NSInternalEnergyAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   NSInternalEnergyAux(const InputParameters & parameters);
 
   virtual ~NSInternalEnergyAux() {}
@@ -36,4 +34,3 @@ protected:
   const VariableValue & _w_vel;
   const VariableValue & _rhoE;
 };
-

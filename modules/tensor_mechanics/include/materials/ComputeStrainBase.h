@@ -15,17 +15,14 @@
 #include "RotationTensor.h"
 #include "DerivativeMaterialInterface.h"
 
-class ComputeStrainBase;
-
-template <>
-InputParameters validParams<ComputeStrainBase>();
-
 /**
  * ComputeStrainBase is the base class for strain tensors
  */
 class ComputeStrainBase : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   ComputeStrainBase(const InputParameters & parameters);
 
   void initialSetup() override;
@@ -36,9 +33,14 @@ protected:
 
   /// Coupled displacement variables
   unsigned int _ndisp;
+
+  /// Displacement variables
   std::vector<const VariableValue *> _disp;
+
+  /// Gradient of displacements
   std::vector<const VariableGradient *> _grad_disp;
 
+  /// Base name of the material system
   const std::string _base_name;
 
   MaterialProperty<RankTwoTensor> & _mechanical_strain;
@@ -53,4 +55,3 @@ protected:
   const bool _volumetric_locking_correction;
   const Real & _current_elem_volume;
 };
-

@@ -17,9 +17,10 @@
 #include "Console.h"
 #include "EigenExecutionerBase.h"
 
-template <>
+defineLegacyParams(PicardSolve);
+
 InputParameters
-validParams<PicardSolve>()
+PicardSolve::validParams()
 {
   InputParameters params = emptyInputParameters();
 
@@ -50,6 +51,26 @@ validParams<PicardSolve>()
                         "during Picard iterations.  This check is "
                         "performed based on the Master app's nonlinear "
                         "residual.");
+  params.addParam<PostprocessorName>("picard_custom_pp",
+                                     "Postprocessor for custom picard convergence check.");
+  params.addParam<Real>("custom_rel_tol",
+                        1e-8,
+                        "The relative nonlinear residual drop to shoot for "
+                        "during Picard iterations.  This check is "
+                        "performed based on postprocessor defined by "
+                        "picard_custom_pp residual.");
+  params.addParam<Real>("custom_abs_tol",
+                        1e-50,
+                        "The absolute nonlinear residual to shoot for "
+                        "during Picard iterations.  This check is "
+                        "performed based on postprocessor defined by "
+                        "picard_custom_pp residual.");
+  params.addParam<bool>("direct_pp_value",
+                        false,
+                        "True to use direct postprocessor value "
+                        "(scaled by value on first iteration). "
+                        "False (default) to use difference in postprocessor "
+                        "value between picard iterations.");
   params.addParam<bool>(
       "picard_force_norms",
       false,
@@ -67,7 +88,7 @@ validParams<PicardSolve>()
 
   params.addParamNamesToGroup("picard_max_its accept_on_max_picard_iteration "
                               "disable_picard_residual_norm_check picard_rel_tol "
-                              "picard_abs_tol picard_force_norms "
+                              "picard_abs_tol picard_custom_pp picard_force_norms "
                               "relaxation_factor relaxed_variables",
                               "Picard");
 
@@ -90,6 +111,12 @@ PicardSolve::PicardSolve(Executioner * ex)
     _has_picard_norm(!getParam<bool>("disable_picard_residual_norm_check")),
     _picard_rel_tol(getParam<Real>("picard_rel_tol")),
     _picard_abs_tol(getParam<Real>("picard_abs_tol")),
+    _picard_custom_pp(
+        isParamValid("picard_custom_pp")
+            ? &_problem.getPostprocessorValue(getParam<PostprocessorName>("picard_custom_pp"))
+            : nullptr),
+    _custom_rel_tol(getParam<Real>("custom_rel_tol")),
+    _custom_abs_tol(getParam<Real>("custom_abs_tol")),
     _picard_force_norms(getParam<bool>("picard_force_norms")),
     _relax_factor(getParam<Real>("relaxation_factor")),
     _relaxed_vars(getParam<std::vector<std::string>>("relaxed_variables")),
@@ -162,6 +189,8 @@ PicardSolve::solve()
     }
   }
 
+  Real pp_scaling = 1.0;
+
   for (_picard_it = 0; _picard_it < _picard_max_its; ++_picard_it)
   {
     if (_has_picard_its)
@@ -191,6 +220,11 @@ PicardSolve::solve()
                << '\n';
     }
 
+    // Save last postprocessor value as value before solve
+    Real pp_old = 0.0;
+    if (_picard_custom_pp && _picard_it > 0 && !getParam<bool>("direct_pp_value"))
+      pp_old = *_picard_custom_pp;
+
     Real begin_norm_old = (_picard_it > 0 ? _picard_timestep_begin_norm[_picard_it - 1]
                                           : std::numeric_limits<Real>::max());
     Real end_norm_old = (_picard_it > 0 ? _picard_timestep_end_norm[_picard_it - 1]
@@ -202,6 +236,15 @@ PicardSolve::solve()
                                      _picard_timestep_end_norm[_picard_it],
                                      relax,
                                      relaxed_dofs);
+    // Calculate error from postprocessor values
+    Real pp_new = std::numeric_limits<Real>::max();
+    if (_picard_custom_pp)
+    {
+      if ((_picard_it == 0 && getParam<bool>("direct_pp_value")) ||
+          !getParam<bool>("direct_pp_value"))
+        pp_scaling = *_picard_custom_pp;
+      pp_new = *_picard_custom_pp;
+    }
 
     if (solve_converged)
     {
@@ -238,6 +281,16 @@ PicardSolve::solve()
           }
         }
         if (_executioner.augmentedPicardConvergenceCheck())
+        {
+          _picard_status = MoosePicardConvergenceReason::CONVERGED_CUSTOM;
+          break;
+        }
+        if (std::abs(pp_new - pp_old) < _custom_abs_tol)
+        {
+          _picard_status = MoosePicardConvergenceReason::CONVERGED_CUSTOM;
+          break;
+        }
+        if (std::abs((pp_new - pp_old) / pp_scaling) < _custom_rel_tol)
         {
           _picard_status = MoosePicardConvergenceReason::CONVERGED_CUSTOM;
           break;
@@ -403,7 +456,7 @@ PicardSolve::solveStep(Real begin_norm_old,
 
   if (_problem.haveXFEM() && (_xfem_update_count < _max_xfem_update) && _problem.updateMeshXFEM())
   {
-    _console << "XFEM modifying mesh, repeating step" << std::endl;
+    _console << "\nXFEM modified mesh, repeating step" << std::endl;
     _xfem_repeat_step = true;
     ++_xfem_update_count;
   }
@@ -413,7 +466,7 @@ PicardSolve::solveStep(Real begin_norm_old,
     {
       _xfem_repeat_step = false;
       _xfem_update_count = 0;
-      _console << "XFEM not modifying mesh, continuing" << std::endl;
+      _console << "\nXFEM did not modify mesh, continuing" << std::endl;
     }
 
     _problem.onTimestepEnd();

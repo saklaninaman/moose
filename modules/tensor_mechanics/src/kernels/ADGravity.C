@@ -9,34 +9,33 @@
 
 #include "ADGravity.h"
 
-registerADMooseObject("TensorMechanicsApp", ADGravity);
+registerMooseObject("TensorMechanicsApp", ADGravity);
 
 /**
  * This kernel defines the residual contribution from a gravitational body force
  */
-defineADValidParams(
-    ADGravity,
-    ADKernelValue,
-    params.addClassDescription("Apply gravity. Value is in units of acceleration.");
-    params.addParam<bool>("use_displaced_mesh", true, "Displaced mesh defaults to true");
-    params.addRequiredParam<Real>(
-        "value", "Value multiplied against the residual, e.g. gravitational acceleration");
-    params.addParam<Real>("alpha",
-                          0.0,
-                          "alpha parameter required for HHT time integration scheme"););
+InputParameters
+ADGravity::validParams()
+{
+  InputParameters params = ADKernelValue::validParams();
+  params.addClassDescription("Apply gravity. Value is in units of acceleration.");
+  params.addParam<bool>("use_displaced_mesh", true, "Displaced mesh defaults to true");
+  params.addRequiredParam<Real>(
+      "value", "Value multiplied against the residual, e.g. gravitational acceleration");
+  params.addParam<Real>("alpha", 0.0, "alpha parameter required for HHT time integration scheme");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADGravity<compute_stage>::ADGravity(const InputParameters & parameters)
-  : ADKernelValue<compute_stage>(parameters),
+ADGravity::ADGravity(const InputParameters & parameters)
+  : ADKernelValue(parameters),
     _density(getADMaterialProperty<Real>("density")),
     _value(getParam<Real>("value")),
     _alpha(getParam<Real>("alpha"))
 {
 }
 
-template <ComputeStage compute_stage>
-ADResidual
-ADGravity<compute_stage>::precomputeQpResidual()
+ADReal
+ADGravity::precomputeQpResidual()
 {
   return -_density[_qp] * _value;
 }

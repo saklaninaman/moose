@@ -11,11 +11,10 @@
 
 registerMooseObject("TensorMechanicsApp", VolumeWeightedWeibull);
 
-template <>
 InputParameters
-validParams<VolumeWeightedWeibull>()
+VolumeWeightedWeibull::validParams()
 {
-  InputParameters params = validParams<RandomICBase>();
+  InputParameters params = RandomICBase::validParams();
   params.addRequiredParam<Real>("reference_volume", "Reference volume (of a test specimen)");
   params.addRequiredParam<Real>("weibull_modulus", "Weibull modulus");
   params.addParam<Real>(
@@ -37,9 +36,7 @@ VolumeWeightedWeibull::VolumeWeightedWeibull(const InputParameters & parameters)
 Real
 VolumeWeightedWeibull::value(const Point & /*p*/)
 {
-  const Real & element_volume = _current_elem->volume();
-
-  return _median *
-         std::pow(_reference_volume * std::log(generateRandom()) / (element_volume * std::log(0.5)),
-                  1.0 / _weibull_modulus);
+  return _median * std::pow(_reference_volume * std::log(generateRandom()) /
+                                (_current_elem_volume * std::log(0.5)),
+                            1.0 / _weibull_modulus);
 }

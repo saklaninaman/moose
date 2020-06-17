@@ -14,12 +14,11 @@
 
 registerMooseObject("SolidMechanicsApp", MaterialTensorIntegralSM);
 
-template <>
 InputParameters
-validParams<MaterialTensorIntegralSM>()
+MaterialTensorIntegralSM::validParams()
 {
-  InputParameters params = validParams<ElementIntegralPostprocessor>();
-  params += validParams<MaterialTensorCalculator>();
+  InputParameters params = ElementIntegralPostprocessor::validParams();
+  params += MaterialTensorCalculator::validParams();
   params.addRequiredParam<std::string>("tensor", "The material tensor name.");
   params.set<bool>("use_displaced_mesh") = true;
   return params;

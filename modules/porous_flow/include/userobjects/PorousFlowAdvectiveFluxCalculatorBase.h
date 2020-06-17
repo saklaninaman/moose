@@ -12,11 +12,6 @@
 #include "AdvectiveFluxCalculatorBase.h"
 #include "PorousFlowDictator.h"
 
-class PorousFlowAdvectiveFluxCalculatorBase;
-
-template <>
-InputParameters validParams<PorousFlowAdvectiveFluxCalculatorBase>();
-
 /**
  * Base class to compute the advective flux of fluid in PorousFlow situations
  * using the Kuzmin-Turek FEM-TVD multidimensional stabilization scheme.
@@ -32,6 +27,8 @@ InputParameters validParams<PorousFlowAdvectiveFluxCalculatorBase>();
 class PorousFlowAdvectiveFluxCalculatorBase : public AdvectiveFluxCalculatorBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowAdvectiveFluxCalculatorBase(const InputParameters & parameters);
 
   /**
@@ -156,4 +153,7 @@ protected:
    * 1]][_triples_to_send[proc_id][i + 2]][:] to processor proc_id
    */
   std::map<processor_id_type, std::vector<dof_id_type>> _triples_to_send;
+
+  /// Flag to check whether permeabiity derivatives are non-zero
+  const bool _perm_derivs;
 };

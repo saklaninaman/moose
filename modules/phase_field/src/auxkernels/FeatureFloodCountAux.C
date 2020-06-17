@@ -16,11 +16,10 @@
 
 registerMooseObject("PhaseFieldApp", FeatureFloodCountAux);
 
-template <>
 InputParameters
-validParams<FeatureFloodCountAux>()
+FeatureFloodCountAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   params.addClassDescription("Feature detection by connectivity analysis");
   params.addDeprecatedParam<UserObjectName>("bubble_object",
                                             "The FeatureFloodCount UserObject to get values from.",

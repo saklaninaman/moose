@@ -11,15 +11,11 @@
 
 #include "CHBulk.h"
 
-// Forward Declarations
-class CHBulkPFCTrad;
-
-template <>
-InputParameters validParams<CHBulkPFCTrad>();
-
 class CHBulkPFCTrad : public CHBulk<Real>
 {
 public:
+  static InputParameters validParams();
+
   CHBulkPFCTrad(const InputParameters & parameters);
 
 protected:
@@ -30,4 +26,3 @@ private:
   const MaterialProperty<Real> & _a;
   const MaterialProperty<Real> & _b;
 };
-

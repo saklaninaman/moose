@@ -12,11 +12,8 @@
 #include "NodalBC.h"
 
 // Forward Declarations
-class NSImposedVelocityDirectionBC;
 
 // Specialization required of all user-level Moose objects
-template <>
-InputParameters validParams<NSImposedVelocityDirectionBC>();
 
 /**
  * This class imposes a velocity direction component as a
@@ -41,6 +38,8 @@ InputParameters validParams<NSImposedVelocityDirectionBC>();
 class NSImposedVelocityDirectionBC : public NodalBC
 {
 public:
+  static InputParameters validParams();
+
   NSImposedVelocityDirectionBC(const InputParameters & parameters);
 
 protected:
@@ -58,4 +57,3 @@ protected:
   // The desired value for the unit velocity component
   Real _desired_unit_velocity_component;
 };
-

@@ -12,15 +12,13 @@
 #include "PolycrystalUserObjectBase.h"
 
 // Forward Declarations
-class PolycrystalEBSD;
 class EBSDReader;
-
-template <>
-InputParameters validParams<PolycrystalEBSD>();
 
 class PolycrystalEBSD : public PolycrystalUserObjectBase
 {
 public:
+  static InputParameters validParams();
+
   PolycrystalEBSD(const InputParameters & parameters);
 
   virtual void getGrainsBasedOnPoint(const Point & point,
@@ -34,4 +32,3 @@ protected:
   const EBSDReader & _ebsd_reader;
   const std::map<dof_id_type, std::vector<Real>> & _node_to_grain_weight_map;
 };
-

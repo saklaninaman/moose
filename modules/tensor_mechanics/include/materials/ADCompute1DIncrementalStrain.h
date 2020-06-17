@@ -11,28 +11,17 @@
 
 #include "ADComputeIncrementalSmallStrain.h"
 
-#define usingCompute1DIncrementalStrainMembers                                                     \
-  usingComputeIncrementalSmallStrainMembers;                                                       \
-  using ADCompute1DIncrementalStrain<compute_stage>::computeGradDispYY;                            \
-  using ADCompute1DIncrementalStrain<compute_stage>::computeGradDispYYOld;                         \
-  using ADCompute1DIncrementalStrain<compute_stage>::computeGradDispZZ;                            \
-  using ADCompute1DIncrementalStrain<compute_stage>::computeGradDispZZOld
-
-template <ComputeStage>
-class ADCompute1DIncrementalStrain;
-
-declareADValidParams(ADCompute1DIncrementalStrain);
-
 /**
  * ADCompute1DIncrementalStrain defines a strain increment only for incremental
  * small strains in 1D problems, handling strains in other two directions.
  * ADCompute1DIncrementalStrain contains virtual methods to define the displacement gradients
  * as a general nonzero value.
  */
-template <ComputeStage compute_stage>
-class ADCompute1DIncrementalStrain : public ADComputeIncrementalSmallStrain<compute_stage>
+class ADCompute1DIncrementalStrain : public ADComputeIncrementalSmallStrain
 {
 public:
+  static InputParameters validParams();
+
   ADCompute1DIncrementalStrain(const InputParameters & parameters);
 
 protected:
@@ -65,7 +54,4 @@ protected:
    * overwritten for the specific geometries defined by inheriting classes
    */
   virtual Real computeGradDispZZOld() = 0;
-
-  usingComputeIncrementalSmallStrainMembers;
 };
-

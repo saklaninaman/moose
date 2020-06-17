@@ -11,11 +11,10 @@
 
 registerMooseObject("TensorMechanicsApp", PhaseFieldFractureMechanicsOffDiag);
 
-template <>
 InputParameters
-validParams<PhaseFieldFractureMechanicsOffDiag>()
+PhaseFieldFractureMechanicsOffDiag::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addClassDescription("Stress divergence kernel for phase-field fracture: Computes off "
                              "diagonal damage dependent Jacobian components. To be used with "
                              "StressDivergenceTensors or DynamicStressDivergenceTensors.");

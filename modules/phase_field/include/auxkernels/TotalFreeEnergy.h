@@ -12,10 +12,6 @@
 #include "TotalFreeEnergyBase.h"
 
 // Forward Declarations
-class TotalFreeEnergy;
-
-template <>
-InputParameters validParams<TotalFreeEnergy>();
 
 /**
  * Total free energy (both the bulk and gradient parts), where the bulk free energy has been defined
@@ -24,6 +20,8 @@ InputParameters validParams<TotalFreeEnergy>();
 class TotalFreeEnergy : public TotalFreeEnergyBase
 {
 public:
+  static InputParameters validParams();
+
   TotalFreeEnergy(const InputParameters & parameters);
 
 protected:
@@ -35,4 +33,3 @@ protected:
   /// Gradient interface free energy coefficients
   std::vector<const MaterialProperty<Real> *> _kappas;
 };
-

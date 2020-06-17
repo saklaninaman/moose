@@ -11,11 +11,6 @@
 
 #include "RadialReturnStressUpdate.h"
 
-class HyperbolicViscoplasticityStressUpdate;
-
-template <>
-InputParameters validParams<HyperbolicViscoplasticityStressUpdate>();
-
 /**
  * This class uses the Discrete material in an isotropic radial return hyperbolic
  * sine viscoplasticity model.
@@ -33,6 +28,8 @@ InputParameters validParams<HyperbolicViscoplasticityStressUpdate>();
 class HyperbolicViscoplasticityStressUpdate : public RadialReturnStressUpdate
 {
 public:
+  static InputParameters validParams();
+
   HyperbolicViscoplasticityStressUpdate(const InputParameters & parameters);
 
 protected:
@@ -77,4 +74,3 @@ protected:
   /// old value of plastic strain
   const MaterialProperty<RankTwoTensor> & _plastic_strain_old;
 };
-

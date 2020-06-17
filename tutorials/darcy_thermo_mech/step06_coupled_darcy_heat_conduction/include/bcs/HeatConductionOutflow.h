@@ -12,12 +12,6 @@
 // Include the base class so it can be extended
 #include "ADIntegratedBC.h"
 
-// Forward declare the class being created and the validParams function
-template <ComputeStage>
-class HeatConductionOutflow;
-
-declareADValidParams(HeatConductionOutflow);
-
 /**
  * An IntegratedBC representing the "No BC" boundary condition for
  * heat conduction.
@@ -31,10 +25,11 @@ declareADValidParams(HeatConductionOutflow);
  * boundary condition.", International Journal for Numerical Methods
  * in Fluids, vol. 24, no. 4, 1997, pp. 393-411.
  */
-template <ComputeStage compute_stage>
-class HeatConductionOutflow : public ADIntegratedBC<compute_stage>
+class HeatConductionOutflow : public ADIntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   HeatConductionOutflow(const InputParameters & parameters);
 
 protected:
@@ -44,7 +39,5 @@ protected:
   virtual ADReal computeQpResidual() override;
 
   /// Thermal conductivity of the material
-  const MaterialProperty<Real> & _thermal_conductivity;
-
-  usingIntegratedBCMembers;
+  const ADMaterialProperty<Real> & _thermal_conductivity;
 };

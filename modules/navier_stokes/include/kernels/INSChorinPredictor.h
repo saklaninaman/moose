@@ -12,10 +12,6 @@
 #include "Kernel.h"
 
 // Forward Declarations
-class INSChorinPredictor;
-
-template <>
-InputParameters validParams<INSChorinPredictor>();
 
 /**
  * This class computes the "Chorin" Predictor equation in fully-discrete
@@ -24,6 +20,8 @@ InputParameters validParams<INSChorinPredictor>();
 class INSChorinPredictor : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   INSChorinPredictor(const InputParameters & parameters);
 
   virtual ~INSChorinPredictor() {}
@@ -96,4 +94,3 @@ protected:
   const MaterialProperty<Real> & _mu;
   const MaterialProperty<Real> & _rho;
 };
-

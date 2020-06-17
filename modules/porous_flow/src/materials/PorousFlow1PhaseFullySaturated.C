@@ -11,11 +11,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlow1PhaseFullySaturated);
 
-template <>
 InputParameters
-validParams<PorousFlow1PhaseFullySaturated>()
+PorousFlow1PhaseFullySaturated::validParams()
 {
-  InputParameters params = validParams<PorousFlowVariableBase>();
+  InputParameters params = PorousFlowVariableBase::validParams();
   params.addRequiredCoupledVar("porepressure",
                                "Variable that represents the porepressure of the single phase");
   params.addClassDescription("This Material is used for the fully saturated single-phase situation "

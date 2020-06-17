@@ -12,11 +12,10 @@
 
 registerMooseObject("FluidPropertiesApp", TwoPhaseFluidPropertiesIndependent);
 
-template <>
 InputParameters
-validParams<TwoPhaseFluidPropertiesIndependent>()
+TwoPhaseFluidPropertiesIndependent::validParams()
 {
-  InputParameters params = validParams<TwoPhaseFluidProperties>();
+  InputParameters params = TwoPhaseFluidProperties::validParams();
 
   params.addClassDescription(
       "2-phase fluid properties for 2 independent single-phase fluid properties");

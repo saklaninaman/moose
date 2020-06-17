@@ -8,14 +8,14 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "BndsCalcAux.h"
+#include "BndsCalculator.h"
 
 registerMooseObject("PhaseFieldApp", BndsCalcAux);
 
-template <>
 InputParameters
-validParams<BndsCalcAux>()
+BndsCalcAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   params.addClassDescription("Calculate location of grain boundaries in a polycrystalline sample");
   params.addRequiredCoupledVarWithAutoBuild(
       "v", "var_name_base", "op_num", "Array of coupled variables");
@@ -32,10 +32,5 @@ BndsCalcAux::BndsCalcAux(const InputParameters & parameters)
 Real
 BndsCalcAux::computeValue()
 {
-  Real value = 0.0;
-
-  for (unsigned int i = 0; i < _op_num; ++i)
-    value += (*_vals[i])[_qp] * (*_vals[i])[_qp];
-
-  return value;
+  return BndsCalculator::computeBndsVariable(_vals, _qp);
 }

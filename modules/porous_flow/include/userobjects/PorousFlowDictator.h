@@ -12,11 +12,6 @@
 #include "GeneralUserObject.h"
 #include "Coupleable.h"
 
-class PorousFlowDictator;
-
-template <>
-InputParameters validParams<PorousFlowDictator>();
-
 /**
  * This holds maps between the nonlinear variables
  * used in a PorousFlow simulation and the
@@ -71,6 +66,8 @@ InputParameters validParams<PorousFlowDictator>();
 class PorousFlowDictator : public GeneralUserObject, public Coupleable
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowDictator(const InputParameters & parameters);
 
   virtual void initialize() override{};
@@ -148,6 +145,18 @@ public:
    */
   FEType feType() const;
 
+  /**
+   * Check if the simulation includes derivatives of permeability
+   * Note: when the permeability is constant, expensive tensor calculations
+   * can be ignored in Jacobian calculations
+   */
+  bool usePermDerivs() const { return _perm_derivs; };
+
+  /**
+   * Set the _perm_derivs flag
+   */
+  void usePermDerivs(bool flag) const { _perm_derivs = flag; };
+
 protected:
   /// Number of PorousFlow variables
   const unsigned int _num_variables;
@@ -167,6 +176,9 @@ protected:
   /// Aqueous phase number
   const unsigned int _aqueous_phase_number;
 
+  /// Indicates whether the simulation includes derivatives of permeability
+  mutable bool _perm_derivs;
+
 private:
   /// Whether the porous_flow_vars all have the same fe_type
   bool _consistent_fe_type;
@@ -180,4 +192,3 @@ private:
   /// _pf_var_num[i] = the porous flow variable corresponding to moose variable i
   std::vector<unsigned int> _pf_var_num;
 };
-

@@ -12,10 +12,6 @@
 #include "ACBulk.h"
 
 // Forward Declarations
-class DoubleWellPotential;
-
-template <>
-InputParameters validParams<DoubleWellPotential>();
 
 /**
  * Algebraic double well potential.
@@ -23,9 +19,10 @@ InputParameters validParams<DoubleWellPotential>();
 class DoubleWellPotential : public ACBulk<Real>
 {
 public:
+  static InputParameters validParams();
+
   DoubleWellPotential(const InputParameters & parameters);
 
 protected:
   virtual Real computeDFDOP(PFFunctionType type);
 };
-

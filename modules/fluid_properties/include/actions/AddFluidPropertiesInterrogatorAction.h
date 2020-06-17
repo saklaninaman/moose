@@ -11,17 +11,14 @@
 
 #include "Action.h"
 
-class AddFluidPropertiesInterrogatorAction;
-
-template <>
-InputParameters validParams<AddFluidPropertiesInterrogatorAction>();
-
 /**
  * Action that sets up the fluid properties interrogator
  */
 class AddFluidPropertiesInterrogatorAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   AddFluidPropertiesInterrogatorAction(InputParameters parameters);
 
   virtual void act() override;
@@ -32,4 +29,3 @@ protected:
    */
   void addFluidPropertiesInterrogatorObject() const;
 };
-

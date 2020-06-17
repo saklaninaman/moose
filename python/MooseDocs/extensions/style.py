@@ -1,4 +1,3 @@
-#pylint: disable=missing-docstring
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -8,15 +7,16 @@
 #* Licensed under LGPL 2.1, please see LICENSE for details
 #* https://www.gnu.org/licenses/lgpl-2.1.html
 
-from MooseDocs.base import components, renderers
-from MooseDocs.common import exceptions
-from MooseDocs.extensions import command
-from MooseDocs.tree import tokens, html, latex
+from ..base import components, renderers
+from ..common import exceptions
+from ..tree import tokens, html, latex
+from . import command
 
 def make_extension(**kwargs):
     return StyleExtension(**kwargs)
 
-StyleToken = tokens.newToken('StyleToken', halign='left', color=None, border=0, fontsize=None)
+StyleToken = tokens.newToken('StyleToken', halign='left', color=None, border=0, fontsize=None,
+                             fontweight=None)
 
 class StyleExtension(command.CommandExtension):
     @staticmethod
@@ -30,7 +30,7 @@ class StyleExtension(command.CommandExtension):
         renderer.add('StyleToken', RenderStyleToken())
 
         if isinstance(renderer, renderers.LatexRenderer):
-            renderer.addPackage(u'xcolor')
+            renderer.addPackage('xcolor')
 
 
 class StyleCommand(command.CommandComponent):
@@ -44,6 +44,7 @@ class StyleCommand(command.CommandComponent):
         settings['border'] = (None, "The size of the border in pixels")
         settings['color'] = (None, "Set the color of content.")
         settings['fontsize'] = (None, "Set the font size.")
+        settings['fontweight'] = (None, "Set the font weight.")
         return settings
 
     def createToken(self, parent, info, page):
@@ -52,6 +53,7 @@ class StyleCommand(command.CommandComponent):
                           border=self.settings['border'],
                           color=self.settings['color'],
                           fontsize=self.settings['fontsize'],
+                          fontweight=self.settings['fontweight'],
                           **self.attributes)
 
 class RenderStyleToken(components.RenderComponent):
@@ -71,6 +73,8 @@ class RenderStyleToken(components.RenderComponent):
             style.append('color:{}'.format(token['color']))
         if token['fontsize']:
             style.append('font-size:{}'.format(token['fontsize']))
+        if token['fontweight']:
+            style.append('font-weight:{}'.format(int(token['fontweight'])))
 
         tag_type = 'span'
         if token.info.pattern in ('BlockInlineCommand', 'BlockBlockCommand'):

@@ -15,10 +15,6 @@
 #include "Material.h"
 
 // Forward Declarations
-class Q2PPorepressureFlux;
-
-template <>
-InputParameters validParams<Q2PPorepressureFlux>();
 
 /**
  * This is a fully upwinded flux Kernel
@@ -46,6 +42,8 @@ InputParameters validParams<Q2PPorepressureFlux>();
 class Q2PPorepressureFlux : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   Q2PPorepressureFlux(const InputParameters & parameters);
 
 protected:

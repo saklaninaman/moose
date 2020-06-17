@@ -1,18 +1,26 @@
+//* This file is part of the MOOSE framework
+//* https://www.mooseframework.org
+//*
+//* All rights reserved, see COPYRIGHT for full restrictions
+//* https://github.com/idaholab/moose/blob/master/COPYRIGHT
+//*
+//* Licensed under LGPL 2.1, please see LICENSE for details
+//* https://www.gnu.org/licenses/lgpl-2.1.html
+
 #pragma once
 
 #include "SinglePhaseFluidProperties.h"
-
-class HeliumFluidProperties;
-
-template <>
-InputParameters validParams<HeliumFluidProperties>();
 
 /**
  * Fluid properties for helium \cite petersen \cite harlow
  */
 class HeliumFluidProperties : public SinglePhaseFluidProperties
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
 public:
+  static InputParameters validParams();
+
   HeliumFluidProperties(const InputParameters & parameters);
 
   /**
@@ -42,6 +50,12 @@ public:
    */
   virtual void p_from_v_e(Real v, Real e, Real & p, Real & dp_dv, Real & dp_de) const override;
 
+  void p_from_v_e(const DualReal & v,
+                  const DualReal & e,
+                  DualReal & p,
+                  DualReal & dp_dv,
+                  DualReal & dp_de) const override;
+
   /**
    * Temperature from specific volume and specific internal energy
    *
@@ -62,6 +76,12 @@ public:
    */
   virtual void T_from_v_e(Real v, Real e, Real & T, Real & dT_dv, Real & dT_de) const override;
 
+  void T_from_v_e(const DualReal & v,
+                  const DualReal & e,
+                  DualReal & T,
+                  DualReal & dT_dv,
+                  DualReal & dT_de) const override;
+
   using SinglePhaseFluidProperties::c_from_v_e;
 
   /**
@@ -72,6 +92,7 @@ public:
    * @return speed of sound (m/s)
    */
   virtual Real c_from_v_e(Real v, Real e) const override;
+  virtual void c_from_v_e(Real v, Real e, Real & c, Real & dc_dv, Real & dc_de) const override;
 
   /**
    * Isobaric specific heat from specific volume and specific internal energy
@@ -167,6 +188,11 @@ public:
   virtual void
   rho_from_p_T(Real p, Real T, Real & rho, Real & drho_dp, Real & drho_dT) const override;
 
+  virtual void rho_from_p_T(const DualReal & p,
+                            const DualReal & T,
+                            DualReal & rho,
+                            DualReal & drho_dp,
+                            DualReal & drho_dT) const override;
   /**
    * Specific internal energy from pressure and temperature
    *
@@ -302,3 +328,4 @@ protected:
   /// specific heat at constant pressure
   const Real _cp;
 };
+#pragma GCC diagnostic pop

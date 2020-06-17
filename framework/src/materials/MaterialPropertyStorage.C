@@ -73,16 +73,36 @@ void
 MaterialPropertyStorage::releaseProperties()
 {
   for (auto & i : *_props_elem)
-    for (auto & j : i.second)
-      j.second.destroy();
+    releasePropertyMap(i.second);
 
   for (auto & i : *_props_elem_old)
-    for (auto & j : i.second)
-      j.second.destroy();
+    releasePropertyMap(i.second);
 
   for (auto & i : *_props_elem_older)
-    for (auto & j : i.second)
-      j.second.destroy();
+    releasePropertyMap(i.second);
+}
+
+void
+MaterialPropertyStorage::releasePropertyMap(HashMap<unsigned int, MaterialProperties> & inner_map)
+{
+  for (auto & i : inner_map)
+    i.second.destroy();
+}
+
+void
+MaterialPropertyStorage::eraseProperty(const Elem * elem)
+{
+  if (_props_elem->contains(elem))
+    releasePropertyMap((*_props_elem)[elem]);
+  _props_elem->erase(elem);
+
+  if (_props_elem_old->contains(elem))
+    releasePropertyMap((*_props_elem_old)[elem]);
+  _props_elem_old->erase(elem);
+
+  if (_props_elem_older->contains(elem))
+    releasePropertyMap((*_props_elem_older)[elem]);
+  _props_elem_older->erase(elem);
 }
 
 void
@@ -219,7 +239,7 @@ MaterialPropertyStorage::restrictStatefulProps(
 
 void
 MaterialPropertyStorage::initStatefulProps(MaterialData & material_data,
-                                           const std::vector<std::shared_ptr<Material>> & mats,
+                                           const std::vector<std::shared_ptr<MaterialBase>> & mats,
                                            unsigned int n_qpoints,
                                            const Elem & elem,
                                            unsigned int side /* = 0*/)
@@ -278,16 +298,40 @@ MaterialPropertyStorage::shift(const FEProblemBase & fe_problem)
 
   // Intentional fall through for case above and for handling just using old properties
   std::swap(_props_elem_old, _props_elem);
+
+  // We swapped current and old props. If we're doing AD, that means what was formerly an
+  // ADMaterialProperty in current is now a MaterialProperty, and what was formerly a
+  // MaterialProperty in old is now an ADMaterialProperty. We need to run through and make sure what
+  // needs to be AD in current is AD (to preserve Jacobian accuracy) and that every property in old
+  // is a regular MaterialProperty (to save memory)
   if (fe_problem.usingADMatProps())
   {
-    for (auto && elem_pair : (*_props_elem))
-      for (auto && side_pair : elem_pair.second)
-        for (auto && prop_value_ptr : side_pair.second)
-          prop_value_ptr->markAD(true);
-    for (auto && elem_pair : (*_props_elem_old))
-      for (auto && side_pair : elem_pair.second)
-        for (auto && prop_value_ptr : side_pair.second)
-          prop_value_ptr->markAD(false);
+    for (auto & elem_pair : (*_props_elem_old))
+      for (auto & side_pair : elem_pair.second)
+      {
+        auto & old_mat_props_vec = side_pair.second;
+        auto & current_mat_props_vec = (*_props_elem)[elem_pair.first][side_pair.first];
+        for (MooseIndex(old_mat_props_vec) i = 0; i < old_mat_props_vec.size(); ++i)
+        {
+          PropertyValue * possibly_ad_old_prop = old_mat_props_vec[i];
+          if (possibly_ad_old_prop->isAD())
+          {
+            // Make the old property regular
+            PropertyValue * regular_old_prop = possibly_ad_old_prop->makeRegularProperty();
+            delete possibly_ad_old_prop;
+            old_mat_props_vec[i] = regular_old_prop;
+
+            // Make the current property AD
+            PropertyValue * regular_current_prop = current_mat_props_vec[i];
+            mooseAssert(!regular_current_prop->isAD(),
+                        "We must have somehow had an old material property that was an "
+                        "ADMaterialProperty. That's not right");
+            PropertyValue * ad_current_prop = regular_current_prop->makeADProperty();
+            delete regular_current_prop;
+            current_mat_props_vec[i] = ad_current_prop;
+          }
+        }
+      }
   }
 }
 
@@ -401,6 +445,10 @@ MaterialPropertyStorage::initProps(MaterialData & material_data,
 {
   material_data.resize(n_qpoints);
   auto n = _stateful_prop_id_to_prop_id.size();
+
+  // In some special cases, material_data might be larger than n_qpoints
+  if (material_data.isOnlyResizeIfSmaller())
+    n_qpoints = material_data.nQPoints();
 
   if (props(&elem, side).size() < n)
     props(&elem, side).resize(n, nullptr);

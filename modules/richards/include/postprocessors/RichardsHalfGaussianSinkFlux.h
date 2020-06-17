@@ -15,10 +15,6 @@
 class Function;
 
 // Forward Declarations
-class RichardsHalfGaussianSinkFlux;
-
-template <>
-InputParameters validParams<RichardsHalfGaussianSinkFlux>();
 
 /**
  * Postprocessor that records the mass flux from porespace to
@@ -30,6 +26,8 @@ InputParameters validParams<RichardsHalfGaussianSinkFlux>();
 class RichardsHalfGaussianSinkFlux : public SideIntegralVariablePostprocessor
 {
 public:
+  static InputParameters validParams();
+
   RichardsHalfGaussianSinkFlux(const InputParameters & parameters);
 
 protected:

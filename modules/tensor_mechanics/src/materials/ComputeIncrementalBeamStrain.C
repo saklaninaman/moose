@@ -12,17 +12,17 @@
 #include "Assembly.h"
 #include "NonlinearSystem.h"
 #include "MooseVariable.h"
+#include "Function.h"
 
 #include "libmesh/quadrature.h"
 #include "libmesh/utility.h"
 
 registerMooseObject("TensorMechanicsApp", ComputeIncrementalBeamStrain);
 
-template <>
 InputParameters
-validParams<ComputeIncrementalBeamStrain>()
+ComputeIncrementalBeamStrain::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   params.addClassDescription("Compute a infinitesimal/large strain increment for the beam.");
   params.addRequiredCoupledVar(
       "rotations", "The rotations appropriate for the simulation geometry and coordinate system");
@@ -42,7 +42,7 @@ validParams<ComputeIncrementalBeamStrain>()
                        "as either a number or a variable name.");
   params.addCoupledVar("Az",
                        0.0,
-                       "First moment of area of the beam about z asix. Can be supplied "
+                       "First moment of area of the beam about z axis. Can be supplied "
                        "as either a number or a variable name.");
   params.addCoupledVar("Ix",
                        "Second moment of area of the beam about x axis. Can be "
@@ -56,6 +56,9 @@ validParams<ComputeIncrementalBeamStrain>()
   params.addParam<bool>("large_strain", false, "Set to true if large strain are to be calculated.");
   params.addParam<std::vector<MaterialPropertyName>>(
       "eigenstrain_names", "List of beam eigenstrains to be applied in this strain calculation.");
+  params.addParam<FunctionName>(
+      "elasticity_prefactor",
+      "Optional function to use as a scalar prefactor on the elasticity vector for the beam.");
   return params;
 }
 
@@ -97,7 +100,10 @@ ComputeIncrementalBeamStrain::ComputeIncrementalBeamStrain(const InputParameters
     _soln_disp_index_1(_ndisp),
     _soln_rot_index_0(_ndisp),
     _soln_rot_index_1(_ndisp),
-    _initial_rotation(declareProperty<RankTwoTensor>("initial_rotation"))
+    _initial_rotation(declareProperty<RankTwoTensor>("initial_rotation")),
+    _effective_stiffness(declareProperty<Real>("effective_stiffness")),
+    _prefactor_function(isParamValid("elasticity_prefactor") ? &getFunction("elasticity_prefactor")
+                                                             : nullptr)
 {
   // Checking for consistency between length of the provided displacements and rotations vector
   if (_ndisp != _nrot)
@@ -222,6 +228,8 @@ ComputeIncrementalBeamStrain::computeProperties()
 void
 ComputeIncrementalBeamStrain::computeQpStrain()
 {
+  const Real A_avg = (_area[0] + _area[1]) / 2.0;
+  const Real Iz_avg = (_Iz[0] + _Iz[1]) / 2.0;
   Real Ix = _Ix[_qp];
   if (!_has_Ix)
     Ix = _Iy[_qp] + _Iz[_qp];
@@ -262,7 +270,7 @@ ComputeIncrementalBeamStrain::computeQpStrain()
   // rotational strains at each qp along the length of the beam
   // rot_strain_1 = integral(e_13 * y - e_12 * z) dA
   // rot_strain_2 = integral(e_11 * z) dA
-  // rot_strain_3 = integral(e_11 * y) dA
+  // rot_strain_3 = integral(e_11 * -y) dA
   // Iyz is the product moment of inertia which is zero for most cross-sections so it is assumed to
   // be zero for this analysis
   const Real Iyz = 0;
@@ -273,8 +281,8 @@ ComputeIncrementalBeamStrain::computeQpStrain()
   _mech_rot_strain_increment[_qp](1) = _grad_disp_0_local_t(0) * _Az[_qp] -
                                        _grad_rot_0_local_t(2) * Iyz +
                                        _grad_rot_0_local_t(1) * _Iz[_qp];
-  _mech_rot_strain_increment[_qp](2) = _grad_disp_0_local_t(0) * _Ay[_qp] -
-                                       _grad_rot_0_local_t(2) * _Iy[_qp] +
+  _mech_rot_strain_increment[_qp](2) = -_grad_disp_0_local_t(0) * _Ay[_qp] +
+                                       _grad_rot_0_local_t(2) * _Iy[_qp] -
                                        _grad_rot_0_local_t(1) * Iyz;
 
   if (_large_strain)
@@ -299,8 +307,8 @@ ComputeIncrementalBeamStrain::computeQpStrain()
     _mech_rot_strain_increment[_qp](1) += (_grad_disp_0_local_t(0) * _grad_rot_0_local_t(1) -
                                            _grad_disp_0_local_t(1) * _grad_rot_0_local_t(0)) *
                                           _Iz[_qp];
-    _mech_rot_strain_increment[_qp](2) += (_grad_disp_0_local_t(2) * _grad_rot_0_local_t(0) -
-                                           _grad_disp_0_local_t(0) * _grad_rot_0_local_t(2)) *
+    _mech_rot_strain_increment[_qp](2) += -(_grad_disp_0_local_t(2) * _grad_rot_0_local_t(0) -
+                                            _grad_disp_0_local_t(0) * _grad_rot_0_local_t(2)) *
                                           _Iy[_qp];
   }
 
@@ -319,6 +327,18 @@ ComputeIncrementalBeamStrain::computeQpStrain()
     _mech_rot_strain_increment[_qp] -=
         _total_rotation[0] * ((*_rot_eigenstrain[i])[_qp] - (*_rot_eigenstrain_old[i])[_qp]);
   }
+
+  Real c1_paper = std::sqrt(_material_stiffness[0](0));
+  Real c2_paper = std::sqrt(_material_stiffness[0](1));
+
+  Real effec_stiff_1 = std::max(c1_paper, c2_paper);
+
+  Real effec_stiff_2 = 2 / (c2_paper * std::sqrt(A_avg / Iz_avg));
+
+  _effective_stiffness[_qp] = std::max(effec_stiff_1, _original_length[0] / effec_stiff_2);
+
+  if (_prefactor_function)
+    _effective_stiffness[_qp] *= std::sqrt(_prefactor_function->value(_t, _q_point[_qp]));
 }
 
 void

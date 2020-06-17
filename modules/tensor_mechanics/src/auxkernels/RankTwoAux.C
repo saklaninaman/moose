@@ -10,13 +10,16 @@
 #include "RankTwoAux.h"
 #include "RankTwoScalarTools.h"
 
-registerMooseObject("TensorMechanicsApp", RankTwoAux);
+#include "metaphysicl/raw_type.h"
 
-template <>
+registerMooseObject("TensorMechanicsApp", RankTwoAux);
+registerMooseObject("TensorMechanicsApp", ADRankTwoAux);
+
+template <bool is_ad>
 InputParameters
-validParams<RankTwoAux>()
+RankTwoAuxTempl<is_ad>::validParams()
 {
-  InputParameters params = validParams<NodalPatchRecovery>();
+  InputParameters params = NodalPatchRecovery::validParams();
   params.addClassDescription("Access a component of a RankTwoTensor");
   params.addRequiredParam<MaterialPropertyName>("rank_two_tensor",
                                                 "The rank two material tensor name");
@@ -33,9 +36,10 @@ validParams<RankTwoAux>()
   return params;
 }
 
-RankTwoAux::RankTwoAux(const InputParameters & parameters)
+template <bool is_ad>
+RankTwoAuxTempl<is_ad>::RankTwoAuxTempl(const InputParameters & parameters)
   : NodalPatchRecovery(parameters),
-    _tensor(getMaterialProperty<RankTwoTensor>("rank_two_tensor")),
+    _tensor(getGenericMaterialProperty<RankTwoTensor, is_ad>("rank_two_tensor")),
     _i(getParam<unsigned int>("index_i")),
     _j(getParam<unsigned int>("index_j")),
     _has_selected_qp(isParamValid("selected_qp")),
@@ -43,8 +47,9 @@ RankTwoAux::RankTwoAux(const InputParameters & parameters)
 {
 }
 
+template <bool is_ad>
 Real
-RankTwoAux::computeValue()
+RankTwoAuxTempl<is_ad>::computeValue()
 {
   unsigned int qp = _qp;
   if (_has_selected_qp)
@@ -61,5 +66,8 @@ RankTwoAux::computeValue()
     qp = _selected_qp;
   }
 
-  return RankTwoScalarTools::component(_tensor[qp], _i, _j);
+  return RankTwoScalarTools::component(MetaPhysicL::raw_value(_tensor[qp]), _i, _j);
 }
+
+template class RankTwoAuxTempl<false>;
+template class RankTwoAuxTempl<true>;

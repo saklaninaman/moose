@@ -1,8 +1,10 @@
 [Tests]
+  deprecated = True
   [./test]
     type = 'Exodiff'
     input = 'test.i'
     exodiff = 'test_out.e'
     mesh_mode = REPLICATED
+    no_error_deprecated = true
   [../]
 []

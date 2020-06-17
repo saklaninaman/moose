@@ -12,10 +12,6 @@
 #include "CHBulk.h"
 
 // Forward Declarations
-class KKSCHBulk;
-
-template <>
-InputParameters validParams<KKSCHBulk>();
 
 /**
  * CHBulk child class that takes all the necessary data from a
@@ -32,6 +28,8 @@ InputParameters validParams<KKSCHBulk>();
 class KKSCHBulk : public CHBulk<Real>
 {
 public:
+  static InputParameters validParams();
+
   KKSCHBulk(const InputParameters & parameters);
 
 protected:
@@ -39,9 +37,6 @@ protected:
   virtual Real computeQpOffDiagJacobian(unsigned int jvar);
 
 private:
-  /// Number of coupled variables
-  unsigned int _nvar;
-
   ///@{
   /// Phase concnetration variables
   unsigned int _ca_var;
@@ -71,4 +66,3 @@ private:
   /// Second derivative \f$ d^2Fb/dcb^2 \f$
   const MaterialProperty<Real> & _second_derivative_Fb;
 };
-

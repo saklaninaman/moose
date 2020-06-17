@@ -14,10 +14,6 @@
 
 // Forward declarations
 class EulerAngleProvider;
-class GrainTextureVectorPostprocessor;
-
-template <>
-InputParameters validParams<GrainTextureVectorPostprocessor>();
 
 /**
  *  GrainTextureVectorPostprocessor is a VectorPostprocessor that outputs the
@@ -27,6 +23,8 @@ InputParameters validParams<GrainTextureVectorPostprocessor>();
 class GrainTextureVectorPostprocessor : public ElementVectorPostprocessor, protected SamplerBase
 {
 public:
+  static InputParameters validParams();
+
   GrainTextureVectorPostprocessor(const InputParameters & parameters);
   virtual void initialize();
   virtual void execute();

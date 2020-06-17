@@ -12,11 +12,6 @@
 #include "Compute1DFiniteStrain.h"
 #include "SubblockIndexProvider.h"
 
-class ComputeAxisymmetric1DFiniteStrain;
-
-template <>
-InputParameters validParams<ComputeAxisymmetric1DFiniteStrain>();
-
 /**
  * ComputeAxisymmetric1DFiniteStrain defines a strain increment for finite strains
  * in an Axisymmetric 1D problem. The COORD_TYPE in the Problem block must be set to RZ.
@@ -24,6 +19,8 @@ InputParameters validParams<ComputeAxisymmetric1DFiniteStrain>();
 class ComputeAxisymmetric1DFiniteStrain : public Compute1DFiniteStrain
 {
 public:
+  static InputParameters validParams();
+
   ComputeAxisymmetric1DFiniteStrain(const InputParameters & parameters);
 
   void initialSetup() override;
@@ -52,15 +49,25 @@ protected:
   /// the old value of the first component of the displacements vector
   const VariableValue & _disp_old_0;
 
+  /// A Userobject that carries the subblock ID for all elements
   const SubblockIndexProvider * _subblock_id_provider;
 
+  /// Whether an out-of-plane strain variable is coupled
   bool _has_out_of_plane_strain;
+
+  ///{@ Current and old values of the out-of-plane strain variable
   const VariableValue & _out_of_plane_strain;
   const VariableValue & _out_of_plane_strain_old;
+  ///@}
 
+  /// Whether an out-of-plane strain scalar variable is coupled
   bool _has_scalar_out_of_plane_strain;
+
+  /// Number of out-of-plane strain scalar variables
   unsigned int _nscalar_strains;
+
+  ///{@ Current and old values of the out-of-plane strain scalar variable
   std::vector<const VariableValue *> _scalar_out_of_plane_strain;
   std::vector<const VariableValue *> _scalar_out_of_plane_strain_old;
+  ///@}
 };
-

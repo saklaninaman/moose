@@ -19,11 +19,10 @@
 
 registerMooseObject("NavierStokesApp", NSPressureAux);
 
-template <>
 InputParameters
-validParams<NSPressureAux>()
+NSPressureAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
 
   params.addClassDescription("Nodal auxiliary variable, for computing pressure at the nodes.");
   // Mark variables as required
@@ -41,6 +40,8 @@ NSPressureAux::NSPressureAux(const InputParameters & parameters)
     _internal_energy(coupledValue(NS::internal_energy)),
     _fp(getUserObject<IdealGasFluidProperties>("fluid_properties"))
 {
+  mooseDeprecated("The NSPressureAux aux kernel has been replaced by the "
+                  "PressureAux kernel in the fluid properties module.");
 }
 
 Real

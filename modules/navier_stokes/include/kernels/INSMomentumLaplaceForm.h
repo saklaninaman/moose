@@ -12,10 +12,6 @@
 #include "INSMomentumBase.h"
 
 // Forward Declarations
-class INSMomentumLaplaceForm;
-
-template <>
-InputParameters validParams<INSMomentumLaplaceForm>();
 
 /**
  * This class computes momentum equation residual and Jacobian viscous
@@ -24,6 +20,8 @@ InputParameters validParams<INSMomentumLaplaceForm>();
 class INSMomentumLaplaceForm : public INSMomentumBase
 {
 public:
+  static InputParameters validParams();
+
   INSMomentumLaplaceForm(const InputParameters & parameters);
 
   virtual ~INSMomentumLaplaceForm() {}
@@ -33,4 +31,3 @@ protected:
   virtual Real computeQpJacobianViscousPart() override;
   virtual Real computeQpOffDiagJacobianViscousPart(unsigned jvar) override;
 };
-

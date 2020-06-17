@@ -11,17 +11,14 @@
 
 #include "RichardsDensity.h"
 
-class RichardsDensityConstBulk;
-
-template <>
-InputParameters validParams<RichardsDensityConstBulk>();
-
 /**
  * Fluid density assuming constant bulk modulus
  */
 class RichardsDensityConstBulk : public RichardsDensity
 {
 public:
+  static InputParameters validParams();
+
   RichardsDensityConstBulk(const InputParameters & parameters);
 
   /**
@@ -49,4 +46,3 @@ protected:
   /// density = _dens0*exp(p/_bulk)
   Real _bulk;
 };
-

@@ -13,11 +13,10 @@
 
 registerMooseObject("TensorMechanicsApp", CappedWeakInclinedPlaneStressUpdate);
 
-template <>
 InputParameters
-validParams<CappedWeakInclinedPlaneStressUpdate>()
+CappedWeakInclinedPlaneStressUpdate::validParams()
 {
-  InputParameters params = validParams<CappedWeakPlaneStressUpdate>();
+  InputParameters params = CappedWeakPlaneStressUpdate::validParams();
   params.addClassDescription("Capped weak inclined plane plasticity stress calculator");
   params.addRequiredParam<RealVectorValue>("normal_vector", "The normal vector to the weak plane");
   return params;

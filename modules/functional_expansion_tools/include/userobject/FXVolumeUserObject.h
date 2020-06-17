@@ -12,17 +12,14 @@
 #include "ElementIntegralVariableUserObject.h"
 #include "FXIntegralBaseUserObject.h"
 
-class FXVolumeUserObject;
-
-template <>
-InputParameters validParams<FXVolumeUserObject>();
-
 /**
  * This volumetric FX calculates the value
  */
 class FXVolumeUserObject final : public FXIntegralBaseUserObject<ElementIntegralVariableUserObject>
 {
 public:
+  static InputParameters validParams();
+
   FXVolumeUserObject(const InputParameters & parameters);
 
 protected:
@@ -30,4 +27,3 @@ protected:
   virtual Point getCentroid() const;
   virtual Real getVolume() const;
 };
-

@@ -12,10 +12,6 @@
 #include "KernelValue.h"
 
 // Forward Declarations
-class HHPFCRFF;
-
-template <>
-InputParameters validParams<HHPFCRFF>();
 
 /**
  * TODO: This Kernel needs Documentation!!!
@@ -23,6 +19,8 @@ InputParameters validParams<HHPFCRFF>();
 class HHPFCRFF : public KernelValue
 {
 public:
+  static InputParameters validParams();
+
   HHPFCRFF(const InputParameters & parameters);
 
 protected:
@@ -38,4 +36,3 @@ protected:
   const VariableValue * _coupled_var;
   const unsigned int _coupled_var_var;
 };
-

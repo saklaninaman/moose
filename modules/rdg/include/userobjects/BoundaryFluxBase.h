@@ -11,11 +11,6 @@
 
 #include "ThreadedGeneralUserObject.h"
 
-class BoundaryFluxBase;
-
-template <>
-InputParameters validParams<BoundaryFluxBase>();
-
 /**
  * A base class for computing/caching fluxes at boundaries
  *
@@ -30,6 +25,8 @@ InputParameters validParams<BoundaryFluxBase>();
 class BoundaryFluxBase : public ThreadedGeneralUserObject
 {
 public:
+  static InputParameters validParams();
+
   BoundaryFluxBase(const InputParameters & parameters);
 
   virtual void execute() override;
@@ -106,4 +103,3 @@ protected:
   /// Cached flux Jacobian
   mutable DenseMatrix<Real> _jac1;
 };
-

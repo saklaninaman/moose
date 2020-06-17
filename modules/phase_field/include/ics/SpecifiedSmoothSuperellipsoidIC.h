@@ -12,10 +12,6 @@
 #include "SmoothSuperellipsoidBaseIC.h"
 
 // Forward Declarations
-class SpecifiedSmoothSuperellipsoidIC;
-
-template <>
-InputParameters validParams<SpecifiedSmoothSuperellipsoidIC>();
 
 /**
  * SpecifiedSmoothSuperellipsoidIC creates multiple SmoothSuperellipsoids (number = size of
@@ -25,6 +21,8 @@ InputParameters validParams<SpecifiedSmoothSuperellipsoidIC>();
 class SpecifiedSmoothSuperellipsoidIC : public SmoothSuperellipsoidBaseIC
 {
 public:
+  static InputParameters validParams();
+
   SpecifiedSmoothSuperellipsoidIC(const InputParameters & parameters);
 
 protected:
@@ -40,4 +38,3 @@ protected:
   std::vector<Real> _input_cs;
   std::vector<Real> _input_ns;
 };
-

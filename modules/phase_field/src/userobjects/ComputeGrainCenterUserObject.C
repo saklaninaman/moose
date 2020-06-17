@@ -11,12 +11,11 @@
 
 #include "libmesh/quadrature.h"
 
-template <>
 InputParameters
-validParams<ComputeGrainCenterUserObject>()
+ComputeGrainCenterUserObject::validParams()
 {
-  InputParameters params = validParams<ElementUserObject>();
-  params.addClassDescription("Userobject for calculating the grain volume and grain center");
+  InputParameters params = ElementUserObject::validParams();
+  params.addClassDescription("Userobject for calculating the grain volumes and grain centers");
   params.addRequiredCoupledVarWithAutoBuild("etas", "var_name_base", "op_num", "order parameters");
   return params;
 }

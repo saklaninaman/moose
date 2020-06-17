@@ -19,9 +19,7 @@
 class SplitCHWRes : public SplitCHWResBase<Real>
 {
 public:
+  static InputParameters validParams();
+
   SplitCHWRes(const InputParameters & parameters);
 };
-
-template <>
-InputParameters validParams<SplitCHWRes>();
-

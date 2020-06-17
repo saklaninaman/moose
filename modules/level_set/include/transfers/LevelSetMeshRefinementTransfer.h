@@ -11,21 +11,16 @@
 
 #include "MultiAppCopyTransfer.h"
 
-// Forward declarations
-class LevelSetMeshRefinementTransfer;
-
-template <>
-InputParameters validParams<LevelSetMeshRefinementTransfer>();
-
 /**
  * Copies the refinement marker from the master to the sub-application.
  */
 class LevelSetMeshRefinementTransfer : public MultiAppCopyTransfer
 {
 public:
+  static InputParameters validParams();
+
   LevelSetMeshRefinementTransfer(const InputParameters & parameters);
 
   virtual void initialSetup() override;
   virtual void execute() override;
 };
-

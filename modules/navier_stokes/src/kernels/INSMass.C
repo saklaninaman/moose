@@ -12,11 +12,10 @@
 
 registerMooseObject("NavierStokesApp", INSMass);
 
-template <>
 InputParameters
-validParams<INSMass>()
+INSMass::validParams()
 {
-  InputParameters params = validParams<INSBase>();
+  InputParameters params = INSBase::validParams();
 
   params.addClassDescription("This class computes the mass equation residual and Jacobian "
                              "contributions for the incompressible Navier-Stokes momentum "
@@ -139,7 +138,8 @@ INSMass::computeQpPGOffDiagJacobian(unsigned comp)
              (d_convective_term_d_u_comp + d_viscous_term_d_u_comp + d_transient_term_d_u_comp) -
          1. / _rho[_qp] * dTauDUComp(comp) * _grad_test[_i][_qp] *
              (convective_term + viscous_term + transient_term + strongPressureTerm() +
-              gravityTerm() - RealVectorValue(_x_ffn.value(_t, _q_point[_qp]),
-                                              _y_ffn.value(_t, _q_point[_qp]),
-                                              _z_ffn.value(_t, _q_point[_qp])));
+              gravityTerm() -
+              RealVectorValue(_x_ffn.value(_t, _q_point[_qp]),
+                              _y_ffn.value(_t, _q_point[_qp]),
+                              _z_ffn.value(_t, _q_point[_qp])));
 }

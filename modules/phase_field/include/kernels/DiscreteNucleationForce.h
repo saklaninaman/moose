@@ -12,11 +12,7 @@
 #include "Kernel.h"
 
 // Forward declaration
-class DiscreteNucleationForce;
 class DiscreteNucleationMap;
-
-template <>
-InputParameters validParams<DiscreteNucleationForce>();
 
 /**
  * Free energy penalty contribution to force the nucleation of subresolution particles
@@ -24,6 +20,8 @@ InputParameters validParams<DiscreteNucleationForce>();
 class DiscreteNucleationForce : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   DiscreteNucleationForce(const InputParameters & params);
 
   void precalculateResidual() override;
@@ -41,4 +39,3 @@ protected:
   const Real _v1;
   ///@}
 };
-

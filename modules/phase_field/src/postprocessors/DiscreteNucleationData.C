@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", DiscreteNucleationData);
 
-template <>
 InputParameters
-validParams<DiscreteNucleationData>()
+DiscreteNucleationData::validParams()
 {
-  InputParameters params = validParams<GeneralPostprocessor>();
+  InputParameters params = GeneralPostprocessor::validParams();
   params.addClassDescription("Output diagnostic data on a DiscreteNucleationInserter");
   params.addRequiredParam<UserObjectName>("inserter", "DiscreteNucleationInserter user object");
   MooseEnum valueType("COUNT UPDATE RATE INSERTIONS DELETIONS", "COUNT");

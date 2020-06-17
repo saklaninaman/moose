@@ -17,6 +17,7 @@
 #include "ContactApp.h"
 #include "FluidPropertiesApp.h"
 #include "FunctionalExpansionToolsApp.h"
+#include "GeochemistryApp.h"
 #include "HeatConductionApp.h"
 #include "LevelSetApp.h"
 #include "MiscApp.h"
@@ -27,16 +28,23 @@
 #include "RichardsApp.h"
 #include "SolidMechanicsApp.h"
 #include "StochasticToolsApp.h"
+#include "PeridynamicsApp.h"
 #include "TensorMechanicsApp.h"
 #include "XFEMApp.h"
 #include "ExternalPetscSolverApp.h"
 
-template <>
 InputParameters
-validParams<CombinedApp>()
+CombinedApp::validParams()
 {
-  InputParameters params = validParams<MooseApp>();
+  InputParameters params = MooseApp::validParams();
+
   params.set<bool>("automatic_automatic_scaling") = false;
+
+  // Do not use legacy DirichletBC, that is, set DirichletBC default for preset = true
+  params.set<bool>("use_legacy_dirichlet_bc") = false;
+
+  params.set<bool>("use_legacy_material_output") = false;
+
   return params;
 }
 
@@ -65,6 +73,7 @@ CombinedApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
   ContactApp::registerAll(f, af, s);
   FluidPropertiesApp::registerAll(f, af, s);
   FunctionalExpansionToolsApp::registerAll(f, af, s);
+  GeochemistryApp::registerAll(f, af, s);
   HeatConductionApp::registerAll(f, af, s);
   LevelSetApp::registerAll(f, af, s);
   MiscApp::registerAll(f, af, s);
@@ -75,6 +84,7 @@ CombinedApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
   RichardsApp::registerAll(f, af, s);
   SolidMechanicsApp::registerAll(f, af, s);
   StochasticToolsApp::registerAll(f, af, s);
+  PeridynamicsApp::registerAll(f, af, s);
   TensorMechanicsApp::registerAll(f, af, s);
   XFEMApp::registerAll(f, af, s);
   ExternalPetscSolverApp::registerAll(f, af, s);
@@ -98,6 +108,7 @@ CombinedApp::registerObjects(Factory & factory)
   RichardsApp::registerObjects(factory);
   SolidMechanicsApp::registerObjects(factory);
   StochasticToolsApp::registerObjects(factory);
+  PeridynamicsApp::registerObjects(factory);
   TensorMechanicsApp::registerObjects(factory);
   XFEMApp::registerObjects(factory);
 }
@@ -120,6 +131,7 @@ CombinedApp::associateSyntax(Syntax & syntax, ActionFactory & action_factory)
   RichardsApp::associateSyntax(syntax, action_factory);
   SolidMechanicsApp::associateSyntax(syntax, action_factory);
   StochasticToolsApp::associateSyntax(syntax, action_factory);
+  PeridynamicsApp::associateSyntax(syntax, action_factory);
   TensorMechanicsApp::associateSyntax(syntax, action_factory);
   XFEMApp::associateSyntax(syntax, action_factory);
 }
@@ -138,6 +150,7 @@ CombinedApp::registerExecFlags(Factory & factory)
   RichardsApp::registerExecFlags(factory);
   SolidMechanicsApp::registerExecFlags(factory);
   StochasticToolsApp::registerExecFlags(factory);
+  PeridynamicsApp::registerExecFlags(factory);
   TensorMechanicsApp::registerExecFlags(factory);
   XFEMApp::registerExecFlags(factory);
   PorousFlowApp::registerExecFlags(factory);

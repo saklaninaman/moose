@@ -89,17 +89,24 @@ recursiveRename "$srcnameup" "$dstnameup"
 
 # rename files
 mv "$dir/Makefile.${kind}" "$dir/Makefile"
+mv "$dir/unit/Makefile.${kind}" "$dir/unit/Makefile"
 mv "$dir/run_tests.${kind}" "$dir/run_tests"
 mv "$dir/src/base/${srcname}App.C.${kind}" "$dir/src/base/${dstname}App.C"
 mv "$dir/test/src/base/${srcname}TestApp.C.${kind}" "$dir/test/src/base/${dstname}TestApp.C"
 mv "$dir/include/base/${srcname}App.h" "$dir/include/base/${dstname}App.h"
 mv "$dir/test/include/base/${srcname}TestApp.h" "$dir/test/include/base/${dstname}TestApp.h"
+mv "$dir/doc/config.yml.${kind}" "$dir/doc/config.yml"
+mv "$dir/doc/moosedocs.py.${kind}" "$dir/doc/moosedocs.py"
+chmod a+x "$dir/doc/moosedocs.py"
 chmod a+x "$dir/run_tests"
 
 # remove unnecessary files
 rm -f $dir/Makefile.*
+rm -f $dir/unit/Makefile.*
 rm -f $dir/run_tests.*
 rm -f $dir/src/base/StorkApp.C.*
+rm -f $dir/doc/config.yml.*
+rm -f $dir/doc/moosedocs.py.*
 
 if [[ "$kind" == "app" ]]; then
     # copy clang-format related files
@@ -129,10 +136,23 @@ if [[ "$kind" == "app" ]]; then
 fi
 
 if [[ "$kind" == "module" ]]; then
-  rm -f $dir/LICENSE
-  rm -f $dir/README.md
-  rm -f $dir/scripts/*
-  rmdir $dir/scripts
-  rm -f $dir/run_tests
-  ln -s ../../scripts/run_tests $dir/run_tests
+    echo "new Module created in moose/modules"
+    echo ""
+    echo "There are several more steps that need to be completed"
+    echo "    1. Modify the moose/modules/modules.mk file"
+    echo "      a. Add the new module to the ALL_MODULES list (alphabetical)"
+    echo "      b. Add the new module to the MODULE_NAMES variable (alphabetical)"
+    echo "      c. Create a new registration section for the new module"
+    echo "    2. Modify the moose/scripts/sqa_stats.py file"
+    echo "      a. Add a new compute requirements stats section"
+    echo "    3. Ensure that no stork files hang around before committing"
+    echo "    4. Ensure that proper testing is performed for per module tests (e.g. parallel testing)"
+    echo ""
+
+    rm -f $dir/LICENSE
+    rm -f $dir/README.md
+    rm -f $dir/scripts/*
+    rmdir $dir/scripts
+    rm -f $dir/run_tests
+    ln -s ../../scripts/run_tests $dir/run_tests
 fi

@@ -1,4 +1,3 @@
-#pylint: disable=missing-docstring, no-member
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -18,8 +17,8 @@ LOG = logging.getLogger(__name__)
 @mooseutils.addProperty('hidden', default=False, ptype=bool)
 @mooseutils.addProperty('removed', default=False, ptype=bool)
 @mooseutils.addProperty('parameters', ptype=dict)
-@mooseutils.addProperty('description', ptype=unicode)
-@mooseutils.addProperty('alias', ptype=unicode)
+@mooseutils.addProperty('description', ptype=str)
+@mooseutils.addProperty('alias', ptype=str)
 class SyntaxNodeBase(NodeBase, mooseutils.AutoPropertyMixin):
     """
     Node for MOOSE syntax that serves as the parent for actions/objects.
@@ -88,7 +87,7 @@ class SyntaxNodeBase(NodeBase, mooseutils.AutoPropertyMixin):
             filter_ = lambda node: (syntax in node.fullpath) and \
                                    isinstance(node, node_type) and \
                                    (group is None or group in node.groups)
-            return self.findall(filter_=filter_)
+            return moosetree.findall(self, filter_)
 
         else:
             return [node for node in self.children if (syntax in node.fullpath) and \
@@ -99,7 +98,6 @@ class SyntaxNodeBase(NodeBase, mooseutils.AutoPropertyMixin):
         """
         Print the node information.
         """
-        #pylint: disable=invalid-name
         if self.removed:
             self.COLOR = 'GREY'
         elif self.hidden:
@@ -147,7 +145,7 @@ class SyntaxNode(SyntaxNodeBase):
         """
         return SyntaxNodeBase.console(self) + ' markdown={}'.format(self.markdown())
 
-class ObjectNode(SyntaxNodeBase): #pylint: disable=abstract-method
+class ObjectNode(SyntaxNodeBase):
     """
     Base class for nodes associated with C++ objects (Action, MooseObjectAction, or MooseObject).
     """

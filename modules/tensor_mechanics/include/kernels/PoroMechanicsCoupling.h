@@ -12,10 +12,6 @@
 #include "Kernel.h"
 
 // Forward Declarations
-class PoroMechanicsCoupling;
-
-template <>
-InputParameters validParams<PoroMechanicsCoupling>();
 
 /**
  * PoroMechanicsCoupling computes -coefficient*porepressure*grad_test[component]
@@ -23,6 +19,8 @@ InputParameters validParams<PoroMechanicsCoupling>();
 class PoroMechanicsCoupling : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   PoroMechanicsCoupling(const InputParameters & parameters);
 
 protected:
@@ -40,6 +38,6 @@ private:
 
   unsigned int _porepressure_var_num;
 
+  /// An integer corresponding to the direction this kernel acts in
   unsigned int _component;
 };
-

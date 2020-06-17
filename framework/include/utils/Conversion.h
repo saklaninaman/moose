@@ -15,6 +15,7 @@
 // libMesh
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
+#include "libmesh/enum_fe_family.h"
 
 // Forward declarations
 class MultiMooseEnum;
@@ -64,11 +65,49 @@ stringify(const T & t)
   return os.str();
 }
 
+// overloads for integer types where std::to_string gives the same result and is faster
+inline std::string
+stringify(int v)
+{
+  return std::to_string(v);
+}
+inline std::string
+stringify(long v)
+{
+  return std::to_string(v);
+}
+inline std::string
+stringify(long long v)
+{
+  return std::to_string(v);
+}
+inline std::string
+stringify(unsigned int v)
+{
+  return std::to_string(v);
+}
+inline std::string
+stringify(unsigned long v)
+{
+  return std::to_string(v);
+}
+inline std::string
+stringify(unsigned long long v)
+{
+  return std::to_string(v);
+}
+
 /// Convert solve type into human readable string
 std::string stringify(const SolveType & t);
 
+/// Convert variable field type into human readable string
+std::string stringify(const VarFieldType & t);
+
 /// Add no-op stringify if the argument already is a string (must use overloading)
 std::string stringify(const std::string & s);
+
+/// Convert FEType from libMesh into string
+std::string stringify(FEFamily f);
 
 /// Add pair stringify to support maps
 template <typename T, typename U>
@@ -123,4 +162,3 @@ std::string stringifyExact(Real);
  * @return Converted point
  */
 Point toPoint(const std::vector<Real> & pos);
-

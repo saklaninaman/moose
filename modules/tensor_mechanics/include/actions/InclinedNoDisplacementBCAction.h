@@ -14,6 +14,8 @@
 class InclinedNoDisplacementBCAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   InclinedNoDisplacementBCAction(const InputParameters & params);
 
   virtual void act() override;
@@ -28,7 +30,3 @@ protected:
   /// auxvariables to save residuals
   std::vector<AuxVariableName> _save_in;
 };
-
-template <>
-InputParameters validParams<InclinedNoDisplacementBCAction>();
-

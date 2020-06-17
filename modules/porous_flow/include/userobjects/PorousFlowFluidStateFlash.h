@@ -11,11 +11,6 @@
 
 #include "PorousFlowFluidStateBase.h"
 
-class PorousFlowFluidStateFlash;
-
-template <>
-InputParameters validParams<PorousFlowFluidStateFlash>();
-
 /**
  * Compositional flash routines for miscible multiphase flow classes with multiple
  * fluid components
@@ -23,6 +18,8 @@ InputParameters validParams<PorousFlowFluidStateFlash>();
 class PorousFlowFluidStateFlash : public PorousFlowFluidStateBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowFluidStateFlash(const InputParameters & parameters);
 
   /**
@@ -72,6 +69,7 @@ public:
    * @return vapor mass fraction
    */
   Real vaporMassFraction(Real Z0, Real K0, Real K1) const;
+  DualReal vaporMassFraction(const DualReal & Z0, const DualReal & K0, const DualReal & K1) const;
   Real vaporMassFraction(std::vector<Real> & Zi, std::vector<Real> & Ki) const;
 
 protected:
@@ -80,4 +78,3 @@ protected:
   /// Tolerance for Newton-Raphson iterations
   const Real _nr_tol;
 };
-

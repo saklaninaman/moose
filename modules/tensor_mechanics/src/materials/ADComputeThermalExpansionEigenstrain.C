@@ -9,28 +9,27 @@
 
 #include "ADComputeThermalExpansionEigenstrain.h"
 
-registerADMooseObject("TensorMechanicsApp", ADComputeThermalExpansionEigenstrain);
+registerMooseObject("TensorMechanicsApp", ADComputeThermalExpansionEigenstrain);
 
-defineADValidParams(ADComputeThermalExpansionEigenstrain,
-                    ADComputeThermalExpansionEigenstrainBase,
-                    params.addClassDescription("Computes eigenstrain due to thermal expansion "
-                                               "with a constant coefficient");
-                    params.addRequiredParam<Real>("thermal_expansion_coeff",
-                                                  "Thermal expansion coefficient"););
+InputParameters
+ADComputeThermalExpansionEigenstrain::validParams()
+{
+  InputParameters params = ADComputeThermalExpansionEigenstrainBase::validParams();
+  params.addClassDescription("Computes eigenstrain due to thermal expansion "
+                             "with a constant coefficient");
+  params.addRequiredParam<Real>("thermal_expansion_coeff", "Thermal expansion coefficient");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADComputeThermalExpansionEigenstrain<compute_stage>::ADComputeThermalExpansionEigenstrain(
+ADComputeThermalExpansionEigenstrain::ADComputeThermalExpansionEigenstrain(
     const InputParameters & parameters)
-  : ADComputeThermalExpansionEigenstrainBase<compute_stage>(parameters),
+  : ADComputeThermalExpansionEigenstrainBase(parameters),
     _thermal_expansion_coeff(getParam<Real>("thermal_expansion_coeff"))
 {
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeThermalExpansionEigenstrain<compute_stage>::computeThermalStrain(
-    ADReal & thermal_strain, ADReal & instantaneous_cte)
+ADComputeThermalExpansionEigenstrain::computeThermalStrain(ADReal & thermal_strain)
 {
   thermal_strain = _thermal_expansion_coeff * (_temperature[_qp] - _stress_free_temperature[_qp]);
-  instantaneous_cte = _thermal_expansion_coeff;
 }

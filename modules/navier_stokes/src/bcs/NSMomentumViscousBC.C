@@ -11,11 +11,10 @@
 
 registerMooseObject("NavierStokesApp", NSMomentumViscousBC);
 
-template <>
 InputParameters
-validParams<NSMomentumViscousBC>()
+NSMomentumViscousBC::validParams()
 {
-  InputParameters params = validParams<NSIntegratedBC>();
+  InputParameters params = NSIntegratedBC::validParams();
   params.addClassDescription("This class corresponds to the viscous part of the 'natural' boundary "
                              "condition for the momentum equations.");
   params.addRequiredParam<unsigned>(

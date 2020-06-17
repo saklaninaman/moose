@@ -12,11 +12,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowCapillaryPressureRSC);
 
-template <>
 InputParameters
-validParams<PorousFlowCapillaryPressureRSC>()
+PorousFlowCapillaryPressureRSC::validParams()
 {
-  InputParameters params = validParams<PorousFlowCapillaryPressure>();
+  InputParameters params = PorousFlowCapillaryPressure::validParams();
   params.addParam<Real>("oil_viscosity",
                         "Viscosity of oil (gas) phase.  It is assumed this is "
                         "double the water-phase viscosity.  (Note that this "

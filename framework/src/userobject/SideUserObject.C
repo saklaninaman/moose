@@ -12,13 +12,14 @@
 #include "MooseTypes.h"
 #include "Assembly.h"
 
-template <>
+defineLegacyParams(SideUserObject);
+
 InputParameters
-validParams<SideUserObject>()
+SideUserObject::validParams()
 {
-  InputParameters params = validParams<UserObject>();
-  params += validParams<BoundaryRestrictableRequired>();
-  params += validParams<MaterialPropertyInterface>();
+  InputParameters params = UserObject::validParams();
+  params += BoundaryRestrictableRequired::validParams();
+  params += MaterialPropertyInterface::validParams();
   return params;
 }
 
@@ -28,9 +29,7 @@ SideUserObject::SideUserObject(const InputParameters & parameters)
     MaterialPropertyInterface(this, Moose::EMPTY_BLOCK_IDS, boundaryIDs()),
     Coupleable(this, false),
     MooseVariableDependencyInterface(),
-    UserObjectInterface(this),
     TransientInterface(this),
-    PostprocessorInterface(this),
     _mesh(_subproblem.mesh()),
     _q_point(_assembly.qPointsFace()),
     _qrule(_assembly.qRuleFace()),
@@ -40,7 +39,8 @@ SideUserObject::SideUserObject(const InputParameters & parameters)
     _current_elem(_assembly.elem()),
     _current_side(_assembly.side()),
     _current_side_elem(_assembly.sideElem()),
-    _current_side_volume(_assembly.sideElemVolume())
+    _current_side_volume(_assembly.sideElemVolume()),
+    _current_boundary_id(_assembly.currentBoundaryID())
 {
   // Keep track of which variables are coupled so we know what we depend on
   const std::vector<MooseVariableFEBase *> & coupled_vars = getCoupledMooseVars();

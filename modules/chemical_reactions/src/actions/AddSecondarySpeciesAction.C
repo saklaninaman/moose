@@ -12,11 +12,10 @@
 
 registerMooseAction("ChemicalReactionsApp", AddSecondarySpeciesAction, "add_aux_variable");
 
-template <>
 InputParameters
-validParams<AddSecondarySpeciesAction>()
+AddSecondarySpeciesAction::validParams()
 {
-  InputParameters params = validParams<AddAuxVariableAction>();
+  InputParameters params = AddAuxVariableAction::validParams();
   params.addParam<std::vector<AuxVariableName>>("secondary_species",
                                                 "The list of secondary species to add");
   params.addClassDescription("Adds AuxVariables for all secondary species");
@@ -32,6 +31,12 @@ AddSecondarySpeciesAction::AddSecondarySpeciesAction(const InputParameters & par
 void
 AddSecondarySpeciesAction::act()
 {
+  auto fe_type = AddVariableAction::feType(_pars);
+  auto type = AddVariableAction::determineType(fe_type, 1);
+  auto var_params = _factory.getValidParams(type);
+
+  var_params.applySpecificParameters(_pars, {"family", "order"});
+
   for (auto & secondary_specimen : _secondary_species)
-    _problem->addAuxVariable(secondary_specimen, _fe_type);
+    _problem->addAuxVariable(type, secondary_specimen, var_params);
 }

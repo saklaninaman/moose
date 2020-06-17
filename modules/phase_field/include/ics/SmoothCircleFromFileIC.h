@@ -15,20 +15,18 @@
 #include "DelimitedFileReader.h"
 
 // Forward Declarations
-class SmoothCircleFromFileIC;
-
-template <>
-InputParameters validParams<SmoothCircleFromFileIC>();
 
 /**
  * Reads multiple circles from a text file with the columns labeled
  * x   y   z   r. It expects the file to have a one-line header.
  * Applies all of the circles to the same variable.
-**/
+ **/
 
 class SmoothCircleFromFileIC : public SmoothCircleBaseIC
 {
 public:
+  static InputParameters validParams();
+
   SmoothCircleFromFileIC(const InputParameters & parameters);
 
 protected:
@@ -50,4 +48,3 @@ protected:
   std::vector<std::string> _col_names;
   unsigned int _n_circles;
 };
-

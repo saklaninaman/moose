@@ -19,11 +19,10 @@
 
 registerMooseObject("TensorMechanicsApp", MomentBalancing);
 
-template <>
 InputParameters
-validParams<MomentBalancing>()
+MomentBalancing::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addRequiredRangeCheckedParam<unsigned int>(
       "component",
       "component<3",

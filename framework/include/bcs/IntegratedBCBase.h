@@ -33,6 +33,8 @@ class IntegratedBCBase : public BoundaryCondition,
                          public MaterialPropertyInterface
 {
 public:
+  static InputParameters validParams();
+
   IntegratedBCBase(const InputParameters & parameters);
 
   virtual ~IntegratedBCBase();
@@ -72,6 +74,8 @@ protected:
   const Elem * const & _current_side_elem;
   /// Volume of the current side
   const Real & _current_side_volume;
+  /// The currenty boundary id
+  const BoundaryID & _current_boundary_id;
 
   /// quadrature point index
   unsigned int _qp;
@@ -95,12 +99,4 @@ protected:
   bool _has_diag_save_in;
   std::vector<MooseVariableFEBase *> _diag_save_in;
   std::vector<AuxVariableName> _diag_save_in_strings;
-
-  virtual Real computeQpJacobian() { return 0; }
-  /**
-   * This is the virtual that derived classes should override for computing an off-diagonal jacobian
-   * component.
-   */
-  virtual Real computeQpOffDiagJacobian(unsigned int /*jvar*/) { return 0; }
 };
-

@@ -1,7 +1,8 @@
 [Tests]
-  [./auto]
+  [auto]
     type = ImageDiff
     command = multiapp.py
     imagediff = 'multiapp.png'
-  [../]
+    display_required = true
+  []
 []

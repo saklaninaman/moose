@@ -13,10 +13,6 @@
 #include "MaterialTensorCalculator.h"
 
 // Forward Declarations
-class LineMaterialSymmTensorSampler;
-
-template <>
-InputParameters validParams<LineMaterialSymmTensorSampler>();
 
 /**
  * This class samples SymmTensor material properties for the integration points
@@ -32,6 +28,8 @@ public:
    * Sets up variables for output based on the properties to be output
    * @param parameters The input parameters
    */
+  static InputParameters validParams();
+
   LineMaterialSymmTensorSampler(const InputParameters & parameters);
 
   virtual ~LineMaterialSymmTensorSampler() {}
@@ -46,4 +44,3 @@ public:
    */
   virtual Real getScalarFromProperty(const SymmTensor & property, const Point & curr_point);
 };
-

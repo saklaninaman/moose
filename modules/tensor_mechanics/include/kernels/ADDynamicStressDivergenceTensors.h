@@ -11,34 +11,29 @@
 
 #include "ADStressDivergenceTensors.h"
 
-// Forward Declarations
-template <ComputeStage>
-class ADDynamicStressDivergenceTensors;
-
-declareADValidParams(ADDynamicStressDivergenceTensors);
-
 /**
  * ADDynamicStressDivergenceTensors is the automatic
  * differentiation version of DynamicStressDivergenceTensors.
  * This kernel derives from ADStressDivergenceTensors and
  * adds stress related Rayleigh and HHT time integration terms.
  */
-template <ComputeStage compute_stage>
-class ADDynamicStressDivergenceTensors : public ADStressDivergenceTensors<compute_stage>
+class ADDynamicStressDivergenceTensors : public ADStressDivergenceTensors
 {
 public:
+  static InputParameters validParams();
+
   ADDynamicStressDivergenceTensors(const InputParameters & parameters);
 
 protected:
-  ADResidual computeQpResidual();
+  ADReal computeQpResidual();
 
+  ///{@ The old and older states of the stress tensor that the divergence operator operates on
   const MaterialProperty<RankTwoTensor> & _stress_older;
   const MaterialProperty<RankTwoTensor> & _stress_old;
+  ///@}
 
   // Rayleigh damping parameter _zeta and HHT time integration parameter _alpha
   const MaterialProperty<Real> & _zeta;
   const Real _alpha;
   const bool _static_initialization;
-
-  usingStressDivergenceTensorsMembers;
 };

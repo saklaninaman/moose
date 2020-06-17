@@ -11,11 +11,10 @@
 
 registerMooseObject("ChemicalReactionsApp", CoupledBEKinetic);
 
-template <>
 InputParameters
-validParams<CoupledBEKinetic>()
+CoupledBEKinetic::validParams()
 {
-  InputParameters params = validParams<TimeDerivative>();
+  InputParameters params = TimeDerivative::validParams();
   params.addRequiredParam<std::vector<Real>>("weight",
                                              "The weight of kinetic species concentration");
   params.addCoupledVar("v", "List of kinetic species being coupled by concentration");

@@ -17,12 +17,13 @@
 
 registerMooseObject("MooseApp", ParsedSubdomainMeshGenerator);
 
-template <>
+defineLegacyParams(ParsedSubdomainMeshGenerator);
+
 InputParameters
-validParams<ParsedSubdomainMeshGenerator>()
+ParsedSubdomainMeshGenerator::validParams()
 {
-  InputParameters params = validParams<MeshGenerator>();
-  params += validParams<FunctionParserUtils>();
+  InputParameters params = MeshGenerator::validParams();
+  params += FunctionParserUtils<false>::validParams();
 
   params.addRequiredParam<MeshGeneratorName>("input", "The mesh we want to modify");
   params.addRequiredParam<std::string>("combinatorial_geometry",
@@ -40,24 +41,24 @@ validParams<ParsedSubdomainMeshGenerator>()
   params.addParam<std::vector<std::string>>(
       "constant_expressions",
       "Vector of values for the constants in constant_names (can be an FParser expression)");
-  params.addClassDescription("MeshModifier that uses a parsed expression (combinatorial_geometry) "
-                             "to determine if an element (aka its centroid) is inside the "
-                             "combinatorial geometry and "
-                             "assigns a new block id.");
+  params.addClassDescription(
+      "Uses a parsed expression (`combinatorial_geometry`) to determine if an "
+      "element (via its centroid) is inside the region defined by the expression and "
+      "assigns a new block ID.");
 
   return params;
 }
 
 ParsedSubdomainMeshGenerator::ParsedSubdomainMeshGenerator(const InputParameters & parameters)
   : MeshGenerator(parameters),
-    FunctionParserUtils(parameters),
+    FunctionParserUtils<false>(parameters),
     _input(getMesh("input")),
     _function(parameters.get<std::string>("combinatorial_geometry")),
     _block_id(parameters.get<SubdomainID>("block_id")),
     _excluded_ids(parameters.get<std::vector<SubdomainID>>("excluded_subdomain_ids"))
 {
   // base function object
-  _func_F = ADFunctionPtr(new ADFunction());
+  _func_F = std::make_shared<SymFunction>();
 
   // set FParser internal feature flags
   setParserFeatureFlags(_func_F);

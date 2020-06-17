@@ -11,11 +11,7 @@
 
 #include "GeneralPostprocessor.h"
 
-class TestDistributionDirectPostprocessor;
-class NormalDistribution;
-
-template <>
-InputParameters validParams<TestDistributionDirectPostprocessor>();
+class Normal;
 
 /**
  * Test object for testing distribution capabilities.
@@ -25,6 +21,8 @@ InputParameters validParams<TestDistributionDirectPostprocessor>();
 class TestDistributionDirectPostprocessor : public GeneralPostprocessor
 {
 public:
+  static InputParameters validParams();
+
   TestDistributionDirectPostprocessor(const InputParameters & parameters);
   virtual void initialize() override {}
   virtual void execute() override {}
@@ -32,7 +30,7 @@ public:
 
 protected:
   /// Object of statistics distribution
-  const NormalDistribution & _distribution;
+  const Normal & _distribution;
 
   /// The value to supply to method
   const Real & _value;
@@ -46,4 +44,3 @@ protected:
   /// The distribution method to call
   const MooseEnum & _distribution_method;
 };
-

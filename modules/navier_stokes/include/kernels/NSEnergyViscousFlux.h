@@ -13,10 +13,6 @@
 #include "NSViscStressTensorDerivs.h"
 
 // Forward Declarations
-class NSEnergyViscousFlux;
-
-template <>
-InputParameters validParams<NSEnergyViscousFlux>();
 
 /**
  * Viscous flux terms in energy equation.
@@ -24,6 +20,8 @@ InputParameters validParams<NSEnergyViscousFlux>();
 class NSEnergyViscousFlux : public NSKernel
 {
 public:
+  static InputParameters validParams();
+
   NSEnergyViscousFlux(const InputParameters & parameters);
 
 protected:
@@ -39,4 +37,3 @@ protected:
   template <class U>
   friend class NSViscStressTensorDerivs;
 };
-

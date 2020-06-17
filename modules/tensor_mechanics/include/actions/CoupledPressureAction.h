@@ -11,17 +11,14 @@
 
 #include "Action.h"
 
-class CoupledPressureAction;
-
-template <>
-InputParameters validParams<CoupledPressureAction>();
-
 /**
  * Action that sets up pressure boundary condition on displacement variables
  */
 class CoupledPressureAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   CoupledPressureAction(const InputParameters & params);
 
   virtual void act() override;
@@ -30,4 +27,3 @@ protected:
   std::vector<std::vector<AuxVariableName>> _save_in_vars;
   std::vector<bool> _has_save_in_vars;
 };
-

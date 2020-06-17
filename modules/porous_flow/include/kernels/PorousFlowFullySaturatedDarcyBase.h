@@ -12,11 +12,6 @@
 #include "Kernel.h"
 #include "PorousFlowDictator.h"
 
-class PorousFlowFullySaturatedDarcyBase;
-
-template <>
-InputParameters validParams<PorousFlowFullySaturatedDarcyBase>();
-
 /**
  * Darcy advective flux for a fully-saturated,
  * single phase, single component fluid.
@@ -25,6 +20,8 @@ InputParameters validParams<PorousFlowFullySaturatedDarcyBase>();
 class PorousFlowFullySaturatedDarcyBase : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowFullySaturatedDarcyBase(const InputParameters & parameters);
 
 protected:
@@ -84,5 +81,7 @@ protected:
 
   /// Gravity pointing downwards
   const RealVectorValue _gravity;
-};
 
+  /// Flag to check whether permeabiity derivatives are non-zero
+  const bool _perm_derivs;
+};

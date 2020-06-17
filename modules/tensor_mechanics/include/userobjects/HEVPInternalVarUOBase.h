@@ -12,11 +12,6 @@
 #include "DiscreteElementUserObject.h"
 #include "RankTwoTensor.h"
 
-class HEVPInternalVarUOBase;
-
-template <>
-InputParameters validParams<HEVPInternalVarUOBase>();
-
 /**
  * This user object is a pure virtual base classs
  * Derived classes integrate internal variables
@@ -25,6 +20,8 @@ InputParameters validParams<HEVPInternalVarUOBase>();
 class HEVPInternalVarUOBase : public DiscreteElementUserObject
 {
 public:
+  static InputParameters validParams();
+
   HEVPInternalVarUOBase(const InputParameters & parameters);
 
   virtual bool computeValue(unsigned int, Real, Real &) const = 0;
@@ -35,4 +32,3 @@ protected:
   const MaterialProperty<Real> & _intvar_rate;
   const MaterialProperty<Real> & _this_old;
 };
-

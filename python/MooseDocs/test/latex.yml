@@ -42,10 +42,30 @@ Extensions:
         draft: True
     MooseDocs.extensions.heading: default
     MooseDocs.extensions.gallery: disable
-    MooseDocs.extensions.template: default
+    MooseDocs.extensions.template:
+        active: True
+    MooseDocs.extensions.civet:
+        active: False
+        test_results_cache: '/tmp/civet/jobs'
+        generate_test_reports: False
+        remotes:
+            moose:
+                url: https://civet.inl.gov
+                repo: idaholab/moose
     MooseDocs.extensions.sqa:
-        directories:
-            - python/MooseDocs/test
+        active: True
+        categories:
+            MooseDocs:
+                directories:
+                    - python/MooseDocs/test
+            chigger:
+                directories:
+                    - python/chigger/tests
+            demo:
+                directories:
+                    - python/MooseDocs/test
+                specs:
+                    - demo
     MooseDocs.extensions.navigation:
         name: MOOSEDocs
         repo: https://github.com/idaholab/moose

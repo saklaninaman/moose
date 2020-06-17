@@ -12,11 +12,10 @@
 
 registerMooseObject("FluidPropertiesApp", SaturationTemperatureAux);
 
-template <>
 InputParameters
-validParams<SaturationTemperatureAux>()
+SaturationTemperatureAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
 
   params.addClassDescription(
       "Computes saturation temperature from pressure and 2-phase fluid properties object");

@@ -13,11 +13,10 @@
 
 registerMooseObject("RichardsApp", RichardsPPenalty);
 
-template <>
 InputParameters
-validParams<RichardsPPenalty>()
+RichardsPPenalty::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addParam<Real>(
       "a",
       1.0E-10,

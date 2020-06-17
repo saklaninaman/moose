@@ -12,11 +12,6 @@
 #include "PorousFlowFluidPropertiesBase.h"
 #include "BrineFluidProperties.h"
 
-class PorousFlowBrine;
-
-template <>
-InputParameters validParams<PorousFlowBrine>();
-
 /**
  * Fluid properties of Brine.
  * Provides density, viscosity, derivatives wrt pressure and temperature at the quadpoints or nodes
@@ -24,6 +19,8 @@ InputParameters validParams<PorousFlowBrine>();
 class PorousFlowBrine : public PorousFlowFluidPropertiesBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowBrine(const InputParameters & parameters);
 
 protected:
@@ -75,13 +72,12 @@ protected:
   /// Derivative of fluid enthalpy wrt temperature at the qps or nodes
   MaterialProperty<Real> * const _denthalpy_dT;
 
-  /// Brine Fluid properties UserObject
+  /// Brine fluid properties UserObject
   const BrineFluidProperties * _brine_fp;
 
-  /// Water Fluid properties UserObject
+  /// Water fluid properties UserObject
   const SinglePhaseFluidProperties * _water_fp;
 
   /// NaCl mass fraction at the qps or nodes
   const VariableValue & _xnacl;
 };
-

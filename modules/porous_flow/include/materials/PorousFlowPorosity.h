@@ -11,11 +11,6 @@
 
 #include "PorousFlowPorosityExponentialBase.h"
 
-class PorousFlowPorosity;
-
-template <>
-InputParameters validParams<PorousFlowPorosity>();
-
 /**
  * Material designed to provide the porosity in PorousFlow simulations
  * chemistry + biot + (phi0 - reference_chemistry - biot) * exp(-vol_strain
@@ -25,6 +20,8 @@ InputParameters validParams<PorousFlowPorosity>();
 class PorousFlowPorosity : public PorousFlowPorosityExponentialBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowPorosity(const InputParameters & parameters);
 
 protected:
@@ -85,7 +82,7 @@ protected:
   std::vector<Real> _c_weights;
 
   /// Old value of porosity
-  const MaterialProperty<Real> & _porosity_old;
+  const MaterialProperty<Real> * const _porosity_old;
 
   /// Strain (first const means we never want to dereference and change the value, second means we'll always be pointing to the same address after initialization (like a reference))
   const MaterialProperty<Real> * const _vol_strain_qp;
@@ -123,4 +120,3 @@ protected:
   /// d(saturation)/d(PorousFlow var)
   const MaterialProperty<std::vector<std::vector<Real>>> * const _dsaturation_dvar;
 };
-

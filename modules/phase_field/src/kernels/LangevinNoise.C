@@ -12,11 +12,10 @@
 
 registerMooseObject("PhaseFieldApp", LangevinNoise);
 
-template <>
 InputParameters
-validParams<LangevinNoise>()
+LangevinNoise::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addClassDescription("Source term for non-conserved Langevin noise");
   params.addRequiredParam<Real>("amplitude", "Amplitude"); // per sqrt(time)");
   params.addParam<MaterialPropertyName>(

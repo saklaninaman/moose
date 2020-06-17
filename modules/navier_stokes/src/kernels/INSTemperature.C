@@ -12,11 +12,10 @@
 
 registerMooseObject("NavierStokesApp", INSTemperature);
 
-template <>
 InputParameters
-validParams<INSTemperature>()
+INSTemperature::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
 
   params.addClassDescription("This class computes the residual and Jacobian contributions for the "
                              "incompressible Navier-Stokes temperature (energy) equation.");

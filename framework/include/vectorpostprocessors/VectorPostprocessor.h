@@ -12,6 +12,7 @@
 // MOOSE includes
 #include "MooseTypes.h"
 #include "OutputInterface.h"
+#include "MooseEnum.h"
 
 // libMesh
 #include "libmesh/parallel.h"
@@ -35,6 +36,8 @@ InputParameters validParams<VectorPostprocessor>();
 class VectorPostprocessor : public OutputInterface
 {
 public:
+  static InputParameters validParams();
+
   VectorPostprocessor(const InputParameters & parameters);
 
   virtual ~VectorPostprocessor() = default;
@@ -54,6 +57,11 @@ public:
    */
   bool containsCompleteHistory() const { return _contains_complete_history; }
 
+  /**
+   * Return true if the VPP is operating in distributed mode.
+   */
+  bool isDistributed() const { return _is_distributed; }
+
 protected:
   /**
    * Register a new vector to fill up.
@@ -66,6 +74,9 @@ protected:
   /// Pointer to FEProblemBase
   FEProblemBase * _vpp_fe_problem;
 
+  /// DISTRIBUTED or REPLICATED
+  const MooseEnum & _parallel_type;
+
   friend class SamplerBase;
 
 private:
@@ -73,8 +84,9 @@ private:
 
   const bool _contains_complete_history;
 
+  const bool _is_distributed;
+
   const bool _is_broadcast;
 
   std::map<std::string, VectorPostprocessorValue> _thread_local_vectors;
 };
-

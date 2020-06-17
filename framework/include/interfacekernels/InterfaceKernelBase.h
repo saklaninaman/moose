@@ -16,6 +16,7 @@
 #include "SetupInterface.h"
 #include "TransientInterface.h"
 #include "UserObjectInterface.h"
+#include "PostprocessorInterface.h"
 #include "NeighborCoupleableMooseVariableDependencyIntermediateInterface.h"
 #include "FunctionInterface.h"
 #include "Restartable.h"
@@ -39,6 +40,7 @@ class InterfaceKernelBase : public MooseObject,
                             public TransientInterface,
                             public FunctionInterface,
                             public UserObjectInterface,
+                            public PostprocessorInterface,
                             public NeighborCoupleableMooseVariableDependencyIntermediateInterface,
                             public Restartable,
                             public MeshChangedInterface,
@@ -46,6 +48,8 @@ class InterfaceKernelBase : public MooseObject,
                             public TaggingInterface
 {
 public:
+  static InputParameters validParams();
+
   InterfaceKernelBase(const InputParameters & parameters);
 
   /// The master variable that this interface kernel operates on
@@ -125,6 +129,9 @@ protected:
 
   /// The neighboring element
   const Elem * const & _neighbor_elem;
+
+  /// The neighboring element volume
+  const Real & _neighbor_elem_volume;
 
   /// Current side
   const unsigned int & _current_side;

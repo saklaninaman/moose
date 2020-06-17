@@ -11,11 +11,10 @@
 
 registerMooseObject("NavierStokesApp", NSGravityForce);
 
-template <>
 InputParameters
-validParams<NSGravityForce>()
+NSGravityForce::validParams()
 {
-  InputParameters params = validParams<NSKernel>();
+  InputParameters params = NSKernel::validParams();
   params.addClassDescription("This class computes the gravity force contribution.");
   // The strength of the acceleration in the _component direction.  Make this
   // value negative if you want force in the -_component direction.

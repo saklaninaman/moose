@@ -1,7 +1,7 @@
 [Tests]
-  [./InputTreeWriter]
+  [InputTreeWriter]
     type = PythonUnitTest
     input = test_InputTreeWriter.py
-    display_required = True
-  [../]
+    display_required = true
+  []
 []

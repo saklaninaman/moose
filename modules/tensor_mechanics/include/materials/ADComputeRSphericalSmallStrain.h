@@ -11,25 +11,18 @@
 
 #include "ADComputeSmallStrain.h"
 
-template <ComputeStage>
-class ADComputeRSphericalSmallStrain;
-
-declareADValidParams(ADComputeRSphericalSmallStrain);
-
 /**
  * ADComputeRSphericalSmallStrain defines a strain tensor, assuming small strains,
  * in a 1D simulation assumming spherical symmetry.  The polar and azimuthal
  * strains are functions of the radial displacement and radial position in this
  * 1D problem.
  */
-template <ComputeStage compute_stage>
-class ADComputeRSphericalSmallStrain : public ADComputeSmallStrain<compute_stage>
+class ADComputeRSphericalSmallStrain : public ADComputeSmallStrain
 {
 public:
+  static InputParameters validParams();
+
   ADComputeRSphericalSmallStrain(const InputParameters & parameters);
 
   virtual void computeProperties() override;
-
-  usingComputeSmallStrainMembers;
 };
-

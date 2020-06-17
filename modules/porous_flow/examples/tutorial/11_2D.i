@@ -1,35 +1,35 @@
 # Two-phase borehole injection problem in RZ coordinates
 [Mesh]
-  type = GeneratedMesh
-  dim = 2
-  nx = 10
-  xmin = 1.0
-  xmax = 10
-  bias_x = 1.4
-  ny = 3
-  ymin = -6
-  ymax = 6
-[]
-
-[MeshModifiers]
+  [gen]
+    type = GeneratedMeshGenerator
+    dim = 2
+    nx = 10
+    xmin = 1.0
+    xmax = 10
+    bias_x = 1.4
+    ny = 3
+    ymin = -6
+    ymax = 6
+  []
   [./aquifer]
-    type = SubdomainBoundingBox
+    input = gen
+    type = SubdomainBoundingBoxGenerator
     block_id = 1
     bottom_left = '0 -2 0'
     top_right = '10 2 0'
   [../]
   [./injection_area]
-    type = ParsedAddSideset
+    type = ParsedGenerateSideset
     combinatorial_geometry = 'x<1.0001'
     included_subdomain_ids = 1
     new_sideset_name = 'injection_area'
-    depends_on = 'aquifer'
+    input = 'aquifer'
   [../]
   [./rename]
-    type = RenameBlock
+    type = RenameBlockGenerator
     old_block_id = '0 1'
     new_block_name = 'caps aquifer'
-    depends_on = 'injection_area'
+    input = 'injection_area'
   [../]
 []
 
@@ -135,7 +135,7 @@
     type = StressDivergenceRZTensors
     temperature = T
     variable = disp_r
-    thermal_eigenstrain_name = thermal_contribution
+    eigenstrain_names = thermal_contribution
     use_displaced_mesh = false
     component = 0
   [../]
@@ -239,7 +239,7 @@
 
 [BCs]
   [./pinned_top_bottom_r]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_r
     value = 0
     boundary = 'top bottom'
@@ -254,7 +254,7 @@
   [../]
 
   [./cold_co2]
-    type = PresetBC
+    type = DirichletBC
     boundary = injection_area
     variable = T
     value = 290  # injection temperature

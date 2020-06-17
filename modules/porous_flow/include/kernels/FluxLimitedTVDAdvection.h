@@ -13,10 +13,6 @@
 #include "AdvectiveFluxCalculatorBase.h"
 
 // Forward Declaration
-class FluxLimitedTVDAdvection;
-
-template <>
-InputParameters validParams<FluxLimitedTVDAdvection>();
 
 /**
  * Advection of the variable with velocity set in the AdvectiveFluxCalculator
@@ -32,6 +28,8 @@ InputParameters validParams<FluxLimitedTVDAdvection>();
 class FluxLimitedTVDAdvection : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   FluxLimitedTVDAdvection(const InputParameters & parameters);
 
 protected:
@@ -42,4 +40,3 @@ protected:
   /// The user object that computes Kuzmin and Turek's K_ij, R+ and R-, etc quantities
   const AdvectiveFluxCalculatorBase & _fluo;
 };
-

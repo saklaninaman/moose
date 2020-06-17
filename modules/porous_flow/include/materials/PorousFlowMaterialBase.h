@@ -12,11 +12,6 @@
 #include "PorousFlowMaterial.h"
 #include "DerivativeMaterialInterface.h"
 
-class PorousFlowMaterialBase;
-
-template <>
-InputParameters validParams<PorousFlowMaterialBase>();
-
 /**
  * Base class for all PorousFlow materials that provide phase-dependent properties.
  * These include: fluid properties, relative permeabilities and capillary pressures.
@@ -27,6 +22,8 @@ InputParameters validParams<PorousFlowMaterialBase>();
 class PorousFlowMaterialBase : public DerivativeMaterialInterface<PorousFlowMaterial>
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowMaterialBase(const InputParameters & parameters);
 
 protected:
@@ -36,4 +33,3 @@ protected:
   /// Stringified fluid phase number
   const std::string _phase;
 };
-

@@ -11,16 +11,18 @@
 
 #include "SideFluxIntegral.h"
 
-// Forward Declarations
-class SideFluxAverage;
+template <bool>
+class SideFluxAverageTempl;
+typedef SideFluxAverageTempl<false> SideFluxAverage;
+typedef SideFluxAverageTempl<true> ADSideFluxAverage;
 
-template <>
-InputParameters validParams<SideFluxAverage>();
-
-class SideFluxAverage : public SideFluxIntegral
+template <bool is_ad>
+class SideFluxAverageTempl : public SideFluxIntegralTempl<is_ad>
 {
 public:
-  SideFluxAverage(const InputParameters & parameters);
+  static InputParameters validParams();
+
+  SideFluxAverageTempl(const InputParameters & parameters);
 
   virtual void initialize() override;
   virtual void execute() override;
@@ -30,4 +32,3 @@ public:
 protected:
   Real _volume;
 };
-

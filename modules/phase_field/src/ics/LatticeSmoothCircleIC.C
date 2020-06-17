@@ -12,11 +12,10 @@
 
 registerMooseObject("PhaseFieldApp", LatticeSmoothCircleIC);
 
-template <>
 InputParameters
-validParams<LatticeSmoothCircleIC>()
+LatticeSmoothCircleIC::validParams()
 {
-  InputParameters params = validParams<SmoothCircleBaseIC>();
+  InputParameters params = SmoothCircleBaseIC::validParams();
   params.addClassDescription("Perturbed square lattice of smooth circles");
   params.addDeprecatedParam<Real>("Rnd_variation",
                                   "Variation from central lattice position",
@@ -25,7 +24,7 @@ validParams<LatticeSmoothCircleIC>()
   params.addRequiredParam<std::vector<unsigned int>>(
       "circles_per_side", "Vector containing the number of bubbles along each side");
   params.addParam<unsigned int>("rand_seed", 2000, "random seed");
-  params.addRequiredParam<Real>("radius", "Mean radius value for the circels");
+  params.addRequiredParam<Real>("radius", "Mean radius value for the circles");
   params.addParam<Real>(
       "radius_variation", 0.0, "Plus or minus fraction of random variation in the bubble radius");
   MooseEnum rand_options("uniform normal none", "none");

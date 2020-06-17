@@ -12,15 +12,15 @@
 #include "AuxiliarySystem.h"
 #include "MooseUtils.h"
 #include "DelimitedFileReader.h"
+#include "TimeIntegrator.h"
 
 registerMooseObject("TensorMechanicsApp", NodalTranslationalInertia);
 
-template <>
 InputParameters
-validParams<NodalTranslationalInertia>()
+NodalTranslationalInertia::validParams()
 {
-  InputParameters params = validParams<TimeNodalKernel>();
-  params.addClassDescription("Computes the interial forces and mass proportional damping terms "
+  InputParameters params = TimeNodalKernel::validParams();
+  params.addClassDescription("Computes the inertial forces and mass proportional damping terms "
                              "corresponding to nodal mass.");
   params.addCoupledVar("velocity", "velocity variable");
   params.addCoupledVar("acceleration", "acceleration variable");
@@ -57,7 +57,8 @@ NodalTranslationalInertia::NodalTranslationalInertia(const InputParameters & par
     _beta(_has_beta ? getParam<Real>("beta") : 0.1),
     _gamma(_has_gamma ? getParam<Real>("gamma") : 0.1),
     _eta(getParam<Real>("eta")),
-    _alpha(getParam<Real>("alpha"))
+    _alpha(getParam<Real>("alpha")),
+    _time_integrator(*_sys.getTimeIntegrator())
 {
   if (_has_beta && _has_gamma && _has_velocity && _has_acceleration)
   {
@@ -71,11 +72,15 @@ NodalTranslationalInertia::NodalTranslationalInertia(const InputParameters & par
   }
   else if (!_has_beta && !_has_gamma && !_has_velocity && !_has_acceleration)
   {
-    _vel = &(_var.dofValuesDot());
-    _vel_old = &(_var.dofValuesDotOld());
-    _accel = &(_var.dofValuesDotDot());
     _du_dot_du = &(_var.duDotDu());
     _du_dotdot_du = &(_var.duDotDotDu());
+    _u_dot_old = &(_var.dofValuesDotOld());
+
+    addFEVariableCoupleableVectorTag(_time_integrator.uDotFactorTag());
+    addFEVariableCoupleableVectorTag(_time_integrator.uDotDotFactorTag());
+
+    _u_dot_factor = &_var.vectorTagDofValue(_time_integrator.uDotFactorTag());
+    _u_dotdot_factor = &_var.vectorTagDofValue(_time_integrator.uDotDotFactorTag());
   }
   else
     mooseError("NodalTranslationalInertia: Either all or none of `beta`, `gamma`, `velocity` and "
@@ -98,7 +103,6 @@ NodalTranslationalInertia::NodalTranslationalInertia(const InputParameters & par
       mooseError("NodalTranslationalInertia: The number of columns in ",
                  getParam<FileName>("nodal_mass_file"),
                  " should be 4.");
-
     unsigned int node_found = 0;
     const std::set<BoundaryID> bnd_ids = BoundaryRestrictable::boundaryIDs();
     for (auto & bnd_id : bnd_ids)
@@ -131,6 +135,17 @@ NodalTranslationalInertia::NodalTranslationalInertia(const InputParameters & par
                  node_found,
                  " nodes were found in the boundary.");
   }
+
+  // Check for Explicit and alpha parameter
+  if (_alpha != 0 && _time_integrator.isExplicit())
+    mooseError("NodalTranslationalInertia: HHT time integration parameter can only be used with "
+               "Newmark-Beta time integration.");
+
+  // Check if beta and explicit are being used simultaneously
+  if (_has_beta && _time_integrator.isExplicit())
+    mooseError("NodalTranslationalInertia: Newmark-beta integration parameter, beta, cannot be "
+               "provided along with an explicit time "
+               "integrator.");
 }
 
 Real
@@ -167,9 +182,12 @@ NodalTranslationalInertia::computeQpResidual()
       const Real vel = vel_old + (_dt * (1 - _gamma)) * accel_old + _gamma * _dt * accel;
       return mass * (accel + vel * _eta * (1 + _alpha) - _alpha * _eta * vel_old);
     }
+
     else
-      return mass * ((*_accel)[_qp] + (*_vel)[_qp] * _eta * (1.0 + _alpha) -
-                     _alpha * _eta * (*_vel_old)[_qp]);
+      // all cases (Explicit, implicit and implicit with HHT)
+      // Note that _alpha is enforced to be zero for explicit integration
+      return mass * ((*_u_dotdot_factor)[_qp] + (*_u_dot_factor)[_qp] * _eta * (1.0 + _alpha) -
+                     _alpha * _eta * (*_u_dot_old)[_qp]);
   }
 }
 
@@ -193,7 +211,6 @@ NodalTranslationalInertia::computeQpJacobian()
         mooseError("NodalTranslationalInertia: Unable to find an entry for the current node in the "
                    "_node_id_to_mass map.");
     }
-
     if (_has_beta)
       return mass / (_beta * _dt * _dt) + _eta * (1 + _alpha) * mass * _gamma / _beta / _dt;
     else

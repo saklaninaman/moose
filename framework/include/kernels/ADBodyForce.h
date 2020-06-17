@@ -12,11 +12,7 @@
 #include "ADKernelValue.h"
 
 // Forward Declaration
-template <ComputeStage>
-class ADBodyForce;
 class Function;
-
-declareADValidParams(ADBodyForce);
 
 /**
  * This kernel implements a generic functional
@@ -26,10 +22,11 @@ declareADValidParams(ADBodyForce);
  * The coefficient and function both have defaults
  * equal to 1.0.
  */
-template <ComputeStage compute_stage>
-class ADBodyForce : public ADKernelValue<compute_stage>
+class ADBodyForce : public ADKernelValue
 {
 public:
+  static InputParameters validParams();
+
   ADBodyForce(const InputParameters & parameters);
 
 protected:
@@ -43,7 +40,4 @@ protected:
 
   /// Optional Postprocessor value
   const PostprocessorValue & _postprocessor;
-
-  usingKernelValueMembers;
-  using KernelBase::_q_point;
 };

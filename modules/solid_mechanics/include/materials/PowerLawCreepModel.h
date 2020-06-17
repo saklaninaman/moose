@@ -11,14 +11,11 @@
 
 #include "ReturnMappingModel.h"
 
-class PowerLawCreepModel;
-
-template <>
-InputParameters validParams<PowerLawCreepModel>();
-
 class PowerLawCreepModel : public ReturnMappingModel
 {
 public:
+  static InputParameters validParams();
+
   PowerLawCreepModel(const InputParameters & parameters);
 
 protected:
@@ -45,4 +42,3 @@ protected:
 
 private:
 };
-

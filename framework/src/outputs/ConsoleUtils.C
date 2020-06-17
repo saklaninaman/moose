@@ -112,15 +112,8 @@ outputAuxiliarySystemInformation(FEProblemBase & problem)
 }
 
 std::string
-outputNonlinearSystemInformation(FEProblemBase & problem)
+outputSystemInformationHelper(std::stringstream & oss, System & system)
 {
-  return outputSystemInformationHelper(problem.getNonlinearSystemBase().system());
-}
-
-std::string
-outputSystemInformationHelper(System & system)
-{
-  std::stringstream oss;
   oss << std::left;
 
   if (system.n_dofs())
@@ -137,12 +130,34 @@ outputSystemInformationHelper(System & system)
 
       if (vg_description.n_variables() > 1)
         oss << "{ ";
-      for (unsigned int vn = 0; vn < vg_description.n_variables(); vn++)
+      if (vg_description.n_variables() > 10)
       {
-        oss << "\"" << vg_description.name(vn) << "\" ";
+        // when the number of variables in this group is larger than 10, we only output the first
+        // and the last 5 variable names
+        for (unsigned int vn = 0; vn < 5; vn++)
+        {
+          oss << "\"" << vg_description.name(vn) << "\" ";
+          curr_string_pos = oss.tellp();
+          insertNewline(oss, begin_string_pos, curr_string_pos);
+        }
+        oss << "... ";
         curr_string_pos = oss.tellp();
         insertNewline(oss, begin_string_pos, curr_string_pos);
+        for (unsigned int vn = vg_description.n_variables() - 5; vn < vg_description.n_variables();
+             vn++)
+        {
+          oss << "\"" << vg_description.name(vn) << "\" ";
+          curr_string_pos = oss.tellp();
+          insertNewline(oss, begin_string_pos, curr_string_pos);
+        }
       }
+      else
+        for (unsigned int vn = 0; vn < vg_description.n_variables(); vn++)
+        {
+          oss << "\"" << vg_description.name(vn) << "\" ";
+          curr_string_pos = oss.tellp();
+          insertNewline(oss, begin_string_pos, curr_string_pos);
+        }
 
       if (vg_description.n_variables() > 1)
         oss << "} ";
@@ -220,6 +235,31 @@ outputSystemInformationHelper(System & system)
 }
 
 std::string
+outputNonlinearSystemInformation(FEProblemBase & problem)
+{
+  std::stringstream oss;
+  oss << std::left;
+
+#ifndef MOOSE_SPARSE_AD
+  if (problem.haveADObjects())
+  {
+    oss << std::setw(console_field_width)
+        << "  AD size required: " << problem.getNonlinearSystemBase().requiredDerivativeSize()
+        << "\n";
+  }
+#endif
+  return outputSystemInformationHelper(oss, problem.getNonlinearSystemBase().system());
+}
+
+std::string
+outputSystemInformationHelper(System & system)
+{
+  std::stringstream oss;
+
+  return outputSystemInformationHelper(oss, system);
+}
+
+std::string
 outputRelationshipManagerInformation(const MooseApp & app)
 {
   std::stringstream oss;
@@ -267,7 +307,7 @@ outputExecutionInformation(const MooseApp & app, FEProblemBase & problem)
   if (mpc)
   {
     oss << std::setw(console_field_width)
-        << "  MOOSE Preconditioner: " << mpc->getParamTempl<std::string>("_type");
+        << "  MOOSE Preconditioner: " << mpc->getParam<std::string>("_type");
     if (mpc->name() == "_moose_auto")
       oss << " (auto)";
     oss << '\n';
@@ -301,6 +341,35 @@ outputOutputInformation(MooseApp & app)
           oss << "    " << std::setw(console_field_width - 4) << adv_it.first + ":"
               << "\"" << adv_it.second << "\"\n";
     }
+  }
+
+  return oss.str();
+}
+
+std::string
+outputLegacyInformation(MooseApp & app)
+{
+  std::stringstream oss;
+  oss << std::left;
+
+  if (app.parameters().get<bool>("use_legacy_dirichlet_bc"))
+  {
+    oss << COLOR_RED << "LEGACY MODES ENABLED:" << COLOR_DEFAULT << '\n';
+    oss << " Default for parameter preset = false for all DirichletBC and ADDirichletBC objects.\n"
+        << " Set use_legacy_dirichlet_bc = false in the application to change to the preferred "
+           "behavior.\n"
+        << COLOR_DEFAULT << '\n';
+  }
+  if (app.parameters().get<bool>("use_legacy_material_output"))
+  {
+    oss << COLOR_RED << "LEGACY MODES ENABLED:" << COLOR_DEFAULT << '\n';
+    oss << " This application uses the legacy material output option: material properties are "
+           "output only on TIMESTEP_END, not INITIAL. To remove this message, set "
+           "'use_legacy_material_output' to false in this application. If there are gold output "
+           "files that contain material property output for which output occurs on INITIAL, then "
+           "these will generate diffs due to zero values being stored, and these tests should be "
+           "re-golded.\n"
+        << COLOR_DEFAULT << '\n';
   }
 
   return oss.str();

@@ -13,9 +13,8 @@
 
 registerMooseObject("PhaseFieldApp", ACSEDGPoly);
 
-template <>
 InputParameters
-validParams<ACSEDGPoly>()
+ACSEDGPoly::validParams()
 {
   InputParameters params = ACBulk<Real>::validParams();
   params.addClassDescription("Stored Energy contribution to grain growth");

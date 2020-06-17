@@ -11,11 +11,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowThermalConductivityFromPorosity);
 
-template <>
 InputParameters
-validParams<PorousFlowThermalConductivityFromPorosity>()
+PorousFlowThermalConductivityFromPorosity::validParams()
 {
-  InputParameters params = validParams<PorousFlowThermalConductivityBase>();
+  InputParameters params = PorousFlowThermalConductivityBase::validParams();
   params.addRequiredParam<RealTensorValue>("lambda_s",
                                            "The thermal conductivity of the solid matrix material");
   params.addRequiredParam<RealTensorValue>("lambda_f",

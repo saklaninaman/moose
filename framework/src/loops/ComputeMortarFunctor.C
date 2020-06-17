@@ -8,12 +8,14 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "ComputeMortarFunctor.h"
+#include "FEProblemBase.h"
 #include "SubProblem.h"
 #include "Assembly.h"
 #include "ADMortarConstraint.h"
 #include "AutomaticMortarGeneration.h"
 #include "MooseMesh.h"
 #include "Assembly.h"
+#include "SwapBackSentinel.h"
 
 #include "libmesh/fe_base.h"
 #include "libmesh/quadrature.h"
@@ -21,40 +23,39 @@
 #include "libmesh/point.h"
 #include "libmesh/mesh_base.h"
 
-template <ComputeStage compute_stage>
-ComputeMortarFunctor<compute_stage>::ComputeMortarFunctor(
+ComputeMortarFunctor::ComputeMortarFunctor(
     const std::vector<std::shared_ptr<MortarConstraintBase>> & mortar_constraints,
     const AutomaticMortarGeneration & amg,
-    SubProblem & subproblem)
+    SubProblem & subproblem,
+    FEProblemBase & fe_problem,
+    bool displaced)
   : _amg(amg),
     _subproblem(subproblem),
+    _fe_problem(fe_problem),
+    _displaced(displaced),
     _assembly(_subproblem.assembly(0)),
     _qrule_msm(_assembly.qRuleMortar())
 {
   // Construct the mortar constraints we will later loop over
-  if (compute_stage == ComputeStage::RESIDUAL)
-    for (auto && mc : mortar_constraints)
-    {
-      auto && cmc = std::dynamic_pointer_cast<ADMortarConstraint<ComputeStage::JACOBIAN>>(mc);
-      if (!cmc)
-        _mortar_constraints.push_back(mc.get());
-    }
-  else if (compute_stage == ComputeStage::JACOBIAN)
-    for (auto && mc : mortar_constraints)
-    {
-      auto && cmc = std::dynamic_pointer_cast<ADMortarConstraint<ComputeStage::RESIDUAL>>(mc);
-      if (!cmc)
-        _mortar_constraints.push_back(mc.get());
-    }
+  for (auto mc : mortar_constraints)
+    _mortar_constraints.push_back(mc.get());
 
   _master_boundary_id = _amg.master_slave_boundary_id_pairs[0].first;
   _slave_boundary_id = _amg.master_slave_boundary_id_pairs[0].second;
 }
 
-template <ComputeStage compute_stage>
 void
-ComputeMortarFunctor<compute_stage>::operator()()
+ComputeMortarFunctor::operator()()
 {
+  // Set required material properties
+  std::set<unsigned int> needed_mat_props;
+  for (const auto & mc : _mortar_constraints)
+  {
+    const auto & mp_deps = mc->getMatPropDependencies();
+    needed_mat_props.insert(mp_deps.begin(), mp_deps.end());
+  }
+  _fe_problem.setActiveMaterialProperties(needed_mat_props, /*tid=*/0);
+
   // Array to hold custom quadrature point locations on the slave and master sides
   std::vector<Point> custom_xi1_pts, custom_xi2_pts;
 
@@ -75,6 +76,9 @@ ComputeMortarFunctor<compute_stage>::operator()()
     // contribute to the mortar segment integrals, but we don't
     // want to do reinit() on them or there will be a negative
     // Jacobian error.
+    // NOTE: calling volume is fine here because elem_volume is only
+    // used to check if it is very, very small. Distinction between
+    // coordinates systems do not matter.
     Real elem_volume = msm_elem->volume();
 
     if (elem_volume < TOLERANCE)
@@ -125,9 +129,16 @@ ComputeMortarFunctor<compute_stage>::operator()()
       custom_xi1_pts[qp] = xi1_eta;
     }
 
+    const Elem * reinit_slave_elem = slave_ip;
+
+    // If we're on the displaced mesh, we need to get the corresponding undisplaced elem before
+    // calling _fe_problem.reinitElemFaceRef
+    if (_displaced)
+      reinit_slave_elem = _fe_problem.mesh().elemPtr(reinit_slave_elem->id());
+
     // reinit the variables/residuals/jacobians on the slave interior
-    _subproblem.reinitElemFaceRef(
-        slave_ip, slave_side_id, _slave_boundary_id, TOLERANCE, &custom_xi1_pts);
+    _fe_problem.reinitElemFaceRef(
+        reinit_slave_elem, slave_side_id, _slave_boundary_id, TOLERANCE, &custom_xi1_pts);
 
     if (_has_master)
     {
@@ -140,9 +151,23 @@ ComputeMortarFunctor<compute_stage>::operator()()
         custom_xi2_pts[qp] = xi2_eta;
       }
 
+      const Elem * reinit_master_elem = master_ip;
+
+      // If we're on the displaced mesh, we need to get the corresponding undisplaced elem before
+      // calling _fe_problem.reinitElemFaceRef
+      if (_displaced)
+        reinit_master_elem = _fe_problem.mesh().elemPtr(reinit_master_elem->id());
+
       // reinit the variables/residuals/jacobians on the master interior
-      _subproblem.reinitNeighborFaceRef(
-          master_ip, master_side_id, _master_boundary_id, TOLERANCE, &custom_xi2_pts);
+      _fe_problem.reinitNeighborFaceRef(
+          reinit_master_elem, master_side_id, _master_boundary_id, TOLERANCE, &custom_xi2_pts);
+
+      // reinit neighbor materials, but be careful not to execute stateful materials since
+      // conceptually they don't make sense with mortar (they're not interpolary)
+      _fe_problem.reinitMaterialsNeighbor(master_ip->subdomain_id(),
+                                          /*tid=*/0,
+                                          /*swap_stateful=*/false,
+                                          /*execute_stateful=*/false);
     }
 
     // reinit the variables/residuals/jacobians on the lower dimensional element corresponding to
@@ -150,7 +175,16 @@ ComputeMortarFunctor<compute_stage>::operator()()
     // slave (element) and master (neighbor)
     _subproblem.reinitLowerDElemRef(slave_face_elem, &custom_xi1_pts);
 
-    if (compute_stage == ComputeStage::RESIDUAL)
+    // reinit higher-dimensional slave face/boundary materials. Do this after we reinit lower-d
+    // variables in case we want to pull the lower-d variable values into the slave face/boundary
+    // materials. Be careful not to execute stateful materials since conceptually
+    // they don't make sense with mortar (they're not interpolary)
+    _fe_problem.reinitMaterialsFace(
+        slave_ip->subdomain_id(), /*tid=*/0, /*swap_stateful=*/false, /*execute_stateful=*/false);
+    _fe_problem.reinitMaterialsBoundary(
+        _slave_boundary_id, /*tid=*/0, /*swap_stateful=*/false, /*execute_stateful=*/false);
+
+    if (!_fe_problem.currentlyComputingJacobian())
     {
       for (auto && mc : _mortar_constraints)
         mc->computeResidual(_has_master);
@@ -158,6 +192,8 @@ ComputeMortarFunctor<compute_stage>::operator()()
       _assembly.cacheResidual();
       _assembly.cacheResidualNeighbor();
       _assembly.cacheResidualLower();
+
+      num_cached++;
 
       if (num_cached % 20 == 0)
         _assembly.addCachedResiduals();
@@ -180,17 +216,16 @@ ComputeMortarFunctor<compute_stage>::operator()()
       // Add LowerLower, LowerSlave, LowerMaster, SlaveLower, MasterLower
       _assembly.addJacobianLower();
 
+      num_cached++;
+
       if (num_cached % 20 == 0)
         _assembly.addCachedJacobian();
     }
   } // end for loop over elements
 
   // Make sure any remaining cached residuals/Jacobians get added
-  if (compute_stage == ComputeStage::RESIDUAL)
+  if (!_fe_problem.currentlyComputingJacobian())
     _assembly.addCachedResiduals();
   else
     _assembly.addCachedJacobian();
 }
-
-template class ComputeMortarFunctor<ComputeStage::RESIDUAL>;
-template class ComputeMortarFunctor<ComputeStage::JACOBIAN>;

@@ -12,11 +12,6 @@
 #include "PorousFlowFluidPropertiesBase.h"
 #include "SinglePhaseFluidProperties.h"
 
-class PorousFlowSingleComponentFluid;
-
-template <>
-InputParameters validParams<PorousFlowSingleComponentFluid>();
-
 /**
  * General single component fluid material. Provides quadpoint density, viscosity,
  * internal energy, enthalpy and derivatives wrt pressure and temperature
@@ -25,6 +20,8 @@ InputParameters validParams<PorousFlowSingleComponentFluid>();
 class PorousFlowSingleComponentFluid : public PorousFlowFluidPropertiesBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowSingleComponentFluid(const InputParameters & parameters);
 
 protected:

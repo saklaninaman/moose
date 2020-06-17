@@ -11,11 +11,10 @@
 
 registerMooseObject("ChemicalReactionsApp", TotalConcentrationAux);
 
-template <>
 InputParameters
-validParams<TotalConcentrationAux>()
+TotalConcentrationAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   params.addCoupledVar("primary_species", "Primary species free concentration");
   params.addParam<std::vector<Real>>(
       "sto_v",

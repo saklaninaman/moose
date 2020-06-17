@@ -13,11 +13,12 @@
 
 registerMooseObject("XFEMApp", XFEMVolFracAux);
 
-template <>
 InputParameters
-validParams<XFEMVolFracAux>()
+XFEMVolFracAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
+  params.addClassDescription(
+      "Computes the volume fraction of the physical material in each partial element.");
   return params;
 }
 

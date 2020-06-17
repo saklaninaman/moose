@@ -12,11 +12,7 @@
 #include "SolidMechanicsMaterial.h"
 
 // Forward Declarations
-class LinearIsotropicMaterial;
 class SymmElasticityTensor;
-
-template <>
-InputParameters validParams<LinearIsotropicMaterial>();
 
 /**
  * LinearIsotropic material for use in simple applications that don't need material properties.
@@ -24,6 +20,8 @@ InputParameters validParams<LinearIsotropicMaterial>();
 class LinearIsotropicMaterial : public SolidMechanicsMaterial
 {
 public:
+  static InputParameters validParams();
+
   LinearIsotropicMaterial(const InputParameters & parameters);
 
   virtual ~LinearIsotropicMaterial();
@@ -52,4 +50,3 @@ protected:
   Real _pi;
   Real _tol;
 };
-

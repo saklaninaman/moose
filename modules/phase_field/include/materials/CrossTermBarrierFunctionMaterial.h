@@ -12,10 +12,6 @@
 #include "CrossTermBarrierFunctionBase.h"
 
 // Forward Declarations
-class CrossTermBarrierFunctionMaterial;
-
-template <>
-InputParameters validParams<CrossTermBarrierFunctionMaterial>();
 
 /**
  * CrossTermBarrierFunctionMaterial adds free energy contribution on the interfaces
@@ -24,9 +20,10 @@ InputParameters validParams<CrossTermBarrierFunctionMaterial>();
 class CrossTermBarrierFunctionMaterial : public CrossTermBarrierFunctionBase
 {
 public:
+  static InputParameters validParams();
+
   CrossTermBarrierFunctionMaterial(const InputParameters & parameters);
 
 protected:
   virtual void computeQpProperties();
 };
-

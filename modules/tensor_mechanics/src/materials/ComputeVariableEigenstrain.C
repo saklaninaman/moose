@@ -11,11 +11,10 @@
 
 registerMooseObject("TensorMechanicsApp", ComputeVariableEigenstrain);
 
-template <>
 InputParameters
-validParams<ComputeVariableEigenstrain>()
+ComputeVariableEigenstrain::validParams()
 {
-  InputParameters params = validParams<ComputeEigenstrain>();
+  InputParameters params = ComputeEigenstrain::validParams();
   params.addClassDescription("Computes an Eigenstrain and its derivatives that is a function of "
                              "multiple variables, where the prefactor is defined in a derivative "
                              "material");

@@ -13,16 +13,14 @@
 #include "DerivativeMaterialInterface.h"
 #include "RankTwoTensor.h"
 
-class GBDependentTensorBase;
-
-template <>
-InputParameters validParams<GBDependentTensorBase>();
 /**
  * Base class to define GB dependent properties
  */
 class GBDependentTensorBase : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   GBDependentTensorBase(const InputParameters & parameters);
 
 protected:
@@ -36,4 +34,3 @@ protected:
   const MaterialProperty<RankTwoTensor> & _gb_normal_tensor;
   MaterialProperty<RealTensorValue> & _gb_dependent_tensor;
 };
-

@@ -10,13 +10,7 @@
 #pragma once
 // Original class author: A.M. Jokisaari,  O. Heinonen
 
-
 #include "ComputeStressBase.h"
-
-class FiniteStrainPlasticMaterial;
-
-template <>
-InputParameters validParams<FiniteStrainPlasticMaterial>();
 
 /**
  * FiniteStrainPlasticMaterial implements rate-independent associative J2 plasticity
@@ -29,6 +23,8 @@ InputParameters validParams<FiniteStrainPlasticMaterial>();
 class FiniteStrainPlasticMaterial : public ComputeStressBase
 {
 public:
+  static InputParameters validParams();
+
   FiniteStrainPlasticMaterial(const InputParameters & parameters);
 
 protected:
@@ -39,6 +35,7 @@ protected:
   const MaterialProperty<RankTwoTensor> & _plastic_strain_old;
   MaterialProperty<Real> & _eqv_plastic_strain;
   const MaterialProperty<Real> & _eqv_plastic_strain_old;
+  /// The old stress tensor
   const MaterialProperty<RankTwoTensor> & _stress_old;
   const MaterialProperty<RankTwoTensor> & _strain_increment;
   const MaterialProperty<RankTwoTensor> & _rotation_increment;
@@ -138,4 +135,3 @@ protected:
    */
   Real getdYieldStressdPlasticStrain(const Real equivalent_plastic_strain);
 };
-

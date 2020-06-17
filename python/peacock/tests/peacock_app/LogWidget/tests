@@ -1,7 +1,7 @@
 [Tests]
-  [./LogWidget]
+  [LogWidget]
     type = PythonUnitTest
     input = test_LogWidget.py
-    display_required = True
-  [../]
+    display_required = true
+  []
 []

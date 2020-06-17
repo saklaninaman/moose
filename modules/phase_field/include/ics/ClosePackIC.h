@@ -13,10 +13,6 @@
 #include "SmoothCircleBaseIC.h"
 
 // Forward declarations
-class ClosePackIC;
-
-template <>
-InputParameters validParams<ClosePackIC>();
 
 /**
  * An InitialCondition for initializing phase variable in close packed circles/spheres pattern
@@ -24,6 +20,8 @@ InputParameters validParams<ClosePackIC>();
 class ClosePackIC : public SmoothCircleBaseIC
 {
 public:
+  static InputParameters validParams();
+
   ClosePackIC(const InputParameters & parameters);
 
 protected:
@@ -36,4 +34,3 @@ protected:
   /// User-supplied circle radius
   const Real _radius;
 };
-

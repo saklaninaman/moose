@@ -6,11 +6,12 @@ Content:
 
 Renderer:
     type: MooseDocs.base.MaterializeRenderer
-    name: MOOSE Navier Stokes Module
-    repo: https://github.com/idaholab/moose
-    home: /modules/navier_stokes
 
 Extensions:
+    MooseDocs.extensions.navigation:
+        name: MOOSE Navier Stokes Module
+        repo: https://github.com/idaholab/moose
+        home: /modules/navier_stokes
     MooseDocs.extensions.appsyntax:
         executable: ${MOOSE_DIR}/modules/navier_stokes
         hide:
@@ -29,3 +30,4 @@ Extensions:
         shortcuts: !include framework/doc/globals.yml
     MooseDocs.extensions.acronym:
         acronyms: !include framework/doc/acronyms.yml
+    MooseDocs.extensions.sqa: disable

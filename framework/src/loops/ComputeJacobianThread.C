@@ -19,6 +19,7 @@
 #include "NonlocalKernel.h"
 #include "SwapBackSentinel.h"
 #include "TimeDerivative.h"
+#include "FVElementalKernel.h"
 
 #include "libmesh/threads.h"
 
@@ -31,7 +32,6 @@ ComputeJacobianThread::ComputeJacobianThread(FEProblemBase & fe_problem,
     _dg_kernels(_nl.getDGKernelWarehouse()),
     _interface_kernels(_nl.getInterfaceKernelWarehouse()),
     _kernels(_nl.getKernelWarehouse()),
-    _ad_jacobian_kernels(_nl.getADJacobianKernelWarehouse()),
     _tags(tags)
 {
 }
@@ -46,7 +46,6 @@ ComputeJacobianThread::ComputeJacobianThread(ComputeJacobianThread & x, Threads:
     _interface_kernels(x._interface_kernels),
     _kernels(x._kernels),
     _warehouse(x._warehouse),
-    _ad_jacobian_kernels(x._ad_jacobian_kernels),
     _tags(x._tags)
 {
 }
@@ -74,10 +73,19 @@ ComputeJacobianThread::computeJacobian()
         }
       }
   }
-  if (_adjk_warehouse->hasActiveBlockObjects(_subdomain, _tid))
+
+  if (_fe_problem.haveFV())
   {
-    auto & kernels = _adjk_warehouse->getActiveBlockObjects(_subdomain, _tid);
-    for (const auto & kernel : kernels)
+    std::vector<FVElementalKernel *> kernels;
+    _fe_problem.theWarehouse()
+        .query()
+        .template condition<AttribSystem>("FVElementalKernel")
+        .template condition<AttribSubdomains>(_subdomain)
+        .template condition<AttribThread>(_tid)
+        .template condition<AttribMatrixTags>(_tags)
+        .queryInto(kernels);
+
+    for (auto kernel : kernels)
       if (kernel->isImplicit())
         kernel->computeJacobian();
   }
@@ -140,7 +148,6 @@ ComputeJacobianThread::subdomainChanged()
   // Update variable Dependencies
   std::set<MooseVariableFEBase *> needed_moose_vars;
   _kernels.updateBlockVariableDependency(_subdomain, needed_moose_vars, _tid);
-  _ad_jacobian_kernels.updateBlockVariableDependency(_subdomain, needed_moose_vars, _tid);
   _integrated_bcs.updateBoundaryVariableDependency(needed_moose_vars, _tid);
   _dg_kernels.updateBlockVariableDependency(_subdomain, needed_moose_vars, _tid);
   _interface_kernels.updateBoundaryVariableDependency(needed_moose_vars, _tid);
@@ -148,10 +155,28 @@ ComputeJacobianThread::subdomainChanged()
   // Update material dependencies
   std::set<unsigned int> needed_mat_props;
   _kernels.updateBlockMatPropDependency(_subdomain, needed_mat_props, _tid);
-  _ad_jacobian_kernels.updateBlockMatPropDependency(_subdomain, needed_mat_props, _tid);
   _integrated_bcs.updateBoundaryMatPropDependency(needed_mat_props, _tid);
   _dg_kernels.updateBlockMatPropDependency(_subdomain, needed_mat_props, _tid);
   _interface_kernels.updateBoundaryMatPropDependency(needed_mat_props, _tid);
+
+  if (_fe_problem.haveFV())
+  {
+    std::vector<FVElementalKernel *> fv_kernels;
+    _fe_problem.theWarehouse()
+        .query()
+        .template condition<AttribSystem>("FVElementalKernel")
+        .template condition<AttribSubdomains>(_subdomain)
+        .template condition<AttribThread>(_tid)
+        .template condition<AttribVectorTags>(_tags)
+        .queryInto(fv_kernels);
+    for (const auto fv_kernel : fv_kernels)
+    {
+      const auto & fv_mv_deps = fv_kernel->getMooseVariableDependencies();
+      needed_moose_vars.insert(fv_mv_deps.begin(), fv_mv_deps.end());
+      const auto & fv_mp_deps = fv_kernel->getMatPropDependencies();
+      needed_mat_props.insert(fv_mp_deps.begin(), fv_mp_deps.end());
+    }
+  }
 
   _fe_problem.setActiveElementalMooseVariables(needed_moose_vars, _tid);
   _fe_problem.setActiveMaterialProperties(needed_mat_props, _tid);
@@ -162,7 +187,6 @@ ComputeJacobianThread::subdomainChanged()
   if (!_tags.size() || _tags.size() == _fe_problem.numMatrixTags())
   {
     _warehouse = &_kernels;
-    _adjk_warehouse = &_ad_jacobian_kernels;
     _dg_warehouse = &_dg_kernels;
     _ibc_warehouse = &_integrated_bcs;
     _ik_warehouse = &_interface_kernels;
@@ -172,7 +196,6 @@ ComputeJacobianThread::subdomainChanged()
   else if (_tags.size() == 1)
   {
     _warehouse = &(_kernels.getMatrixTagObjectWarehouse(*(_tags.begin()), _tid));
-    _adjk_warehouse = &(_ad_jacobian_kernels.getMatrixTagObjectWarehouse(*(_tags.begin()), _tid));
     _dg_warehouse = &(_dg_kernels.getMatrixTagObjectWarehouse(*(_tags.begin()), _tid));
     _ibc_warehouse = &(_integrated_bcs.getMatrixTagObjectWarehouse(*(_tags.begin()), _tid));
     _ik_warehouse = &(_interface_kernels.getMatrixTagObjectWarehouse(*(_tags.begin()), _tid));
@@ -181,7 +204,6 @@ ComputeJacobianThread::subdomainChanged()
   else
   {
     _warehouse = &(_kernels.getMatrixTagsObjectWarehouse(_tags, _tid));
-    _adjk_warehouse = &(_ad_jacobian_kernels.getMatrixTagsObjectWarehouse(_tags, _tid));
     _dg_warehouse = &(_dg_kernels.getMatrixTagsObjectWarehouse(_tags, _tid));
     _ibc_warehouse = &(_integrated_bcs.getMatrixTagsObjectWarehouse(_tags, _tid));
     _ik_warehouse = &(_interface_kernels.getMatrixTagsObjectWarehouse(_tags, _tid));
@@ -271,13 +293,20 @@ ComputeJacobianThread::onInterface(const Elem * elem, unsigned int side, Boundar
       _fe_problem.reinitNeighbor(elem, side, _tid);
 
       // Set up Sentinels so that, even if one of the reinitMaterialsXXX() calls throws, we
-      // still remember to swap back during stack unwinding.
+      // still remember to swap back during stack unwinding. Note that face, boundary, and interface
+      // all operate with the same MaterialData object
       SwapBackSentinel face_sentinel(_fe_problem, &FEProblem::swapBackMaterialsFace, _tid);
       _fe_problem.reinitMaterialsFace(elem->subdomain_id(), _tid);
       _fe_problem.reinitMaterialsBoundary(bnd_id, _tid);
 
       SwapBackSentinel neighbor_sentinel(_fe_problem, &FEProblem::swapBackMaterialsNeighbor, _tid);
       _fe_problem.reinitMaterialsNeighbor(neighbor->subdomain_id(), _tid);
+
+      // Has to happen after face and neighbor properties have been computed. Note that we don't use
+      // a sentinel here because FEProblem::swapBackMaterialsFace is going to handle face materials,
+      // boundary materials, and interface materials (e.g. it queries the boundary material data
+      // with the current element and side
+      _fe_problem.reinitMaterialsInterface(bnd_id, _tid);
 
       computeInternalInterFaceJacobian(bnd_id);
 

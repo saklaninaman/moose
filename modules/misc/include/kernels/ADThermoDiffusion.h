@@ -11,23 +11,16 @@
 
 #include "ADKernel.h"
 
-template <ComputeStage compute_stage>
-class ADThermoDiffusion;
-
-declareADValidParams(ADThermoDiffusion);
-
-template <ComputeStage compute_stage>
-class ADThermoDiffusion : public ADKernel<compute_stage>
+class ADThermoDiffusion : public ADKernel
 {
 public:
+  static InputParameters validParams();
+
   ADThermoDiffusion(const InputParameters & parameters);
 
 protected:
-  virtual ADResidual computeQpResidual() override;
+  virtual ADReal computeQpResidual() override;
 
   const ADVariableGradient & _grad_temp;
-  const ADMaterialProperty(Real) & _soret_coeff;
-
-  usingKernelMembers;
+  const ADMaterialProperty<Real> & _soret_coeff;
 };
-

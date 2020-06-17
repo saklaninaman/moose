@@ -11,14 +11,11 @@
 
 #include "ConstitutiveModel.h"
 
-class ElasticModel;
-
-template <>
-InputParameters validParams<ElasticModel>();
-
 class ElasticModel : public ConstitutiveModel
 {
 public:
+  static InputParameters validParams();
+
   ElasticModel(const InputParameters & parameters);
   virtual ~ElasticModel();
 
@@ -30,4 +27,3 @@ protected:
                              SymmTensor & strain_increment,
                              SymmTensor & stress_new);
 };
-

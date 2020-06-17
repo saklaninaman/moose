@@ -11,11 +11,6 @@
 
 #include "PorousFlowRelativePermeabilityBase.h"
 
-class PorousFlowRelativePermeabilityCorey;
-
-template <>
-InputParameters validParams<PorousFlowRelativePermeabilityCorey>();
-
 /**
  * Material to calculate Corey-type relative permeability of an arbitrary phase
  * given the effective saturation and Corey exponent of that phase.
@@ -26,6 +21,8 @@ InputParameters validParams<PorousFlowRelativePermeabilityCorey>();
 class PorousFlowRelativePermeabilityCorey : public PorousFlowRelativePermeabilityBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowRelativePermeabilityCorey(const InputParameters & parameters);
 
 protected:
@@ -35,4 +32,3 @@ protected:
   /// Corey exponent n for the specified phase
   const Real _n;
 };
-

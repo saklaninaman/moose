@@ -12,14 +12,12 @@
 #include "Material.h"
 
 // Forward Declarations
-class PFCTradMaterial;
-
-template <>
-InputParameters validParams<PFCTradMaterial>();
 
 class PFCTradMaterial : public Material
 {
 public:
+  static InputParameters validParams();
+
   PFCTradMaterial(const InputParameters & parameters);
 
 protected:
@@ -38,4 +36,3 @@ private:
   MaterialProperty<Real> & _C6;
   MaterialProperty<Real> & _C8;
 };
-

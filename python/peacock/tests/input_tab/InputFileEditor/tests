@@ -1,7 +1,7 @@
 [Tests]
-  [./InputFileEditor]
+  [InputFileEditor]
     type = PythonUnitTest
     input = test_InputFileEditor.py
-    display_required = True
-  [../]
+    display_required = true
+  []
 []

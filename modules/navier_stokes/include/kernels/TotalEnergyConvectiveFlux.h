@@ -11,11 +11,6 @@
 
 #include "Kernel.h"
 
-class TotalEnergyConvectiveFlux;
-
-template <>
-InputParameters validParams<TotalEnergyConvectiveFlux>();
-
 /**
  * A kernel for computing total energy convective flux
  *
@@ -25,6 +20,8 @@ InputParameters validParams<TotalEnergyConvectiveFlux>();
 class TotalEnergyConvectiveFlux : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   TotalEnergyConvectiveFlux(const InputParameters & parameters);
 
 protected:
@@ -40,4 +37,3 @@ protected:
   /// Enthalpy
   const VariableValue & _enthalpy;
 };
-

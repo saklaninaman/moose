@@ -12,11 +12,7 @@
 #include "AuxKernel.h"
 
 // Forward declaration
-class DiscreteNucleationAux;
 class DiscreteNucleationMap;
-
-template <>
-InputParameters validParams<DiscreteNucleationAux>();
 
 /**
  * Project the DiscreteNucleationMap onto an AuxVariable field
@@ -24,6 +20,8 @@ InputParameters validParams<DiscreteNucleationAux>();
 class DiscreteNucleationAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   DiscreteNucleationAux(const InputParameters & params);
 
 protected:
@@ -41,4 +39,3 @@ protected:
   const Real _v1;
   ///@}
 };
-

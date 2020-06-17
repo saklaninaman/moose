@@ -10,13 +10,16 @@
 #include "RankTwoScalarAux.h"
 #include "RankTwoScalarTools.h"
 
-registerMooseObject("TensorMechanicsApp", RankTwoScalarAux);
+#include "metaphysicl/raw_type.h"
 
-template <>
+registerMooseObject("TensorMechanicsApp", RankTwoScalarAux);
+registerMooseObject("TensorMechanicsApp", ADRankTwoScalarAux);
+
+template <bool is_ad>
 InputParameters
-validParams<RankTwoScalarAux>()
+RankTwoScalarAuxTempl<is_ad>::validParams()
 {
-  InputParameters params = validParams<NodalPatchRecovery>();
+  InputParameters params = NodalPatchRecovery::validParams();
   params.addClassDescription("Compute a scalar property of a RankTwoTensor");
   params.addRequiredParam<MaterialPropertyName>("rank_two_tensor",
                                                 "The rank two material tensor name");
@@ -32,7 +35,7 @@ validParams<RankTwoScalarAux>()
   params.addParam<Point>(
       "point1",
       Point(0, 0, 0),
-      "Start point for axis used to calculate some cylinderical material tensor quantities");
+      "Start point for axis used to calculate some cylindrical material tensor quantities");
   params.addParam<Point>("point2",
                          Point(0, 1, 0),
                          "End point for axis used to calculate some material tensor quantities");
@@ -40,9 +43,10 @@ validParams<RankTwoScalarAux>()
   return params;
 }
 
-RankTwoScalarAux::RankTwoScalarAux(const InputParameters & parameters)
+template <bool is_ad>
+RankTwoScalarAuxTempl<is_ad>::RankTwoScalarAuxTempl(const InputParameters & parameters)
   : NodalPatchRecovery(parameters),
-    _tensor(getMaterialProperty<RankTwoTensor>("rank_two_tensor")),
+    _tensor(getGenericMaterialProperty<RankTwoTensor, is_ad>("rank_two_tensor")),
     _scalar_type(getParam<MooseEnum>("scalar_type")),
     _has_selected_qp(isParamValid("selected_qp")),
     _selected_qp(_has_selected_qp ? getParam<unsigned int>("selected_qp") : 0),
@@ -52,8 +56,9 @@ RankTwoScalarAux::RankTwoScalarAux(const InputParameters & parameters)
 {
 }
 
+template <bool is_ad>
 Real
-RankTwoScalarAux::computeValue()
+RankTwoScalarAuxTempl<is_ad>::computeValue()
 {
   unsigned int qp = _qp;
   if (_has_selected_qp)
@@ -70,6 +75,13 @@ RankTwoScalarAux::computeValue()
     qp = _selected_qp;
   }
 
-  return RankTwoScalarTools::getQuantity(
-      _tensor[qp], _scalar_type, _point1, _point2, _q_point[qp], _input_direction);
+  return RankTwoScalarTools::getQuantity(MetaPhysicL::raw_value(_tensor[qp]),
+                                         _scalar_type,
+                                         _point1,
+                                         _point2,
+                                         _q_point[qp],
+                                         _input_direction);
 }
+
+template class RankTwoScalarAuxTempl<false>;
+template class RankTwoScalarAuxTempl<true>;

@@ -13,11 +13,10 @@
 
 registerMooseObject("NavierStokesApp", NSMomentumInviscidFluxWithGradP);
 
-template <>
 InputParameters
-validParams<NSMomentumInviscidFluxWithGradP>()
+NSMomentumInviscidFluxWithGradP::validParams()
 {
-  InputParameters params = validParams<NSKernel>();
+  InputParameters params = NSKernel::validParams();
   params.addClassDescription(
       "This class computes the inviscid flux with pressure gradient in the momentum equation.");
   params.addRequiredCoupledVar(NS::pressure, "pressure");

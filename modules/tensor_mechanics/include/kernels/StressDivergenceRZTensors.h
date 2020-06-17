@@ -12,10 +12,6 @@
 #include "StressDivergenceTensors.h"
 
 // Forward Declarations
-class StressDivergenceRZTensors;
-
-template <>
-InputParameters validParams<StressDivergenceRZTensors>();
 
 /**
  * StressDivergenceRZTensors is a modification of StressDivergenceTensors to
@@ -31,6 +27,8 @@ InputParameters validParams<StressDivergenceRZTensors>();
 class StressDivergenceRZTensors : public StressDivergenceTensors
 {
 public:
+  static InputParameters validParams();
+
   StressDivergenceRZTensors(const InputParameters & parameters);
 
 protected:
@@ -45,4 +43,3 @@ protected:
 
   Real calculateJacobian(unsigned int ivar, unsigned int jvar);
 };
-

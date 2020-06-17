@@ -19,6 +19,7 @@
 
 #include "libmesh/transient_system.h"
 #include "libmesh/nonlinear_implicit_system.h"
+#include "libmesh/linear_solver.h"
 
 // Forward declarations
 class FEProblemBase;
@@ -32,9 +33,8 @@ class GeneralDamper;
 class GeometricSearchData;
 class IntegratedBCBase;
 class NodalBCBase;
-class PresetNodalBC;
-template <ComputeStage>
-class ADPresetNodalBC;
+class DirichletBCBase;
+class ADDirichletBCBase;
 class DGKernelBase;
 class InterfaceKernelBase;
 class ScalarKernel;
@@ -58,9 +58,7 @@ class SparseMatrix;
  *
  * It is a part of FEProblemBase ;-)
  */
-class NonlinearSystemBase : public SystemBase,
-                            public ConsoleStreamInterface,
-                            public PerfGraphInterface
+class NonlinearSystemBase : public SystemBase, public PerfGraphInterface
 {
 public:
   NonlinearSystemBase(FEProblemBase & problem, System & sys, const std::string & name);
@@ -68,12 +66,12 @@ public:
 
   virtual void init() override;
 
-  bool computingInitialJacobian() const final { return _computing_initial_jacobian; }
+  bool computedScalingJacobian() const { return _computed_scaling; }
 
   /**
    * Turn off the Jacobian (must be called before equation system initialization)
    */
-  void turnOffJacobian();
+  virtual void turnOffJacobian();
 
   virtual void addExtraVectors() override;
   virtual void solve() override = 0;
@@ -121,7 +119,7 @@ public:
    */
   void addTimeIntegrator(const std::string & type,
                          const std::string & name,
-                         InputParameters parameters) override;
+                         InputParameters & parameters) override;
   using SystemBase::addTimeIntegrator;
 
   /**
@@ -136,8 +134,9 @@ public:
    * @param name The name of the kernel
    * @param parameters Kernel parameters
    */
-  virtual void
-  addKernel(const std::string & kernel_name, const std::string & name, InputParameters parameters);
+  virtual void addKernel(const std::string & kernel_name,
+                         const std::string & name,
+                         InputParameters & parameters);
 
   /**
    * Adds a NodalKernel
@@ -147,7 +146,7 @@ public:
    */
   virtual void addNodalKernel(const std::string & kernel_name,
                               const std::string & name,
-                              InputParameters parameters);
+                              InputParameters & parameters);
 
   /**
    * Adds a scalar kernel
@@ -157,7 +156,7 @@ public:
    */
   void addScalarKernel(const std::string & kernel_name,
                        const std::string & name,
-                       InputParameters parameters);
+                       InputParameters & parameters);
 
   /**
    * Adds a boundary condition
@@ -167,7 +166,7 @@ public:
    */
   void addBoundaryCondition(const std::string & bc_name,
                             const std::string & name,
-                            InputParameters parameters);
+                            InputParameters & parameters);
 
   /**
    * Adds a Constraint
@@ -176,7 +175,7 @@ public:
    * @param parameters Constraint parameters
    */
   void
-  addConstraint(const std::string & c_name, const std::string & name, InputParameters parameters);
+  addConstraint(const std::string & c_name, const std::string & name, InputParameters & parameters);
 
   /**
    * Adds a Dirac kernel
@@ -186,7 +185,7 @@ public:
    */
   void addDiracKernel(const std::string & kernel_name,
                       const std::string & name,
-                      InputParameters parameters);
+                      InputParameters & parameters);
 
   /**
    * Adds a DG kernel
@@ -195,7 +194,7 @@ public:
    * @param parameters DG kernel parameters
    */
   void
-  addDGKernel(std::string dg_kernel_name, const std::string & name, InputParameters parameters);
+  addDGKernel(std::string dg_kernel_name, const std::string & name, InputParameters & parameters);
 
   /**
    * Adds an interface kernel
@@ -205,7 +204,7 @@ public:
    */
   void addInterfaceKernel(std::string interface_kernel_name,
                           const std::string & name,
-                          InputParameters parameters);
+                          InputParameters & parameters);
 
   /**
    * Adds a damper
@@ -213,8 +212,9 @@ public:
    * @param name The name of the damper
    * @param parameters Damper parameters
    */
-  void
-  addDamper(const std::string & damper_name, const std::string & name, InputParameters parameters);
+  void addDamper(const std::string & damper_name,
+                 const std::string & name,
+                 InputParameters & parameters);
 
   /**
    * Adds a split
@@ -223,7 +223,7 @@ public:
    * @param parameters Split parameters
    */
   void
-  addSplit(const std::string & split_name, const std::string & name, InputParameters parameters);
+  addSplit(const std::string & split_name, const std::string & name, InputParameters & parameters);
 
   /**
    * Retrieves a split by name
@@ -300,7 +300,7 @@ public:
   /**
    * Method used to obtain scaling factors for variables
    */
-  void computeScalingJacobian(NonlinearImplicitSystem & sys);
+  virtual void computeScaling();
 
   /**
    * Associate jacobian to systemMatrixTag, and then form a matrix for all the tags
@@ -465,6 +465,12 @@ public:
   }
 
   /**
+   * Attach a customized preconditioner that requires physics knowledge.
+   * Generic preconditioners should be implemented in PETSc, instead.
+   */
+  virtual void attachPreconditioner(Preconditioner<Number> * preconditioner) = 0;
+
+  /**
    * Setup damping stuff (called before we actually start)
    */
   void setupDampers();
@@ -543,6 +549,12 @@ public:
   bool needBoundaryMaterialOnSide(BoundaryID bnd_id, THREAD_ID tid) const;
 
   /**
+   * Indicated whether this system needs material properties on interfaces.
+   * @return Boolean if IntegratedBCs are active
+   */
+  bool needInterfaceMaterialOnSide(BoundaryID bnd_id, THREAD_ID tid) const;
+
+  /**
    * Indicates whether this system needs material properties on internal sides.
    * @return Boolean if DGKernels are active
    */
@@ -558,10 +570,6 @@ public:
    * Access functions to Warehouses from outside NonlinearSystemBase
    */
   MooseObjectTagWarehouse<KernelBase> & getKernelWarehouse() { return _kernels; }
-  MooseObjectTagWarehouse<KernelBase> & getADJacobianKernelWarehouse()
-  {
-    return _ad_jacobian_kernels;
-  }
   MooseObjectTagWarehouse<DGKernelBase> & getDGKernelWarehouse() { return _dg_kernels; }
   MooseObjectTagWarehouse<InterfaceKernelBase> & getInterfaceKernelWarehouse()
   {
@@ -577,7 +585,21 @@ public:
   {
     return _nodal_dampers;
   }
-  const ConstraintWarehouse & getConstraintWarehouse() const { return _constraints; };
+  const ConstraintWarehouse & getConstraintWarehouse() const { return _constraints; }
+
+  /**
+   * Return the NodalBCBase warehouse
+   */
+  const MooseObjectTagWarehouse<NodalBCBase> & getNodalBCWarehouse() const { return _nodal_bcs; }
+
+  /**
+   * Return the IntegratedBCBase warehouse
+   */
+  const MooseObjectTagWarehouse<IntegratedBCBase> & getIntegratedBCWarehouse() const
+  {
+    return _integrated_bcs;
+  }
+
   //@}
 
   /**
@@ -589,9 +611,6 @@ public:
    * Weather or not the nonlinear system has diagonal Jacobian save-ins
    */
   bool hasDiagSaveIn() const { return _has_diag_save_in || _has_nodalbc_diag_save_in; }
-
-  NumericVector<Number> & solution() override { return *_sys.solution; }
-  const NumericVector<Number> & solution() const override { return *_sys.solution; }
 
   virtual System & system() override { return _sys; }
   virtual const System & system() const override { return _sys; }
@@ -616,13 +635,44 @@ public:
 
   virtual TagID systemMatrixTag() override { return _Ke_system_tag; }
 
+  bool computeScalingOnce() const { return _compute_scaling_once; }
+  void computeScalingOnce(bool compute_scaling_once)
+  {
+    _compute_scaling_once = compute_scaling_once;
+  }
+
+  /**
+   * Sets the param that indicates the weighting of the residual vs the Jacobian in determining
+   * variable scaling parameters. A value of 1 indicates pure residual-based scaling. A value of 0
+   * indicates pure Jacobian-based scaling
+   */
+  void autoScalingParam(Real resid_vs_jac_scaling_param)
+  {
+    _resid_vs_jac_scaling_param = resid_vs_jac_scaling_param;
+  }
+
+  void scalingGroupVariables(const std::vector<std::vector<std::string>> & scaling_group_variables)
+  {
+    _scaling_group_variables = scaling_group_variables;
+  }
+
+#ifndef MOOSE_SPARSE_AD
+  /**
+   * Set the required size of the derivative vector
+   */
+  void setRequiredDerivativeSize(std::size_t size) { _required_derivative_size = size; }
+
+  /**
+   * Return the required size of the derivative vector
+   */
+  std::size_t requiredDerivativeSize() const { return _required_derivative_size; }
+#endif
+
 public:
   FEProblemBase & _fe_problem;
   System & _sys;
   // FIXME: make these protected and create getters/setters
-  Real _last_rnorm;
   Real _last_nl_rnorm;
-  Real _l_abs_step_tol;
   Real _initial_residual_before_preset_bcs;
   Real _initial_residual_after_preset_bcs;
   std::vector<unsigned int> _current_l_its;
@@ -668,16 +718,13 @@ protected:
   void enforceNodalConstraintsJacobian();
 
   /**
-   * Do mortar constraint residual computation
+   * Do mortar constraint residual/jacobian computations
    */
-  void mortarResidualConstraints(bool displaced);
-
-  /**
-   * Do mortar constraint jacobian computation
-   */
-  void mortarJacobianConstraints(bool displaced);
+  void mortarConstraints(bool displaced);
 
 protected:
+  NumericVector<Number> & solutionInternal() const override { return *_sys.solution; }
+
   /// solution vector from nonlinear solver
   const NumericVector<Number> * _current_solution;
   /// ghosted form of the residual
@@ -736,7 +783,6 @@ protected:
   ///@{
   /// Kernel Storage
   MooseObjectTagWarehouse<KernelBase> _kernels;
-  MooseObjectTagWarehouse<KernelBase> _ad_jacobian_kernels;
   MooseObjectTagWarehouse<ScalarKernel> _scalar_kernels;
   MooseObjectTagWarehouse<DGKernelBase> _dg_kernels;
   MooseObjectTagWarehouse<InterfaceKernelBase> _interface_kernels;
@@ -747,8 +793,8 @@ protected:
   /// BoundaryCondition Warhouses
   MooseObjectTagWarehouse<IntegratedBCBase> _integrated_bcs;
   MooseObjectTagWarehouse<NodalBCBase> _nodal_bcs;
-  MooseObjectWarehouse<PresetNodalBC> _preset_nodal_bcs;
-  MooseObjectWarehouse<ADPresetNodalBC<RESIDUAL>> _ad_preset_nodal_bcs;
+  MooseObjectWarehouse<DirichletBCBase> _preset_nodal_bcs;
+  MooseObjectWarehouse<ADDirichletBCBase> _ad_preset_nodal_bcs;
   ///@}
 
   /// Dirac Kernel storage for each thread
@@ -858,32 +904,40 @@ protected:
   PerfID _compute_jacobian_blocks_timer;
   PerfID _compute_dampers_timer;
   PerfID _compute_dirac_timer;
-  PerfID _compute_scaling_jacobian_timer;
+  PerfID _compute_scaling_timer;
 
-  /// Flag used to indicate whether we are computing the initial Jacobian
-  bool _computing_initial_jacobian;
+  /// Flag used to indicate whether we have already computed the scaling Jacobian
+  bool _computed_scaling;
 
-  /// A vector to be filled by the preconditioning matrix diagonal
-  NumericVector<Number> * _pmat_diagonal;
+  /// Whether the scaling factors should only be computed once at the beginning of the simulation
+  /// through an extra Jacobian evaluation. If this is set to false, then the scaling factors will
+  /// be computed during an extra Jacobian evaluation at the beginning of every time step.
+  bool _compute_scaling_once;
+
+  /// The param that indicates the weighting of the residual vs the Jacobian in determining
+  /// variable scaling parameters. A value of 1 indicates pure residual-based scaling. A value of 0
+  /// indicates pure Jacobian-based scaling
+  Real _resid_vs_jac_scaling_param;
+
+  /// A container of variable groupings that can be used in scaling calculations. This can be useful
+  /// for simulations in which vector-like variables are split into invidual scalar-field components
+  /// like for solid/fluid mechanics
+  std::vector<std::vector<std::string>> _scaling_group_variables;
 
 private:
-  /// Functors for computing residuals from undisplaced mortar constraints
-  std::unordered_map<std::pair<BoundaryID, BoundaryID>,
-                     ComputeMortarFunctor<ComputeStage::RESIDUAL>>
-      _undisplaced_mortar_residual_functors;
+  /// Functors for computing undisplaced mortar constraints
+  std::unordered_map<std::pair<BoundaryID, BoundaryID>, ComputeMortarFunctor>
+      _undisplaced_mortar_functors;
 
-  /// Functors for computing jacobians from undisplaced mortar constraints
-  std::unordered_map<std::pair<BoundaryID, BoundaryID>,
-                     ComputeMortarFunctor<ComputeStage::JACOBIAN>>
-      _undisplaced_mortar_jacobian_functors;
+  /// Functors for computing displaced mortar constraints
+  std::unordered_map<std::pair<BoundaryID, BoundaryID>, ComputeMortarFunctor>
+      _displaced_mortar_functors;
 
-  /// Functors for computing residuals from displaced mortar constraints
-  std::unordered_map<std::pair<BoundaryID, BoundaryID>,
-                     ComputeMortarFunctor<ComputeStage::RESIDUAL>>
-      _displaced_mortar_residual_functors;
+#ifndef MOOSE_SPARSE_AD
+  /// The required size of the derivative storage array
+  std::size_t _required_derivative_size;
+#endif
 
-  /// Functors for computing jacobians from displaced mortar constraints
-  std::unordered_map<std::pair<BoundaryID, BoundaryID>,
-                     ComputeMortarFunctor<ComputeStage::JACOBIAN>>
-      _displaced_mortar_jacobian_functors;
+  /// The current states of the solution (0 = current, 1 = old, etc)
+  std::vector<NumericVector<Number> *> _solution_state;
 };

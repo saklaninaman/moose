@@ -13,11 +13,6 @@
 #include "CompositeTensorBase.h"
 #include "RankFourTensor.h"
 
-class CompositeElasticityTensor;
-
-template <>
-InputParameters validParams<CompositeElasticityTensor>();
-
 /**
  * CompositeElasticityTensor provides a simple RankFourTensor type
  * MaterialProperty that can be used as an Elasticity tensor in a mechanics simulation.
@@ -29,14 +24,16 @@ InputParameters validParams<CompositeElasticityTensor>();
 class CompositeElasticityTensor : public CompositeTensorBase<RankFourTensor, Material>
 {
 public:
+  static InputParameters validParams();
+
   CompositeElasticityTensor(const InputParameters & parameters);
 
 protected:
   void computeQpProperties();
 
+  /// Base name of the material system
   const std::string _base_name;
   const std::string _M_name;
 
   MaterialProperty<RankFourTensor> & _M;
 };
-

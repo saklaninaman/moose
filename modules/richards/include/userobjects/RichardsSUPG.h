@@ -13,11 +13,6 @@
 
 #include "GeneralUserObject.h"
 
-class RichardsSUPG;
-
-template <>
-InputParameters validParams<RichardsSUPG>();
-
 /**
  * base class for SUPG of the Richards equation
  * You must override all the functions below with your specific implementation
@@ -25,6 +20,8 @@ InputParameters validParams<RichardsSUPG>();
 class RichardsSUPG : public GeneralUserObject
 {
 public:
+  static InputParameters validParams();
+
   RichardsSUPG(const InputParameters & parameters);
 
   void initialize();
@@ -145,4 +142,3 @@ public:
    */
   virtual bool SUPG_trivial() const = 0;
 };
-

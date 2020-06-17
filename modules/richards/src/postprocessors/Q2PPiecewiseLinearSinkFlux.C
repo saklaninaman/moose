@@ -14,11 +14,10 @@
 
 registerMooseObject("RichardsApp", Q2PPiecewiseLinearSinkFlux);
 
-template <>
 InputParameters
-validParams<Q2PPiecewiseLinearSinkFlux>()
+Q2PPiecewiseLinearSinkFlux::validParams()
 {
-  InputParameters params = validParams<SideIntegralPostprocessor>();
+  InputParameters params = SideIntegralPostprocessor::validParams();
   params.addParam<UserObjectName>(
       "fluid_density",
       "The fluid density as a RichardsDensity UserObject.  If this and the "

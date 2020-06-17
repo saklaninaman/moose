@@ -36,11 +36,12 @@
 
 registerMooseObject("MooseApp", ElementGenerator);
 
-template <>
+defineLegacyParams(ElementGenerator);
+
 InputParameters
-validParams<ElementGenerator>()
+ElementGenerator::validParams()
 {
-  InputParameters params = validParams<MeshGenerator>();
+  InputParameters params = MeshGenerator::validParams();
 
   MooseEnum elem_types("EDGE2 EDGE3 EDGE4 QUAD4 QUAD8 QUAD9 TRI3 TRI6 HEX8 HEX20 HEX27 TET4 TET10 "
                        "PRISM6 PRISM15 PRISM18 PYRAMID5 PYRAMID13 PYRAMID14");
@@ -53,10 +54,10 @@ validParams<ElementGenerator>()
   params.addRequiredParam<std::vector<dof_id_type>>("element_connectivity",
                                                     "List of nodes to use for each element");
 
-  params.addParam<MooseEnum>("elem_type",
-                             elem_types,
-                             "The type of element from libMesh to "
-                             "generate");
+  params.addParam<MooseEnum>(
+      "elem_type", elem_types, "The type of element from libMesh to generate");
+
+  params.addClassDescription("Generates individual elements given a list of nodal positions.");
 
   return params;
 }

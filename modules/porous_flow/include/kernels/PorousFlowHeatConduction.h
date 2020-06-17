@@ -12,17 +12,14 @@
 #include "Kernel.h"
 #include "PorousFlowDictator.h"
 
-class PorousFlowHeatConduction;
-
-template <>
-InputParameters validParams<PorousFlowHeatConduction>();
-
 /**
  * Kernel = grad(test) * thermal_conductivity * grad(temperature)
  */
 class PorousFlowHeatConduction : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowHeatConduction(const InputParameters & parameters);
 
 protected:
@@ -48,4 +45,3 @@ protected:
   /// d(gradT)/d(grad PorousFlow variable)
   const MaterialProperty<std::vector<Real>> & _dgrad_t_dgradvar;
 };
-

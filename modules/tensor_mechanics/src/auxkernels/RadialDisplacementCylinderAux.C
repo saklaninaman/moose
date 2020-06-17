@@ -12,11 +12,10 @@
 
 registerMooseObject("TensorMechanicsApp", RadialDisplacementCylinderAux);
 
-template <>
 InputParameters
-validParams<RadialDisplacementCylinderAux>()
+RadialDisplacementCylinderAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   params.addClassDescription(
       "Compute the radial component of the displacement vector for cylindrical models.");
   params.addRequiredCoupledVar(

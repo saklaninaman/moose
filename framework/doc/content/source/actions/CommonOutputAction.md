@@ -1,14 +1,22 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # CommonOutputAction
-
-!alert construction title=Undocumented Class
-The CommonOutputAction has not been documented. The content contained on this page includes the
-typical automatic documentation associated with an Action; however, what is contained is ultimately
-determined by what is necessary to make the documentation clear for users.
 
 !syntax description /Outputs/CommonOutputAction
 
-!syntax parameters /Outputs/CommonOutputAction
+## Overview
 
-!bibtex bibliography
+An action, that acts when the `[Outputs]` block exists. It adds short-cut syntax options, such as the
+[!param](/Outputs/exodus) parameter, as well as common parameters that are applied to all output
+objects. For example, the following enables two output objects and sets the output
+[!param](/Outputs/interval) to every 10 timesteps for both objects.
+
+```text
+[Outputs]
+  exodus = true
+  csv = true
+  interval = 10
+[]
+```
+
+Please refer to the [syntax/Outputs/index.md] for more information.
+
+!syntax parameters /Outputs/CommonOutputAction

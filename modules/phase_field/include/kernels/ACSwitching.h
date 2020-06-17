@@ -12,10 +12,6 @@
 #include "ACBulk.h"
 
 // Forward Declarations
-class ACSwitching;
-
-template <>
-InputParameters validParams<ACSwitching>();
 
 /**
  * ACSwitching adds terms of the form
@@ -27,6 +23,8 @@ InputParameters validParams<ACSwitching>();
 class ACSwitching : public ACBulk<Real>
 {
 public:
+  static InputParameters validParams();
+
   ACSwitching(const InputParameters & parameters);
 
   virtual void initialSetup();
@@ -35,7 +33,6 @@ protected:
   virtual Real computeDFDOP(PFFunctionType type);
   virtual Real computeQpOffDiagJacobian(unsigned int jvar);
 
-  const unsigned int _nvar;
   /// name of order parameter that derivatives are taken wrt (needed to retrieve the derivative material properties)
   VariableName _etai_name;
 
@@ -61,4 +58,3 @@ protected:
   /// Second derivatives of the switching functions (needed for off-diagonal Jacobians)
   std::vector<std::vector<const MaterialProperty<Real> *>> _prop_d2hjdetaidarg;
 };
-

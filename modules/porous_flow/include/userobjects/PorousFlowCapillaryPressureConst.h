@@ -11,17 +11,14 @@
 
 #include "PorousFlowCapillaryPressure.h"
 
-class PorousFlowCapillaryPressureConst;
-
-template <>
-InputParameters validParams<PorousFlowCapillaryPressureConst>();
-
 /**
  * Constant capillary pressure
  */
 class PorousFlowCapillaryPressureConst : public PorousFlowCapillaryPressure
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowCapillaryPressureConst(const InputParameters & parameters);
 
   virtual Real capillaryPressureCurve(Real saturation, unsigned qp = 0) const override;
@@ -36,4 +33,3 @@ protected:
   /// Constant capillary pressure (Pa)
   const Real _pc;
 };
-

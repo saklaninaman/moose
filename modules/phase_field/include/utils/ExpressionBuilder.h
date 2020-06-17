@@ -325,6 +325,7 @@ public:
   public:
     EBTermSubstitution(const EBTerm & find, const EBTerm & replace);
     virtual ~EBTermSubstitution() { delete _replace; }
+
   protected:
     virtual EBTermNode * substitute(const EBSymbolNode &) const;
     std::string _find;
@@ -343,6 +344,7 @@ public:
       mooseAssert(_epsilon != NULL, "Epsilon must not be an empty term in EBLogPlogSubstitution");
     }
     virtual ~EBLogPlogSubstitution() { delete _epsilon; }
+
   protected:
     virtual EBTermNode * substitute(const EBUnaryFuncTermNode &) const;
     EBTermNode * _epsilon;
@@ -360,7 +362,7 @@ public:
     // the default constructor assigns a temporary id node to root we use the address of the
     // current EBTerm object as the ID. This could be problematic if we create and destroy terms,
     // but then we should not expect the substitution to do sane things anyways.
-    EBTerm() : _root(new EBTempIDNode(reinterpret_cast<unsigned long>(this))){};
+    EBTerm() : _root(new EBTempIDNode(reinterpret_cast<unsigned long long>(this))){};
 
     EBTerm(const EBTerm & term) : _root(term.cloneRoot()){};
     ~EBTerm() { delete _root; };
@@ -497,7 +499,7 @@ public:
     BINARYCOMP_OP_IMPLEMENT(%=, MOD)
 
     /**
-    * @{
+     * @{
      * Binary functions
      */
     friend EBTerm min(const EBTerm &, const EBTerm &);
@@ -699,4 +701,3 @@ ExpressionBuilder::EBSubstitutionRuleTyped<Node_T>::apply(
   else
     return substitute(*match_node);
 }
-

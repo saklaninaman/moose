@@ -12,17 +12,14 @@
 #include "GeneralPostprocessor.h"
 #include "DiscreteNucleationInserterBase.h"
 
-class DiscreteNucleationData;
-
-template <>
-InputParameters validParams<DiscreteNucleationData>();
-
 /**
  * Output diagnostic data on a DiscreteNucleationInserter
  */
 class DiscreteNucleationData : public GeneralPostprocessor
 {
 public:
+  static InputParameters validParams();
+
   DiscreteNucleationData(const InputParameters & parameters);
 
   void execute() override{};
@@ -47,4 +44,3 @@ protected:
     DELETIONS
   } _value_type;
 };
-

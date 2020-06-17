@@ -18,6 +18,8 @@
 class DomainIntegralQFunction : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   /**
    * Factory constructor, takes parameters so that all derived classes can be built using the same
    * constructor.
@@ -40,7 +42,3 @@ private:
   bool _treat_as_2d;
   bool _is_point_on_intersecting_boundary;
 };
-
-template <>
-InputParameters validParams<DomainIntegralQFunction>();
-

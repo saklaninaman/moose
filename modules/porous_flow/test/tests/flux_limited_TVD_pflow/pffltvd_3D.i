@@ -64,13 +64,13 @@
 
 [BCs]
   [./constant_injection_porepressure]
-    type = PresetBC
+    type = DirichletBC
     variable = porepressure
     value = 1
     boundary = left
   [../]
   [./no_tracer_on_left]
-    type = PresetBC
+    type = DirichletBC
     variable = tracer
     value = 0
     boundary = left
@@ -203,7 +203,9 @@
 []
 
 [Outputs]
-  csv = true
   print_linear_residuals = false
-  execute_on = final
+  [./out]
+    type = CSV
+    execute_on = final
+  [../]
 []

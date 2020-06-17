@@ -23,6 +23,8 @@ public:
    * Factory constructor, takes parameters so that all derived classes can be built using the same
    * constructor.
    */
+  static InputParameters validParams();
+
   XFEMVolFracAux(const InputParameters & parameters);
 
   virtual ~XFEMVolFracAux() {}
@@ -33,7 +35,3 @@ protected:
 private:
   std::shared_ptr<XFEM> _xfem;
 };
-
-template <>
-InputParameters validParams<XFEMVolFracAux>();
-

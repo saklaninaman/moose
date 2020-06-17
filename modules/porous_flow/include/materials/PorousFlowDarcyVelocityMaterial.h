@@ -11,17 +11,14 @@
 
 #include "PorousFlowMaterial.h"
 
-class PorousFlowDarcyVelocityMaterial;
-
-template <>
-InputParameters validParams<PorousFlowDarcyVelocityMaterial>();
-
 /**
  * Material to calculate the Darcy velocity for all phases
  */
 class PorousFlowDarcyVelocityMaterial : public PorousFlowMaterial
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowDarcyVelocityMaterial(const InputParameters & parameters);
 
 protected:
@@ -94,4 +91,3 @@ protected:
   MaterialProperty<std::vector<std::vector<std::vector<RealVectorValue>>>> &
       _ddarcy_velocity_dgradvar;
 };
-

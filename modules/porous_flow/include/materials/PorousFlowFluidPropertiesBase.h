@@ -12,11 +12,6 @@
 #include "PorousFlowMaterialBase.h"
 #include "PorousFlowDictator.h"
 
-class PorousFlowFluidPropertiesBase;
-
-template <>
-InputParameters validParams<PorousFlowFluidPropertiesBase>();
-
 /**
  * Base class for fluid properties materials. All PorousFlow fluid
  * materials must override computeQpProperties()
@@ -24,6 +19,8 @@ InputParameters validParams<PorousFlowFluidPropertiesBase>();
 class PorousFlowFluidPropertiesBase : public PorousFlowMaterialBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowFluidPropertiesBase(const InputParameters & parameters);
 
 protected:
@@ -41,4 +38,3 @@ protected:
   /// Universal gas constant
   const Real _R;
 };
-

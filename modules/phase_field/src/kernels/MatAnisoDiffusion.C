@@ -11,9 +11,8 @@
 
 registerMooseObject("PhaseFieldApp", MatAnisoDiffusion);
 
-template <>
 InputParameters
-validParams<MatAnisoDiffusion>()
+MatAnisoDiffusion::validParams()
 {
   InputParameters params = MatDiffusionBase<RealTensorValue>::validParams();
   params.addClassDescription(

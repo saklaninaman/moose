@@ -10,34 +10,48 @@
 #include "ADKernelStabilized.h"
 #include "MathUtils.h"
 #include "Assembly.h"
+#include "SystemBase.h"
+#include "ADUtils.h"
 
 // libmesh includes
 #include "libmesh/threads.h"
 
-defineADValidParams(ADKernelStabilized, ADKernel, );
-defineADValidParams(ADVectorKernelStabilized, ADVectorKernel, );
+template <typename T>
+InputParameters
+ADKernelStabilizedTempl<T>::validParams()
+{
+  return ADKernelTempl<T>::validParams();
+}
 
-template <typename T, ComputeStage compute_stage>
-ADKernelStabilizedTempl<T, compute_stage>::ADKernelStabilizedTempl(
-    const InputParameters & parameters)
-  : ADKernelTempl<T, compute_stage>(parameters)
+template <typename T>
+ADKernelStabilizedTempl<T>::ADKernelStabilizedTempl(const InputParameters & parameters)
+  : ADKernelTempl<T>(parameters)
 {
 }
 
-template <typename T, ComputeStage compute_stage>
+template <typename T>
 void
-ADKernelStabilizedTempl<T, compute_stage>::computeResidual()
+ADKernelStabilizedTempl<T>::computeResidual()
 {
   prepareVectorTag(_assembly, _var.number());
 
   precalculateResidual();
   const unsigned int n_test = _grad_test.size();
-  for (_qp = 0; _qp < _qrule->n_points(); _qp++)
-  {
-    const auto value = precomputeQpStrongResidual() * _ad_JxW[_qp] * _ad_coord[_qp];
-    for (_i = 0; _i < n_test; _i++) // target for auto vectorization
-      _local_re(_i) += _grad_test[_i][_qp] * computeQpStabilization() * value;
-  }
+
+  if (_use_displaced_mesh)
+    for (_qp = 0; _qp < _qrule->n_points(); _qp++)
+    {
+      const auto value = precomputeQpStrongResidual() * _ad_JxW[_qp] * _ad_coord[_qp];
+      for (_i = 0; _i < n_test; _i++) // target for auto vectorization
+        _local_re(_i) += raw_value(_grad_test[_i][_qp] * computeQpStabilization() * value);
+    }
+  else
+    for (_qp = 0; _qp < _qrule->n_points(); _qp++)
+    {
+      const auto value = precomputeQpStrongResidual() * _JxW[_qp] * _coord[_qp];
+      for (_i = 0; _i < n_test; _i++) // target for auto vectorization
+        _local_re(_i) += raw_value(_regular_grad_test[_i][_qp] * computeQpStabilization() * value);
+    }
 
   accumulateTaggedLocalResidual();
 
@@ -49,38 +63,41 @@ ADKernelStabilizedTempl<T, compute_stage>::computeResidual()
   }
 }
 
-template <>
+template <typename T>
 void
-ADKernelStabilizedTempl<Real, JACOBIAN>::computeResidual()
-{
-}
-
-template <>
-void
-ADKernelStabilizedTempl<RealVectorValue, JACOBIAN>::computeResidual()
-{
-}
-
-template <typename T, ComputeStage compute_stage>
-void
-ADKernelStabilizedTempl<T, compute_stage>::computeJacobian()
+ADKernelStabilizedTempl<T>::computeJacobian()
 {
   prepareMatrixTag(_assembly, _var.number(), _var.number());
 
-  size_t ad_offset = _var.number() * _sys.getMaxVarNDofsPerElem();
+  auto ad_offset = Moose::adOffset(_var.number(), _sys.getMaxVarNDofsPerElem());
 
   precalculateResidual();
-  for (_qp = 0; _qp < _qrule->n_points(); _qp++)
-  {
-    // This will also compute the derivative with respect to all dofs
-    const auto value = precomputeQpStrongResidual() * _ad_JxW[_qp] * _ad_coord[_qp];
-    for (_i = 0; _i < _grad_test.size(); _i++)
+
+  if (_use_displaced_mesh)
+    for (_qp = 0; _qp < _qrule->n_points(); _qp++)
     {
-      const auto residual = _grad_test[_i][_qp] * computeQpStabilization() * value;
-      for (_j = 0; _j < _var.phiSize(); _j++)
-        _local_ke(_i, _j) += residual.derivatives()[ad_offset + _j];
+      // This will also compute the derivative with respect to all dofs
+      const auto value = precomputeQpStrongResidual() * _ad_JxW[_qp] * _ad_coord[_qp];
+      for (_i = 0; _i < _grad_test.size(); _i++)
+      {
+        const auto residual = _grad_test[_i][_qp] * computeQpStabilization() * value;
+        for (_j = 0; _j < _var.phiSize(); _j++)
+          _local_ke(_i, _j) += residual.derivatives()[ad_offset + _j];
+      }
     }
-  }
+  else
+    for (_qp = 0; _qp < _qrule->n_points(); _qp++)
+    {
+      // This will also compute the derivative with respect to all dofs
+      const auto value = precomputeQpStrongResidual() * _JxW[_qp] * _coord[_qp];
+      for (_i = 0; _i < _grad_test.size(); _i++)
+      {
+        const auto residual = _regular_grad_test[_i][_qp] * computeQpStabilization() * value;
+        for (_j = 0; _j < _var.phiSize(); _j++)
+          _local_ke(_i, _j) += residual.derivatives()[ad_offset + _j];
+      }
+    }
+
   accumulateTaggedLocalMatrix();
 
   if (_has_diag_save_in)
@@ -96,34 +113,30 @@ ADKernelStabilizedTempl<T, compute_stage>::computeJacobian()
   }
 }
 
-template <>
+template <typename T>
 void
-ADKernelStabilizedTempl<Real, RESIDUAL>::computeJacobian()
-{
-}
-
-template <>
-void
-ADKernelStabilizedTempl<RealVectorValue, RESIDUAL>::computeJacobian()
-{
-}
-
-template <typename T, ComputeStage compute_stage>
-void
-ADKernelStabilizedTempl<T, compute_stage>::computeADOffDiagJacobian()
+ADKernelStabilizedTempl<T>::computeADOffDiagJacobian()
 {
   std::vector<DualReal> residuals(_grad_test.size(), 0);
 
   precalculateResidual();
-  for (_qp = 0; _qp < _qrule->n_points(); _qp++)
-  {
-    const auto value = precomputeQpStrongResidual() * _ad_JxW[_qp] * _ad_coord[_qp];
-    for (_i = 0; _i < _grad_test.size(); _i++)
-      residuals[_i] += _grad_test[_i][_qp] * computeQpStabilization() * value;
-  }
 
-  std::vector<std::pair<MooseVariableFEBase *, MooseVariableFEBase *>> & ce =
-      _assembly.couplingEntries();
+  if (_use_displaced_mesh)
+    for (_qp = 0; _qp < _qrule->n_points(); _qp++)
+    {
+      const auto value = precomputeQpStrongResidual() * _ad_JxW[_qp] * _ad_coord[_qp];
+      for (_i = 0; _i < _grad_test.size(); _i++)
+        residuals[_i] += _grad_test[_i][_qp] * computeQpStabilization() * value;
+    }
+  else
+    for (_qp = 0; _qp < _qrule->n_points(); _qp++)
+    {
+      const auto value = precomputeQpStrongResidual() * _JxW[_qp] * _coord[_qp];
+      for (_i = 0; _i < _grad_test.size(); _i++)
+        residuals[_i] += _regular_grad_test[_i][_qp] * computeQpStabilization() * value;
+    }
+
+  auto & ce = _assembly.couplingEntries();
   for (const auto & it : ce)
   {
     MooseVariableFEBase & ivariable = *(it.first);
@@ -135,7 +148,7 @@ ADKernelStabilizedTempl<T, compute_stage>::computeADOffDiagJacobian()
     if (ivar != _var.number())
       continue;
 
-    size_t ad_offset = jvar * _sys.getMaxVarNDofsPerElem();
+    auto ad_offset = Moose::adOffset(jvar, _sys.getMaxVarNDofsPerElem());
 
     prepareMatrixTag(_assembly, ivar, jvar);
 
@@ -151,26 +164,12 @@ ADKernelStabilizedTempl<T, compute_stage>::computeADOffDiagJacobian()
   }
 }
 
-template <>
-void
-ADKernelStabilizedTempl<Real, RESIDUAL>::computeADOffDiagJacobian()
-{
-}
-
-template <>
-void
-ADKernelStabilizedTempl<RealVectorValue, RESIDUAL>::computeADOffDiagJacobian()
-{
-}
-
-template <typename T, ComputeStage compute_stage>
-ADResidual
-ADKernelStabilizedTempl<T, compute_stage>::computeQpResidual()
+template <typename T>
+ADReal
+ADKernelStabilizedTempl<T>::computeQpResidual()
 {
   mooseError("Override precomputeQpStrongResidual() in your ADKernelStabilized derived class!");
 }
 
-template class ADKernelStabilizedTempl<Real, RESIDUAL>;
-template class ADKernelStabilizedTempl<Real, JACOBIAN>;
-template class ADKernelStabilizedTempl<RealVectorValue, RESIDUAL>;
-template class ADKernelStabilizedTempl<RealVectorValue, JACOBIAN>;
+template class ADKernelStabilizedTempl<Real>;
+template class ADKernelStabilizedTempl<RealVectorValue>;

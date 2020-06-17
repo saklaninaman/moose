@@ -9,11 +9,10 @@
 
 #include "HEVPInternalVarRateUOBase.h"
 
-template <>
 InputParameters
-validParams<HEVPInternalVarRateUOBase>()
+HEVPInternalVarRateUOBase::validParams()
 {
-  InputParameters params = validParams<DiscreteElementUserObject>();
+  InputParameters params = DiscreteElementUserObject::validParams();
   params.addParam<std::string>(
       "flow_rate_prop_name",
       "Name of flow rate property: Same as the flow rate user object name specified in input file");

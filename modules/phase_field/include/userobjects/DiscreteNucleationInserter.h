@@ -11,11 +11,6 @@
 
 #include "DiscreteNucleationInserterBase.h"
 
-class DiscreteNucleationInserter;
-
-template <>
-InputParameters validParams<DiscreteNucleationInserter>();
-
 /**
  * This UserObject manages the insertion and expiration of nuclei in the simulation
  * domain it manages a list of nuclei with their insertion times and their center
@@ -25,6 +20,8 @@ InputParameters validParams<DiscreteNucleationInserter>();
 class DiscreteNucleationInserter : public DiscreteNucleationInserterBase
 {
 public:
+  static InputParameters validParams();
+
   DiscreteNucleationInserter(const InputParameters & parameters);
 
   virtual void initialize();
@@ -47,4 +44,3 @@ protected:
   /// total nucleation rate
   Real _nucleation_rate;
 };
-

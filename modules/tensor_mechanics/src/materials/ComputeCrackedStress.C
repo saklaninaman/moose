@@ -11,11 +11,10 @@
 
 registerMooseObject("TensorMechanicsApp", ComputeCrackedStress);
 
-template <>
 InputParameters
-validParams<ComputeCrackedStress>()
+ComputeCrackedStress::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   params.addClassDescription("Computes energy and modifies the stress for phase field fracture");
   params.addRequiredCoupledVar("c", "Order parameter for damage");
   params.addParam<Real>("kdamage", 1e-9, "Stiffness of damaged matrix");

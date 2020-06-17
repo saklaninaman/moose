@@ -16,13 +16,14 @@
 
 registerMooseObject("MooseApp", SolutionHistory);
 
-template <>
+defineLegacyParams(SolutionHistory);
+
 InputParameters
-validParams<SolutionHistory>()
+SolutionHistory::validParams()
 {
   // Get the parameters from the parent object
-  InputParameters params = validParams<FileOutput>();
-  params.addClassDescription("Output for the nonlinear solution history.");
+  InputParameters params = FileOutput::validParams();
+  params.addClassDescription("Outputs the non-linear and linear iteration solve history.");
 
   // Return the parameters
   return params;

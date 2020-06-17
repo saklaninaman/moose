@@ -11,29 +11,21 @@
 
 #include "ADKernelValue.h"
 
-// Forward Declarations
-template <ComputeStage>
-class INSADMass;
-
-declareADValidParams(INSADMass);
-
 /**
  * This class computes the mass equation residual and Jacobian
  * contributions (the latter using automatic differentiation) for the incompressible Navier-Stokes
  * equations.
  */
-template <ComputeStage compute_stage>
-class INSADMass : public ADKernelValue<compute_stage>
+class INSADMass : public ADKernelValue
 {
 public:
+  static InputParameters validParams();
+
   INSADMass(const InputParameters & parameters);
 
 protected:
-  ADResidual precomputeQpResidual() override;
+  ADReal precomputeQpResidual() override;
 
   /// The strong residual of the mass equation, computed using INSADMaterial
-  const ADMaterialProperty(Real) & _mass_strong_residual;
-
-  usingKernelValueMembers;
+  const ADMaterialProperty<Real> & _mass_strong_residual;
 };
-

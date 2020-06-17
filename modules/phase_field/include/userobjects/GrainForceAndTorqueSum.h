@@ -13,10 +13,6 @@
 #include "GeneralUserObject.h"
 
 // Forward Declarations
-class GrainForceAndTorqueSum;
-
-template <>
-InputParameters validParams<GrainForceAndTorqueSum>();
 
 /**
  * This class is here to get the force and torque acting on a grain
@@ -25,6 +21,8 @@ InputParameters validParams<GrainForceAndTorqueSum>();
 class GrainForceAndTorqueSum : public GrainForceAndTorqueInterface, public GeneralUserObject
 {
 public:
+  static InputParameters validParams();
+
   GrainForceAndTorqueSum(const InputParameters & parameters);
 
   virtual void initialize();
@@ -52,4 +50,3 @@ protected:
   std::vector<std::vector<Real>> _eta_jacobians;
   ///@}
 };
-

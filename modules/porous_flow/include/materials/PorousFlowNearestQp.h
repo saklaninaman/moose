@@ -11,11 +11,6 @@
 
 #include "PorousFlowMaterial.h"
 
-class PorousFlowNearestQp;
-
-template <>
-InputParameters validParams<PorousFlowNearestQp>();
-
 /**
  * Material designed to provide the nearest quadpoint to each node
  * in the element
@@ -23,6 +18,8 @@ InputParameters validParams<PorousFlowNearestQp>();
 class PorousFlowNearestQp : public PorousFlowMaterial
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowNearestQp(const InputParameters & parameters);
 
 protected:

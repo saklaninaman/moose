@@ -13,11 +13,6 @@
 
 #include "RankTwoTensor.h"
 
-class ComputeVariableBaseEigenStrain;
-
-template <>
-InputParameters validParams<ComputeVariableBaseEigenStrain>();
-
 /**
  * ComputeVariableBaseEigenstrain computes an Eigenstrain based on a real tensor value material
  * property base (a),
@@ -27,6 +22,8 @@ InputParameters validParams<ComputeVariableBaseEigenStrain>();
 class ComputeVariableBaseEigenStrain : public ComputeEigenstrainBase
 {
 public:
+  static InputParameters validParams();
+
   ComputeVariableBaseEigenStrain(const InputParameters & parameters);
 
 protected:
@@ -36,4 +33,3 @@ protected:
   const MaterialProperty<Real> & _prefactor;
   RankTwoTensor _offset_tensor;
 };
-

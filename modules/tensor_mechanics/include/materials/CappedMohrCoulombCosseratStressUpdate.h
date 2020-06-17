@@ -11,11 +11,6 @@
 
 #include "CappedMohrCoulombStressUpdate.h"
 
-class CappedMohrCoulombCosseratStressUpdate;
-
-template <>
-InputParameters validParams<CappedMohrCoulombCosseratStressUpdate>();
-
 /**
  * CappedMohrCoulombCosseratStressUpdate implements rate-independent nonassociative
  * Mohr-Coulomb plus tensile plus compressive plasticity with hardening/softening
@@ -28,6 +23,8 @@ InputParameters validParams<CappedMohrCoulombCosseratStressUpdate>();
 class CappedMohrCoulombCosseratStressUpdate : public CappedMohrCoulombStressUpdate
 {
 public:
+  static InputParameters validParams();
+
   CappedMohrCoulombCosseratStressUpdate(const InputParameters & parameters);
 
   /**
@@ -78,4 +75,3 @@ protected:
                                           const std::vector<std::vector<Real>> & dvar_dtrial,
                                           RankFourTensor & cto) override;
 };
-

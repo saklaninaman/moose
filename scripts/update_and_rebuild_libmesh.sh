@@ -119,7 +119,9 @@ if [ -z "$PETSC_DIR" ]; then
   echo "PETSc maint branch."
   echo "IMPORTANT: If you did not run the update_and_rebuild_petsc.sh script yet, please run it before building libMesh"
   export PETSC_DIR=$SCRIPT_DIR/../petsc
-  export PETSC_ARCH=arch-moose
+  if [ -z "$PETSC_ARCH" ]; then
+    export PETSC_ARCH=arch-moose
+  fi
 fi
 
 # If we're not going fast, remove the build directory and reconfigure
@@ -139,16 +141,27 @@ if [ -z "$go_fast" ]; then
     export INSTALL_BINARY="${SCRIPT_DIR}/../libmesh/build-aux/install-sh -C"
   fi
 
+  # This is a temprorary fix, see #15120
+  if [[ -n "$CPPFLAGS" ]]; then
+    export CPPFLAGS=${CPPFLAGS//-DNDEBUG/}
+    export CPPFLAGS=${CPPFLAGS//-O2/}
+  fi
+  if [[ -n "$CXXFLAGS" ]]; then
+    export CXXFLAGS=${CXXFLAGS//-O2/}
+  fi
+  
   $SCRIPT_DIR/../libmesh/configure INSTALL="${INSTALL_BINARY}" \
                                    --with-methods="${METHODS}" \
                                    --prefix=$LIBMESH_DIR \
                                    --enable-silent-rules \
                                    --enable-unique-id \
                                    --disable-warnings \
+                                   --enable-glibcxx-debugging \
                                    --with-thread-model=openmp \
                                    --disable-maintainer-mode \
                                    --enable-petsc-hypre-required \
                                    --enable-metaphysicl-required \
+                                   --enable-nodeconstraint \
                                    $DISABLE_TIMESTAMPS $VTK_OPTIONS $* | tee -a "$SCRIPT_DIR/$DIAGNOSTIC_LOG" || exit 1
 else
   # The build directory must already exist: you can't do --fast for

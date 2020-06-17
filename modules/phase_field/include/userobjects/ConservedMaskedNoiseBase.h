@@ -14,10 +14,6 @@
 #include <unordered_map>
 
 // Forward Declarations
-class ConservedMaskedNoiseBase;
-
-template <>
-InputParameters validParams<ConservedMaskedNoiseBase>();
 
 /**
  * This Userobject is the base class of Userobjects that generate one
@@ -32,6 +28,8 @@ InputParameters validParams<ConservedMaskedNoiseBase>();
 class ConservedMaskedNoiseBase : public ConservedNoiseInterface
 {
 public:
+  static InputParameters validParams();
+
   ConservedMaskedNoiseBase(const InputParameters & parameters);
 
   virtual ~ConservedMaskedNoiseBase() {}
@@ -48,4 +46,3 @@ protected:
 
   const MaterialProperty<Real> & _mask;
 };
-

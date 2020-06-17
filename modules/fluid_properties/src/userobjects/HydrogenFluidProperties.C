@@ -14,11 +14,10 @@
 
 registerMooseObject("FluidPropertiesApp", HydrogenFluidProperties);
 
-template <>
 InputParameters
-validParams<HydrogenFluidProperties>()
+HydrogenFluidProperties::validParams()
 {
-  InputParameters params = validParams<HelmholtzFluidProperties>();
+  InputParameters params = HelmholtzFluidProperties::validParams();
   params.addClassDescription("Fluid properties for Hydrogen (H2)");
   return params;
 }
@@ -268,16 +267,10 @@ HydrogenFluidProperties::k_from_p_T(
   dk_dT = (this->k_from_p_T(pressure, temperature + Teps) - k) / Teps;
 }
 
-Real
-HydrogenFluidProperties::henryConstant(Real temperature) const
+std::vector<Real>
+HydrogenFluidProperties::henryCoefficients() const
 {
-  return henryConstantIAPWS(temperature, -4.73284, 6.08954, 6.06066);
-}
-
-void
-HydrogenFluidProperties::henryConstant(Real temperature, Real & Kh, Real & dKh_dT) const
-{
-  henryConstantIAPWS(temperature, Kh, dKh_dT, -4.73284, 6.08954, 6.06066);
+  return {-4.73284, 6.08954, 6.06066};
 }
 
 Real

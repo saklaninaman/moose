@@ -11,11 +11,10 @@
 
 registerMooseObject("TensorMechanicsApp", ScalarMaterialDamage);
 
-template <>
 InputParameters
-validParams<ScalarMaterialDamage>()
+ScalarMaterialDamage::validParams()
 {
-  InputParameters params = validParams<ScalarDamageBase>();
+  InputParameters params = ScalarDamageBase::validParams();
   params.addClassDescription(
       "Scalar damage model for which the damage is prescribed by another material");
   params.addRequiredParam<MaterialPropertyName>("damage_index",

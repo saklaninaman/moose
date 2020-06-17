@@ -11,34 +11,34 @@
 
 #include "libmesh/quadrature.h"
 
-defineADValidParams(
-    ADCompute2DFiniteStrain,
-    ADComputeFiniteStrain,
-    params.addClassDescription(
-        "Compute a strain increment and rotation increment for finite strains in 2D geometries.");
+InputParameters
+ADCompute2DFiniteStrain::validParams()
+{
+  InputParameters params = ADComputeFiniteStrain::validParams();
+  params.addClassDescription(
+      "Compute a strain increment and rotation increment for finite strains in 2D geometries.");
 
-    MooseEnum outOfPlaneDirection("x y z", "z");
-    params.addParam<MooseEnum>("out_of_plane_direction",
-                               outOfPlaneDirection,
-                               "The direction of the out-of-plane strain."););
+  MooseEnum outOfPlaneDirection("x y z", "z");
+  params.addParam<MooseEnum>(
+      "out_of_plane_direction", outOfPlaneDirection, "The direction of the out-of-plane strain.");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADCompute2DFiniteStrain<compute_stage>::ADCompute2DFiniteStrain(const InputParameters & parameters)
-  : ADComputeFiniteStrain<compute_stage>(parameters),
+ADCompute2DFiniteStrain::ADCompute2DFiniteStrain(const InputParameters & parameters)
+  : ADComputeFiniteStrain(parameters),
     _out_of_plane_direction(getParam<MooseEnum>("out_of_plane_direction"))
 {
 }
 
-template <ComputeStage compute_stage>
 void
-ADCompute2DFiniteStrain<compute_stage>::initialSetup()
+ADCompute2DFiniteStrain::initialSetup()
 {
   for (unsigned int i = 0; i < 3; ++i)
   {
     if (_out_of_plane_direction == i)
     {
-      _disp[i] = &adZeroValue();
-      _grad_disp[i] = &adZeroGradient();
+      _disp[i] = &_ad_zero;
+      _grad_disp[i] = &_ad_grad_zero;
     }
     else
     {
@@ -53,9 +53,8 @@ ADCompute2DFiniteStrain<compute_stage>::initialSetup()
   }
 }
 
-template <ComputeStage compute_stage>
 void
-ADCompute2DFiniteStrain<compute_stage>::computeProperties()
+ADCompute2DFiniteStrain::computeProperties()
 {
   ADRankTwoTensor ave_Fhat;
 
@@ -100,9 +99,8 @@ ADCompute2DFiniteStrain<compute_stage>::computeProperties()
   }
 }
 
-template <ComputeStage compute_stage>
 void
-ADCompute2DFiniteStrain<compute_stage>::displacementIntegrityCheck()
+ADCompute2DFiniteStrain::displacementIntegrityCheck()
 {
   if (_out_of_plane_direction != 2 && _ndisp != 3)
     mooseError("For 2D simulations where the out-of-plane direction is x or y the number of "
@@ -111,6 +109,3 @@ ADCompute2DFiniteStrain<compute_stage>::displacementIntegrityCheck()
     mooseError("For 2D simulations where the out-of-plane direction is z the number of supplied "
                "displacements must be two.");
 }
-
-// explicit instantiation is required for AD base classes
-adBaseClass(ADCompute2DFiniteStrain);

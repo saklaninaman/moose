@@ -11,11 +11,6 @@
 
 #include "TensorMechanicsHardeningModel.h"
 
-class TensorMechanicsHardeningPowerRule;
-
-template <>
-InputParameters validParams<TensorMechanicsHardeningPowerRule>();
-
 /**
  * Power-Rule Hardening defined by:
  * assuming p = internal_parameter, then value = value_0 * (p / epsilon0 + 1)^{exponent})
@@ -24,6 +19,8 @@ InputParameters validParams<TensorMechanicsHardeningPowerRule>();
 class TensorMechanicsHardeningPowerRule : public TensorMechanicsHardeningModel
 {
 public:
+  static InputParameters validParams();
+
   TensorMechanicsHardeningPowerRule(const InputParameters & parameters);
 
   virtual Real value(Real intnl) const override;
@@ -42,4 +39,3 @@ private:
   /// The value = value_0 * (p / epsilon0 + 1)^{exponent})
   const Real _exponent;
 };
-

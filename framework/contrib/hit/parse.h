@@ -127,6 +127,7 @@ class Node
 public:
   Node(NodeType t);
   virtual ~Node();
+  void remove();
 
   /// type returns the type of the node (e.g. one of Field, Section, Comment, etc.)
   NodeType type();
@@ -163,6 +164,11 @@ public:
   /// addChild adds a node to the ordered set of this node's children.  This node assumes/takes
   /// ownership of the memory of the passed child.
   void addChild(Node * child);
+
+  /// insertChild inserts a node prior to the supplied index to the ordered set of this node's
+  /// children.  This node assumes/takes ownership of the memory of the passed child.
+  void insertChild(std::size_t index, Node * child);
+
   /// children returns a list of this node's children of the given type t.
   std::vector<Node *> children(NodeType t = NodeType::All);
   /// parent returns a pointer to this node's parent node or nullptr if this node has no parent.
@@ -323,6 +329,7 @@ public:
   static const bool Inline = true;
   static const bool Block = false;
   Comment(const std::string & text, bool is_inline);
+  void setText(const std::string & text);
 
   virtual std::string
   render(int indent = 0, const std::string & indent_text = default_indent, int maxlen = 0) override;
@@ -492,6 +499,7 @@ public:
   /// Formats the given input hit text (using fname to report better syntax errors) and returns
   /// the text formatted as specified by the formatter's configuration.
   std::string format(const std::string & fname, const std::string & input);
+  void format(hit::Node * root);
   /// Add a sorting pattern to the formatter.  section is a regex that must match a section's
   /// full path (as returned by a section node's fullpath function). order is a list of regexes
   /// that partial match field names identifying the order of fields for sections that match the

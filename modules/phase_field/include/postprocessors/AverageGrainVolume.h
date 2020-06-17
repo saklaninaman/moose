@@ -15,10 +15,7 @@
 
 // Forward Declarations
 class FeatureFloodCount;
-class AverageGrainVolume;
 class MooseMesh;
-template <>
-InputParameters validParams<AverageGrainVolume>();
 
 /**
  * Compute the average grain area in a polycrystal
@@ -28,6 +25,8 @@ class AverageGrainVolume : public GeneralPostprocessor,
                            public MooseVariableDependencyInterface
 {
 public:
+  static InputParameters validParams();
+
   AverageGrainVolume(const InputParameters & parameters);
   virtual void initialize() override;
   virtual void execute() override;

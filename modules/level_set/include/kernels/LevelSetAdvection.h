@@ -9,15 +9,7 @@
 
 #pragma once
 
-// MOOSE includes
 #include "ADKernelValue.h"
-#include "LevelSetVelocityInterface.h"
-
-// Forward declarations
-template <ComputeStage>
-class LevelSetAdvection;
-
-declareADValidParams(LevelSetAdvection);
 
 /**
  * Advection Kernel for the levelset equation.
@@ -26,17 +18,16 @@ declareADValidParams(LevelSetAdvection);
  * where \vec{v} is the interface velocity that is a set of
  * coupled variables.
  */
-template <ComputeStage compute_stage>
-class LevelSetAdvection : public LevelSetVelocityInterface<ADKernelValue<compute_stage>>
+class LevelSetAdvection : public ADKernelValue
 {
 public:
+  static InputParameters validParams();
+
   LevelSetAdvection(const InputParameters & parameters);
 
 protected:
-  virtual ADResidual precomputeQpResidual() override;
+  virtual ADReal precomputeQpResidual() override;
 
-  usingKernelValueMembers;
-  using LevelSetVelocityInterface<ADKernelValue<compute_stage>>::computeQpVelocity;
-  using LevelSetVelocityInterface<ADKernelValue<compute_stage>>::_velocity;
+  /// Velocity vector variable
+  const ADVectorVariableValue & _velocity;
 };
-

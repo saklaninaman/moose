@@ -1,18 +1,7 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # XFEMVolFracAux
-
-!alert construction title=Undocumented Class
-The XFEMVolFracAux has not been documented. The content contained on this page
-includes the basic documentation associated with a MooseObject; however, what is contained is
-ultimately determined by what is necessary to make the documentation clear for users.
 
 !syntax description /AuxKernels/XFEMVolFracAux
 
-!syntax parameters /AuxKernels/XFEMVolFracAux
+# Description
 
-!syntax inputs /AuxKernels/XFEMVolFracAux
-
-!syntax children /AuxKernels/XFEMVolFracAux
-
-!bibtex bibliography
+The MOOSE XFEM implementation uses the phantom node technique, in which elements traversed by a discontinuity are split into two partial elements, each containing physical and non-physical material. The `XFEMVolFracAux` is used to compute the volume fraction of physical portions of each partial element.

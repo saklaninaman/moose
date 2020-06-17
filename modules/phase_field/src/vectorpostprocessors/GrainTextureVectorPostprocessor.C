@@ -13,12 +13,11 @@
 
 registerMooseObject("PhaseFieldApp", GrainTextureVectorPostprocessor);
 
-template <>
 InputParameters
-validParams<GrainTextureVectorPostprocessor>()
+GrainTextureVectorPostprocessor::validParams()
 {
-  InputParameters params = validParams<ElementVectorPostprocessor>();
-  params += validParams<SamplerBase>();
+  InputParameters params = ElementVectorPostprocessor::validParams();
+  params += SamplerBase::validParams();
   params.addClassDescription("Gives out info on the grain boundary properties");
   params.addRequiredParam<UserObjectName>("euler_angle_provider",
                                           "The EulerAngleProvider User object");

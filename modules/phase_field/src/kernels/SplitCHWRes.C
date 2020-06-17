@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", SplitCHWRes);
 
-template <>
 InputParameters
-validParams<SplitCHWRes>()
+SplitCHWRes::validParams()
 {
-  InputParameters params = validParams<SplitCHWResBase<>>();
+  InputParameters params = SplitCHWResBase<Real>::validParams();
   params.addClassDescription("Split formulation Cahn-Hilliard Kernel for the chemical potential "
                              "variable with a scalar (isotropic) mobility");
   return params;

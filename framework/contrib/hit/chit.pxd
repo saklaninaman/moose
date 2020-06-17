@@ -32,10 +32,12 @@ cdef extern from "parse.h" namespace "hit":
         #std::vector<std::string> vecStrVal()
 
         void addChild(Node * child)
+        void insertChild(int, Node * child)
         vector[Node *] children(NodeType t)
         Node * parent()
         Node * root()
         Node * clone()
+        void remove()
 
         #void walk(Walker * w, NodeType t = NodeType::Field);
         Node * find(const string & path)
@@ -51,6 +53,8 @@ cdef extern from "parse.h" namespace "hit":
         Formatter(const string & fname, const string & hit_config)
 
         string format(const string & fname, const string & input)
+        void format(Node *)
+
         void addPattern(const string & prefix, const vector[string] & order)
 
         bool canonical_section_markers
@@ -72,17 +76,16 @@ cdef extern from "parse.h" namespace "hit":
     cdef cppclass Field "hit::Field":
         Field(const string & field, Kind k, const string & val)
         Kind kind()
-        #vector[double] vecFloatVal()
-        #vector[int] vecIntVal()
-        #vector[string] vecStrVal()
         bool boolVal()
         int intVal()
         double floatVal()
         string strVal()
+        void setVal(const string & val, Kind k)
 
 cdef extern from "parse.h" namespace "hit":
     cdef cppclass Comment "hit::Comment":
         Comment(const string & text, bool is_inline)
+        void setText(const string & text)
 
 cdef extern from "parse.h" namespace "hit":
     cdef cppclass Blank "hit::Blank":
@@ -91,4 +94,3 @@ cdef extern from "parse.h" namespace "hit":
 cdef extern from "parse.h" namespace "hit":
     cdef cppclass Section "hit::Section":
         Section(const string & path)
-

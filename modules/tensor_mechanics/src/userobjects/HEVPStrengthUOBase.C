@@ -9,11 +9,10 @@
 
 #include "HEVPStrengthUOBase.h"
 
-template <>
 InputParameters
-validParams<HEVPStrengthUOBase>()
+HEVPStrengthUOBase::validParams()
 {
-  InputParameters params = validParams<DiscreteElementUserObject>();
+  InputParameters params = DiscreteElementUserObject::validParams();
   params.addParam<std::string>("intvar_prop_name",
                                "Name of internal variable property to "
                                "calculate material resistance: Same as "

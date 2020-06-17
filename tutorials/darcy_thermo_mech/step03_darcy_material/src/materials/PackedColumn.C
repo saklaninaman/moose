@@ -12,11 +12,10 @@
 
 registerMooseObject("DarcyThermoMechApp", PackedColumn);
 
-template <>
 InputParameters
-validParams<PackedColumn>()
+PackedColumn::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
 
   // Parameter for radius of the spheres used to interpolate permeability.
   params.addParam<FunctionName>("radius",
@@ -39,8 +38,8 @@ PackedColumn::PackedColumn(const InputParameters & parameters)
     _input_viscosity(getParam<Real>("viscosity")),
 
     // Declare two material properties by getting a reference from the MOOSE Material system
-    _permeability(declareProperty<Real>("permeability")),
-    _viscosity(declareProperty<Real>("viscosity"))
+    _permeability(declareADProperty<Real>("permeability")),
+    _viscosity(declareADProperty<Real>("viscosity"))
 {
   // From the paper: Table 1
   std::vector<Real> sphere_sizes = {1, 3};

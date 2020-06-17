@@ -11,19 +11,16 @@
 
 #include "GBEvolutionBase.h"
 
-// Forward Declarations
-class GBEvolution;
-
-template <>
-InputParameters validParams<GBEvolution>();
-
 /**
  * Grain boundary energy parameters for isotropic uniform grain boundary energies
  */
-class GBEvolution : public GBEvolutionBase
+template <bool is_ad>
+class GBEvolutionTempl : public GBEvolutionBaseTempl<is_ad>
 {
 public:
-  GBEvolution(const InputParameters & parameters);
+  static InputParameters validParams();
+
+  GBEvolutionTempl(const InputParameters & parameters);
 
 protected:
   virtual void computeQpProperties();
@@ -31,3 +28,5 @@ protected:
   Real _GBEnergy;
 };
 
+typedef GBEvolutionTempl<false> GBEvolution;
+typedef GBEvolutionTempl<true> ADGBEvolution;

@@ -12,11 +12,10 @@
 
 registerMooseObject("NavierStokesApp", MassFreeBC);
 
-template <>
 InputParameters
-validParams<MassFreeBC>()
+MassFreeBC::validParams()
 {
-  InputParameters params = validParams<IntegratedBC>();
+  InputParameters params = IntegratedBC::validParams();
   params.addRequiredCoupledVar("vel_x", "x-component of velocity");
   params.addCoupledVar("vel_y", "y-component of velocity");
   params.addCoupledVar("vel_z", "z-component of velocity");

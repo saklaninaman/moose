@@ -1,4 +1,3 @@
-#pylint: disable=missing-docstring, no-member
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -17,8 +16,8 @@ import logging
 import os
 from mooseutils import mooseutils
 
-from commands import build, check, verify
-from common import log
+from .commands import build, check, verify
+from .common import log
 
 def command_line_options():
     """
@@ -28,6 +27,7 @@ def command_line_options():
     desc = "MooseDocs: A utility to build MOOSE documentation from a single source."
     parser = argparse.ArgumentParser(description=desc)
     subparser = parser.add_subparsers(dest='command', help='Available commands.')
+    subparser.required = True
 
     # Common arguments
     parent = argparse.ArgumentParser(add_help=False)
@@ -49,15 +49,14 @@ def init_large_media():
     get_large_media = os.path.join(os.getenv('MOOSE_DIR'), 'scripts', 'get_large_media.sh')
     large_media_git = os.path.join(os.getenv('MOOSE_DIR'), 'large_media', '.git')
     if os.path.exists(get_large_media) and not os.path.exists(large_media_git):
-        print 'Checking out large_media...'
+        print('Checking out large_media...')
         mooseutils.shellCommand(get_large_media, os.getenv('MOOSE_DIR'))
-        print 'Done.'
+        print('Done.')
 
 def run():
     """
     Parse the command line options and run the correct command.
     """
-
     options = command_line_options()
     init_large_media()
     log.init_logging(getattr(logging, options.level))
@@ -73,7 +72,7 @@ def run():
     errors = log.MooseDocsFormatter.COUNTS['ERROR'].value
     warnings = log.MooseDocsFormatter.COUNTS['WARNING'].value
 
-    print 'CRITICAL:{} ERROR:{} WARNING:{}'.format(critical, errors, warnings)
+    print('CRITICAL:{} ERROR:{} WARNING:{}'.format(critical, errors, warnings))
     if critical or errors or (errno != 0):
         return 1
     return 0

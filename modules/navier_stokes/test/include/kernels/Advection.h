@@ -12,10 +12,6 @@
 #include "INSBase.h"
 
 // Forward Declarations
-class Advection;
-
-template <>
-InputParameters validParams<Advection>();
 
 /**
  * This class is responsible for solving the scalar advection
@@ -24,6 +20,8 @@ InputParameters validParams<Advection>();
 class Advection : public INSBase
 {
 public:
+  static InputParameters validParams();
+
   Advection(const InputParameters & parameters);
 
   virtual ~Advection() {}

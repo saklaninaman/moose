@@ -9,35 +9,32 @@
 
 #include "ADHeatConductionTimeDerivative.h"
 
-registerADMooseObject("HeatConductionApp", ADHeatConductionTimeDerivative);
+registerMooseObject("HeatConductionApp", ADHeatConductionTimeDerivative);
 
-defineADValidParams(
-    ADHeatConductionTimeDerivative,
-    ADTimeDerivative,
-    params.addClassDescription(
-        "AD Time derivative term $\\rho c_p \\frac{\\partial T}{\\partial t}$ of "
-        "the heat equation for quasi-constant specific heat $c_p$ and the density $\\rho$.");
-    params.set<bool>("use_displaced_mesh") = true;
-    params.addParam<MaterialPropertyName>("specific_heat",
-                                          "specific_heat",
-                                          "Property name of the specific heat material property");
-    params.addParam<MaterialPropertyName>("density_name",
-                                          "density",
-                                          "Property name of the density material property"););
+InputParameters
+ADHeatConductionTimeDerivative::validParams()
+{
+  InputParameters params = ADTimeDerivative::validParams();
+  params.addClassDescription(
+      "AD Time derivative term $\\rho c_p \\frac{\\partial T}{\\partial t}$ of "
+      "the heat equation for quasi-constant specific heat $c_p$ and the density $\\rho$.");
+  params.set<bool>("use_displaced_mesh") = true;
+  params.addParam<MaterialPropertyName>(
+      "specific_heat", "specific_heat", "Property name of the specific heat material property");
+  params.addParam<MaterialPropertyName>(
+      "density_name", "density", "Property name of the density material property");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADHeatConductionTimeDerivative<compute_stage>::ADHeatConductionTimeDerivative(
-    const InputParameters & parameters)
-  : ADTimeDerivative<compute_stage>(parameters),
+ADHeatConductionTimeDerivative::ADHeatConductionTimeDerivative(const InputParameters & parameters)
+  : ADTimeDerivative(parameters),
     _specific_heat(getADMaterialProperty<Real>("specific_heat")),
     _density(getADMaterialProperty<Real>("density_name"))
 {
 }
 
-template <ComputeStage compute_stage>
-ADResidual
-ADHeatConductionTimeDerivative<compute_stage>::precomputeQpResidual()
+ADReal
+ADHeatConductionTimeDerivative::precomputeQpResidual()
 {
-  return _specific_heat[_qp] * _density[_qp] *
-         ADTimeDerivative<compute_stage>::precomputeQpResidual();
+  return _specific_heat[_qp] * _density[_qp] * ADTimeDerivative::precomputeQpResidual();
 }

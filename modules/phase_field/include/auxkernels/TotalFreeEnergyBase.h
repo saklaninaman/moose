@@ -12,10 +12,6 @@
 #include "AuxKernel.h"
 
 // Forward Declarations
-class TotalFreeEnergyBase;
-
-template <>
-InputParameters validParams<TotalFreeEnergyBase>();
 
 /**
  * Total free energy (both the bulk and gradient parts), where the bulk free energy has been defined
@@ -24,6 +20,8 @@ InputParameters validParams<TotalFreeEnergyBase>();
 class TotalFreeEnergyBase : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   TotalFreeEnergyBase(const InputParameters & parameters);
 
 protected:
@@ -41,4 +39,3 @@ protected:
   /// Additional free energy contribution
   const VariableValue & _additional_free_energy;
 };
-

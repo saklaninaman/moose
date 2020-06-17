@@ -13,10 +13,6 @@
 #include "DerivativeMaterialInterface.h"
 
 // Forward Declarations
-class CrossTermBarrierFunctionBase;
-
-template <>
-InputParameters validParams<CrossTermBarrierFunctionBase>();
 
 /**
  * CrossTermBarrierFunctionBase is the base to a set of free energy penalties that
@@ -25,6 +21,8 @@ InputParameters validParams<CrossTermBarrierFunctionBase>();
 class CrossTermBarrierFunctionBase : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   CrossTermBarrierFunctionBase(const InputParameters & parameters);
 
 protected:
@@ -55,4 +53,3 @@ protected:
   std::vector<std::vector<const MaterialProperty<Real> *>> _dh;
   ///@}
 };
-

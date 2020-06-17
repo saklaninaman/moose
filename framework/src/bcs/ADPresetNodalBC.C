@@ -9,36 +9,22 @@
 
 #include "ADPresetNodalBC.h"
 
-// MOOSE includes
-#include "MooseVariableFE.h"
-
-#include "libmesh/numeric_vector.h"
-
-defineADValidParams(ADPresetNodalBC,
-                    ADNodalBC,
-                    params.addClassDescription(
-                        "Nodal boundary condition base class with preset solution vector values."));
-
-template <ComputeStage compute_stage>
-ADPresetNodalBC<compute_stage>::ADPresetNodalBC(const InputParameters & parameters)
-  : ADNodalBC<compute_stage>(parameters)
+InputParameters
+ADPresetNodalBC::validParams()
 {
+  InputParameters params = ADNodalBC::validParams();
+
+  params.addClassDescription(
+      "Nodal boundary condition base class with preset solution vector values.");
+
+  // Utilize the new ADDirichletBCBase with preset, set true and don't let the user change it
+  params.set<bool>("preset") = true;
+  params.suppressParameter<bool>("preset");
+
+  return params;
 }
 
-template <ComputeStage compute_stage>
-void
-ADPresetNodalBC<compute_stage>::computeValue(NumericVector<Number> & current_solution)
+ADPresetNodalBC::ADPresetNodalBC(const InputParameters & parameters) : ADDirichletBCBase(parameters)
 {
-  auto && dof_idx = _var.nodalDofIndex();
-  current_solution.set(dof_idx, MetaPhysicL::raw_value(computeQpValue()));
+  mooseDeprecated("Inherit from ADDirichletBCBase with preset = true instead of ADPresetNodalBC");
 }
-
-template <ComputeStage compute_stage>
-ADResidual
-ADPresetNodalBC<compute_stage>::computeQpResidual()
-{
-  return _u - computeQpValue();
-}
-
-// explicit instantiation is required for AD base classes
-adBaseClass(ADPresetNodalBC);

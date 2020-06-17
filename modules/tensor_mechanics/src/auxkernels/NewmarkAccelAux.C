@@ -11,11 +11,10 @@
 
 registerMooseObject("TensorMechanicsApp", NewmarkAccelAux);
 
-template <>
 InputParameters
-validParams<NewmarkAccelAux>()
+NewmarkAccelAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   params.addClassDescription("Computes the current acceleration using the Newmark method.");
   params.addRequiredCoupledVar("displacement", "displacement variable");
   params.addRequiredCoupledVar("velocity", "velocity variable");
@@ -43,6 +42,7 @@ NewmarkAccelAux::computeValue()
     return accel_old;
 
   // Calculates acceeleration using Newmark time integration method
-  return 1.0 / _beta * ((_disp[_qp] - _disp_old[_qp]) / (_dt * _dt) - _vel_old[_qp] / _dt -
-                        accel_old * (0.5 - _beta));
+  return 1.0 / _beta *
+         ((_disp[_qp] - _disp_old[_qp]) / (_dt * _dt) - _vel_old[_qp] / _dt -
+          accel_old * (0.5 - _beta));
 }

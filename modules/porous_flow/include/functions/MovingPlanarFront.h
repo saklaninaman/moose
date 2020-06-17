@@ -12,11 +12,6 @@
 #include "Function.h"
 #include "FunctionInterface.h"
 
-class MovingPlanarFront;
-
-template <>
-InputParameters validParams<MovingPlanarFront>();
-
 /**
  * Defines the position of a moving front.
  * The front is an infinite plane with normal pointing from start_posn to end_posn.
@@ -28,6 +23,8 @@ InputParameters validParams<MovingPlanarFront>();
 class MovingPlanarFront : public Function, protected FunctionInterface
 {
 public:
+  static InputParameters validParams();
+
   MovingPlanarFront(const InputParameters & parameters);
 
   virtual Real value(Real t, const Point & p) const override;

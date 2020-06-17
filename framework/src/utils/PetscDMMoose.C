@@ -743,6 +743,19 @@ DMMooseGetEmbedding_Private(DM dm, IS * embedding)
               if (edof >= dofmap.first_dof() && edof < dofmap.end_dof())
                 indices.insert(edof);
           }
+          // loop over lower dimensional slave elements
+          for (const auto & bit : *(dmm->_block_ids))
+            for (const auto & elem : as_range(
+                     dmm->_nl->system().get_mesh().active_local_subdomain_elements_begin(
+                         bit.second),
+                     dmm->_nl->system().get_mesh().active_local_subdomain_elements_end(bit.second)))
+            {
+              evindices.clear();
+              dofmap.dof_indices(elem, evindices, v);
+              for (const auto & edof : evindices)
+                if (edof >= dofmap.first_dof() && edof < dofmap.end_dof())
+                  indices.insert(edof);
+            }
         }
 
         // Iterate over the contacts included in this split.
@@ -1455,8 +1468,14 @@ DMCreateGlobalVector_Moose(DM dm, Vec * x)
     ierr = VecDuplicate(v, x);
     CHKERRQ(ierr);
   }
+
+#if PETSC_RELEASE_LESS_THAN(3, 13, 0)
   ierr = PetscObjectCompose((PetscObject)*x, "DM", (PetscObject)dm);
   CHKERRQ(ierr);
+#else
+  ierr = VecSetDM(*x, dm);
+  CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 }
 
@@ -1871,7 +1890,10 @@ DMSetUp_Moose_Pre(DM dm)
       // If no sides have been specified, by default (null or empty dmm->blocks) all blocks are
       // included in the split
       // Thus, skip this block only if it is explicitly excluded from a nonempty dmm->blocks.
-      if (dmm->_blocks && dmm->_blocks->size() && dmm->_blocks->find(bname) == dmm->_blocks->end())
+      if (dmm->_blocks && dmm->_blocks->size() &&
+          (dmm->_blocks->find(bname) ==
+               dmm->_blocks->end() && // We should allow users to use subdomain IDs
+           dmm->_blocks->find(std::to_string(bid)) == dmm->_blocks->end()))
         continue;
     }
     else
@@ -1882,7 +1904,9 @@ DMSetUp_Moose_Pre(DM dm)
       // Equivalently, skip this block if dmm->blocks is dmm->blocks is null or empty or excludes
       // this block.
       if (!dmm->_blocks || !dmm->_blocks->size() ||
-          dmm->_blocks->find(bname) == dmm->_blocks->end())
+          (dmm->_blocks->find(bname) ==
+               dmm->_blocks->end() // We should allow users to use subdomain IDs
+           && dmm->_blocks->find(std::to_string(bid)) == dmm->_blocks->end()))
         continue;
     }
     dmm->_block_ids->insert(std::make_pair(bname, bid));
@@ -2519,8 +2543,12 @@ DMCreate_Moose(DM dm)
 
   dm->ops->refine = 0;        // DMRefine_Moose;
   dm->ops->coarsen = 0;       // DMCoarsen_Moose;
+#if PETSC_RELEASE_LESS_THAN(3, 12, 0)
   dm->ops->getinjection = 0;  // DMGetInjection_Moose;
   dm->ops->getaggregates = 0; // DMGetAggregates_Moose;
+#else
+  dm->ops->createinjection = 0;
+#endif
 
 #if PETSC_VERSION_LT(3, 4, 0)
   dm->ops->createfielddecompositiondm = DMCreateFieldDecompositionDM_Moose;

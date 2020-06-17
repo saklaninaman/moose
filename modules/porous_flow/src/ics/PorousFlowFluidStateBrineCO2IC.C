@@ -12,11 +12,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowFluidStateBrineCO2IC);
 
-template <>
 InputParameters
-validParams<PorousFlowFluidStateBrineCO2IC>()
+PorousFlowFluidStateBrineCO2IC::validParams()
 {
-  InputParameters params = validParams<PorousFlowFluidStateIC>();
+  InputParameters params = PorousFlowFluidStateIC::validParams();
   params.addClassDescription(
       "An initial condition to calculate z from saturation for brine and CO2");
   return params;

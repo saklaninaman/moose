@@ -12,10 +12,6 @@
 #include "Kernel.h"
 
 // Forward Declarations
-class INSSplitMomentum;
-
-template <>
-InputParameters validParams<INSSplitMomentum>();
 
 /**
  * This class computes the "split" momentum equation residual.  In the
@@ -30,6 +26,8 @@ InputParameters validParams<INSSplitMomentum>();
 class INSSplitMomentum : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   INSSplitMomentum(const InputParameters & parameters);
 
   virtual ~INSSplitMomentum() {}
@@ -71,4 +69,3 @@ protected:
   const MaterialProperty<Real> & _mu;
   const MaterialProperty<Real> & _rho;
 };
-

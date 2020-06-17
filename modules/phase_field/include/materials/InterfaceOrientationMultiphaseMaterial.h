@@ -12,10 +12,6 @@
 #include "Material.h"
 
 // Forward Declarations
-class InterfaceOrientationMultiphaseMaterial;
-
-template <>
-InputParameters validParams<InterfaceOrientationMultiphaseMaterial>();
 
 /**
  * Material to compute the angular orientation of order parameter interfaces.
@@ -23,6 +19,8 @@ InputParameters validParams<InterfaceOrientationMultiphaseMaterial>();
 class InterfaceOrientationMultiphaseMaterial : public Material
 {
 public:
+  static InputParameters validParams();
+
   InterfaceOrientationMultiphaseMaterial(const InputParameters & parameters);
 
 protected:
@@ -47,4 +45,3 @@ private:
   const VariableValue & _etab;
   const VariableGradient & _grad_etab;
 };
-

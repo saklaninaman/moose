@@ -39,6 +39,8 @@ InputParameters validParams<AdvancedOutput>();
 class AdvancedOutput : public FileOutput
 {
 public:
+  static InputParameters validParams();
+
   /**
    * Class constructor
    *
@@ -418,4 +420,3 @@ AdvancedOutput::initPostprocessorOrVectorPostprocessorLists(const std::string & 
     }
   }
 }
-

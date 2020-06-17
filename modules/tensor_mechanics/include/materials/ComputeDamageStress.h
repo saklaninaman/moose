@@ -11,11 +11,7 @@
 
 #include "ComputeFiniteStrainElasticStress.h"
 
-class ComputeDamageStress;
 class DamageBase;
-
-template <>
-InputParameters validParams<ComputeDamageStress>();
 
 /**
  * ComputeDamageStress computes the stress for a damaged elasticity material. This
@@ -24,6 +20,8 @@ InputParameters validParams<ComputeDamageStress>();
 class ComputeDamageStress : public ComputeFiniteStrainElasticStress
 {
 public:
+  static InputParameters validParams();
+
   ComputeDamageStress(const InputParameters & parameters);
 
   void initialSetup() override;
@@ -37,4 +35,3 @@ protected:
   /// Pointer to the damage model
   DamageBase * _damage_model;
 };
-

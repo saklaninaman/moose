@@ -9,18 +9,17 @@
 
 #include "PorousFlowFluidStateMultiComponentBase.h"
 
-template <>
 InputParameters
-validParams<PorousFlowFluidStateMultiComponentBase>()
+PorousFlowFluidStateMultiComponentBase::validParams()
 {
-  InputParameters params = validParams<PorousFlowFluidStateFlash>();
+  InputParameters params = PorousFlowFluidStateFlash::validParams();
   params.addClassDescription("Base class for multiple component fluid state classes");
   return params;
 }
 
 PorousFlowFluidStateMultiComponentBase::PorousFlowFluidStateMultiComponentBase(
     const InputParameters & parameters)
-  : PorousFlowFluidStateFlash(parameters)
+  : PorousFlowFluidStateFlash(parameters), _pidx(0), _Zidx(1), _Tidx(2), _Xidx(3)
 {
 }
 

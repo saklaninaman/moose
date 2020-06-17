@@ -12,17 +12,31 @@
 
 // MOOSE includes
 #include "Sampler.h"
+#include "SamplerPostprocessorTransfer.h"
 
 registerMooseObject("StochasticToolsApp", StochasticResults);
 
-template <>
-InputParameters
-validParams<StochasticResults>()
+StochasticResultsData::StochasticResultsData(const VectorPostprocessorName & name,
+                                             VectorPostprocessorValue * vpp)
+  : name(name), vector(vpp)
 {
-  InputParameters params = validParams<GeneralVectorPostprocessor>();
+}
+
+InputParameters
+StochasticResults::validParams()
+{
+  InputParameters params = GeneralVectorPostprocessor::validParams();
   params.addClassDescription(
       "Storage container for stochastic simulation results coming from a Postprocessor.");
-  params += validParams<SamplerInterface>();
+  params += SamplerInterface::validParams();
+
+  params.addDeprecatedParam<std::vector<SamplerName>>(
+      "samplers",
+      "A list of sampler names of associated data.",
+      "This parameter is no longer needed, please remove it from your input file.");
+
+  // If 'parallel_type = REPLICATED' broadcast the vector automatically
+  params.set<bool>("_auto_broadcast") = true;
   return params;
 }
 
@@ -34,31 +48,44 @@ StochasticResults::StochasticResults(const InputParameters & parameters)
 void
 StochasticResults::initialize()
 {
-  mooseAssert(_sampler, "The _sampler pointer must be initialized via the init() method.");
-
-  // Resize and zero vectors to the correct size, this allows the SamplerPostprocessorTransfer
-  // to set values in the vector directly.
-  std::vector<DenseMatrix<Real>> data = _sampler->getSamples();
-  for (MooseIndex(data) i = 0; i < data.size(); ++i)
-    _sample_vectors[i]->resize(data[i].m(), 0);
-}
-
-VectorPostprocessorValue &
-StochasticResults::getVectorPostprocessorValueByGroup(unsigned int group)
-{
-  if (group >= _sample_vectors.size())
-    mooseError("The supplied sample index ", group, " does not exist.");
-  return *_sample_vectors[group];
+  // Clear any existing data, unless the complete history is desired
+  if (!containsCompleteHistory())
+    for (auto & data : _sample_vectors)
+      data.vector->clear();
 }
 
 void
-StochasticResults::init(Sampler & sampler)
+StochasticResults::finalize()
 {
-  _sampler = &sampler;
-  /* TODO: getSamples must be called to initialized the names, this shouldn't be the case */
-  std::vector<DenseMatrix<Real>> data = _sampler->getSamples();
-  const std::vector<std::string> & names = _sampler->getSampleNames();
-  _sample_vectors.resize(names.size());
-  for (MooseIndex(names) i = 0; i < names.size(); ++i)
-    _sample_vectors[i] = &declareVector(names[i]);
+  if (!isDistributed())
+  {
+    for (auto & data : _sample_vectors)
+      _communicator.gather(0, data.current);
+  }
+
+  for (auto & data : _sample_vectors)
+  {
+    data.vector->insert(data.vector->end(), data.current.begin(), data.current.end());
+    data.current.clear();
+  }
+}
+
+void
+StochasticResults::setCurrentLocalVectorPostprocessorValue(
+    const std::string & vector_name, const VectorPostprocessorValue && current)
+{
+  auto data_ptr = std::find_if(
+      _sample_vectors.begin(), _sample_vectors.end(), [&vector_name](StochasticResultsData & data) {
+        return data.name == vector_name;
+      });
+
+  mooseAssert(data_ptr != _sample_vectors.end(),
+              "Unable to locate a vector with the supplied name of '" << vector_name << "'.");
+  data_ptr->current = current;
+}
+
+void
+StochasticResults::initVector(const std::string & vector_name)
+{
+  _sample_vectors.emplace_back(vector_name, &declareVector(vector_name));
 }

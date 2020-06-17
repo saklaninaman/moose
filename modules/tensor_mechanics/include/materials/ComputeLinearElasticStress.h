@@ -11,18 +11,16 @@
 
 #include "ComputeStressBase.h"
 
-class ComputeLinearElasticStress;
-
-template <>
-InputParameters validParams<ComputeLinearElasticStress>();
-
 /**
  * ComputeLinearElasticStress computes the stress following linear elasticity theory (small strains)
  */
 class ComputeLinearElasticStress : public ComputeStressBase
 {
 public:
+  static InputParameters validParams();
+
   ComputeLinearElasticStress(const InputParameters & parameters);
+
   virtual void initialSetup() override;
 
 protected:
@@ -33,4 +31,3 @@ protected:
   /// Elasticity tensor material property
   const MaterialProperty<RankFourTensor> & _elasticity_tensor;
 };
-

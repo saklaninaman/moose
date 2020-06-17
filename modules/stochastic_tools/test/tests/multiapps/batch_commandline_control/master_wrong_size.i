@@ -1,15 +1,4 @@
-[Mesh]
-  type = GeneratedMesh
-  dim = 1
-[]
-
-[Problem]
-  type = FEProblem
-  solve = false
-[]
-
-[Executioner]
-  type = Steady
+[StochasticTools]
 []
 
 [MultiApps]
@@ -22,20 +11,20 @@
 []
 
 [Distributions]
-  [./uniform]
-    type = UniformDistribution
+  [uniform]
+    type = Uniform
     lower_bound = 5
     upper_bound = 10
-  [../]
+  []
 []
 
 [Samplers]
-  [./sample]
-    type = MonteCarloSampler
-    n_samples = 10
+  [sample]
+    type = MonteCarlo
+    num_rows = 10
     distributions = 'uniform'
     execute_on = 'initial timestep_end'
-  [../]
+  []
 []
 
 [Controls]

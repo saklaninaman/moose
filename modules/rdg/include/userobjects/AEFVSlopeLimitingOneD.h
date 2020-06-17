@@ -12,10 +12,6 @@
 #include "SlopeLimitingBase.h"
 
 // Forward Declarations
-class AEFVSlopeLimitingOneD;
-
-template <>
-InputParameters validParams<AEFVSlopeLimitingOneD>();
 
 /**
  * One-dimensional slope limiting to get
@@ -26,6 +22,8 @@ InputParameters validParams<AEFVSlopeLimitingOneD>();
 class AEFVSlopeLimitingOneD : public SlopeLimitingBase
 {
 public:
+  static InputParameters validParams();
+
   AEFVSlopeLimitingOneD(const InputParameters & parameters);
 
   /// compute the limited slope of the cell
@@ -38,4 +36,3 @@ protected:
   /// One-D slope limiting scheme
   MooseEnum _scheme;
 };
-

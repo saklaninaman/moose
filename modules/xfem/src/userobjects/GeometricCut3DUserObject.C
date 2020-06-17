@@ -17,12 +17,11 @@
 // XFEM includes
 #include "XFEMFuncs.h"
 
-template <>
 InputParameters
-validParams<GeometricCut3DUserObject>()
+GeometricCut3DUserObject::validParams()
 {
   // Get input parameters from parent class
-  InputParameters params = validParams<GeometricCutUserObject>();
+  InputParameters params = GeometricCutUserObject::validParams();
 
   // Class description
   params.addClassDescription("Base class for 3D XFEM Geometric Cut UserObjects");

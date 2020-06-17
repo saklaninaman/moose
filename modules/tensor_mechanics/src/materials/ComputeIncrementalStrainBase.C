@@ -10,11 +10,10 @@
 #include "ComputeIncrementalStrainBase.h"
 #include "MooseMesh.h"
 
-template <>
 InputParameters
-validParams<ComputeIncrementalStrainBase>()
+ComputeIncrementalStrainBase::validParams()
 {
-  InputParameters params = validParams<ComputeStrainBase>();
+  InputParameters params = ComputeStrainBase::validParams();
   return params;
 }
 

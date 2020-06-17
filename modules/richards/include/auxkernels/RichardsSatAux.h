@@ -14,10 +14,6 @@
 #include "RichardsSat.h"
 
 // Forward Declarations
-class RichardsSatAux;
-
-template <>
-InputParameters validParams<RichardsSatAux>();
 
 /**
  * Fluid Saturation as a function of effective saturation
@@ -25,6 +21,8 @@ InputParameters validParams<RichardsSatAux>();
 class RichardsSatAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   RichardsSatAux(const InputParameters & parameters);
 
 protected:
@@ -36,4 +34,3 @@ protected:
   /// User object defining saturation as a function of effective saturation
   const RichardsSat & _sat_UO;
 };
-

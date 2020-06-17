@@ -1,20 +1,9 @@
-[Mesh]
-  type = GeneratedMesh
-  dim = 1
-[]
-
-[Problem]
-  type = FEProblem
-  solve = false
-[]
-
-[Executioner]
-  type = Steady
+[StochasticTools]
 []
 
 [Distributions]
   [uniform]
-    type = UniformDistribution
+    type = Uniform
     lower_bound = 5
     upper_bound = 10
   []
@@ -22,8 +11,8 @@
 
 [Samplers]
   [sample]
-    type = MonteCarloSampler
-    n_samples = 3
+    type = MonteCarlo
+    num_rows = 3
     distributions = 'uniform'
     execute_on = 'PRE_MULTIAPP_SETUP'
   []
@@ -42,8 +31,9 @@
   [data]
     type = SamplerPostprocessorTransfer
     multi_app = sub
-    vector_postprocessor = storage
-    postprocessor = size
+    sampler = sample
+    to_vector_postprocessor = storage
+    from_postprocessor = size
   []
 []
 

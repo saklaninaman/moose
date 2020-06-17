@@ -12,14 +12,11 @@
 #include "AuxKernel.h"
 #include <sstream>
 
-class PFCRFFEnergyDensity;
-
-template <>
-InputParameters validParams<PFCRFFEnergyDensity>();
-
 class PFCRFFEnergyDensity : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   PFCRFFEnergyDensity(const InputParameters & parameters);
 
 protected:
@@ -35,4 +32,3 @@ protected:
   MooseEnum _log_approach;
   Real _tol;
 };
-

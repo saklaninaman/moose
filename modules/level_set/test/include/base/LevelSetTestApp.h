@@ -11,14 +11,11 @@
 
 #include "MooseApp.h"
 
-class LevelSetTestApp;
-
-template <>
-InputParameters validParams<LevelSetTestApp>();
-
 class LevelSetTestApp : public MooseApp
 {
 public:
+  static InputParameters validParams();
+
   LevelSetTestApp(InputParameters parameters);
   virtual ~LevelSetTestApp();
 
@@ -28,4 +25,3 @@ public:
   static void associateSyntax(Syntax & syntax, ActionFactory & action_factory);
   static void registerExecFlags(Factory & factory);
 };
-

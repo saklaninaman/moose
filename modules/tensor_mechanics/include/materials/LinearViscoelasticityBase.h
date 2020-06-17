@@ -13,11 +13,6 @@
 #include "RankFourTensor.h"
 #include "RankTwoTensor.h"
 
-class LinearViscoelasticityBase;
-
-template <>
-InputParameters validParams<LinearViscoelasticityBase>();
-
 /**
  * This class is a base class for materials consisting of an assembly of linear springs and
  * dashpots. It represents the arrangement of the system (typically, in parallel or in series),
@@ -95,6 +90,8 @@ public:
     /// theta automatically adjusted as a function of the time step and the viscosity
     Zienkiewicz,
   };
+
+  static InputParameters validParams();
 
   LinearViscoelasticityBase(const InputParameters & parameters);
 
@@ -268,4 +265,3 @@ protected:
   /// checks whether we are at the first time step
   bool & _step_zero;
 };
-

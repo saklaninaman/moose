@@ -13,11 +13,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowHeatVolumetricExpansion);
 
-template <>
 InputParameters
-validParams<PorousFlowHeatVolumetricExpansion>()
+PorousFlowHeatVolumetricExpansion::validParams()
 {
-  InputParameters params = validParams<TimeKernel>();
+  InputParameters params = TimeKernel::validParams();
   params.addParam<bool>("strain_at_nearest_qp",
                         false,
                         "When calculating nodal porosity that depends on strain, use the strain at "

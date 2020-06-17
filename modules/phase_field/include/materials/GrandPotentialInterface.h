@@ -11,17 +11,14 @@
 
 #include "Material.h"
 
-class GrandPotentialInterface;
-
-template <>
-InputParameters validParams<GrandPotentialInterface>();
-
 /**
  * Calculate Grand Potential interface parameters for a specified interfacial free energy and width.
  */
 class GrandPotentialInterface : public Material
 {
 public:
+  static InputParameters validParams();
+
   GrandPotentialInterface(const InputParameters & parameters);
 
 protected:
@@ -51,4 +48,3 @@ protected:
   MaterialProperty<Real> & _mu_prop;
   ////@}
 };
-

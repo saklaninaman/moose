@@ -12,13 +12,12 @@
 #include "Material.h"
 #include "SymmElasticityTensor.h"
 
-registerMooseObject("SolidMechanicsApp", OutOfPlaneStress);
+registerMooseObjectDeprecated("SolidMechanicsApp", OutOfPlaneStress, "07/30/2020 24:00");
 
-template <>
 InputParameters
-validParams<OutOfPlaneStress>()
+OutOfPlaneStress::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addCoupledVar("disp_x", "The x displacement");
   params.addCoupledVar("disp_y", "The y displacement");
   params.addCoupledVar("temp", "The temperature");
@@ -45,6 +44,12 @@ OutOfPlaneStress::OutOfPlaneStress(const InputParameters & parameters)
     _ydisp_var(_ydisp_coupled ? coupled("disp_y") : 0),
     _temp_var(_temp_coupled ? coupled("temp") : 0)
 {
+  mooseDeprecated(name(), ": OutOfPlaneStress is deprecated. \
+                  The solid_mechanics module will be removed from MOOSE on July 31, 2020. \
+                  Please update your input files to utilize the tensor_mechanics equivalents of \
+                  models based on solid_mechanics. A detailed migration guide that was developed \
+                  for BISON, but which is generally applicable to any MOOSE model is available at: \
+                  https://mooseframework.org/bison/tutorials/mechanics_conversion/overview.html");
 }
 
 Real

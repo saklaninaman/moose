@@ -12,10 +12,6 @@
 #include "DerivativeFunctionMaterialBase.h"
 
 // Forward Declarations
-class MathFreeEnergy;
-
-template <>
-InputParameters validParams<MathFreeEnergy>();
 
 /**
  * Material class that creates the math free energy and its derivatives
@@ -24,6 +20,8 @@ InputParameters validParams<MathFreeEnergy>();
 class MathFreeEnergy : public DerivativeFunctionMaterialBase
 {
 public:
+  static InputParameters validParams();
+
   MathFreeEnergy(const InputParameters & parameters);
 
 protected:
@@ -37,4 +35,3 @@ private:
   const VariableValue & _c;
   unsigned int _c_var;
 };
-

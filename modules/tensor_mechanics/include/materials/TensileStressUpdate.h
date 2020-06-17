@@ -12,11 +12,6 @@
 #include "MultiParameterPlasticityStressUpdate.h"
 #include "TensorMechanicsHardeningModel.h"
 
-class TensileStressUpdate;
-
-template <>
-InputParameters validParams<TensileStressUpdate>();
-
 /**
  * TensileStressUpdate implements rate-independent associative tensile failure
  * ("Rankine" plasticity) with hardening/softening.
@@ -24,6 +19,8 @@ InputParameters validParams<TensileStressUpdate>();
 class TensileStressUpdate : public MultiParameterPlasticityStressUpdate
 {
 public:
+  static InputParameters validParams();
+
   TensileStressUpdate(const InputParameters & parameters);
 
   /**
@@ -105,4 +102,3 @@ protected:
                                           const std::vector<std::vector<Real>> & dvar_dtrial,
                                           RankFourTensor & cto) override;
 };
-

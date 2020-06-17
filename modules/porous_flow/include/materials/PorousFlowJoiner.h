@@ -11,11 +11,6 @@
 
 #include "PorousFlowMaterialVectorBase.h"
 
-class PorousFlowJoiner;
-
-template <>
-InputParameters validParams<PorousFlowJoiner>();
-
 /**
  * Material designed to form a std::vector of property
  * and derivatives of these wrt the nonlinear variables
@@ -36,6 +31,8 @@ InputParameters validParams<PorousFlowJoiner>();
 class PorousFlowJoiner : public PorousFlowMaterialVectorBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowJoiner(const InputParameters & parameters);
 
 protected:
@@ -72,4 +69,3 @@ protected:
   /// d(property of each phase)/d(temperature)
   std::vector<const MaterialProperty<Real> *> _dphase_property_dt;
 };
-

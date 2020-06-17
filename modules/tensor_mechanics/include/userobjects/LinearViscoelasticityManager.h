@@ -13,11 +13,6 @@
 #include "LinearViscoelasticityBase.h"
 #include "RankTwoTensor.h"
 
-class LinearViscoelasticityManager;
-
-template <>
-InputParameters validParams<LinearViscoelasticityManager>();
-
 /**
  * This class manages a LinearViscoelasticityBase object. Its primary purpose
  * is to initialize the internal MaterialProperties contained in the viscoelastic
@@ -33,6 +28,8 @@ InputParameters validParams<LinearViscoelasticityManager>();
 class LinearViscoelasticityManager : public ElementUserObject
 {
 public:
+  static InputParameters validParams();
+
   LinearViscoelasticityManager(const InputParameters & parameters);
 
 protected:
@@ -61,4 +58,3 @@ protected:
   /// Pointer to the viscoelastic model to update
   std::shared_ptr<LinearViscoelasticityBase> _viscoelastic_model;
 };
-

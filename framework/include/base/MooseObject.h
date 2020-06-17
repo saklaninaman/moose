@@ -13,7 +13,7 @@
 #include "InputParameters.h"
 #include "ConsoleStreamInterface.h"
 #include "Registry.h"
-#include "MemberTemplateMacros.h"
+#include "MooseUtils.h"
 
 #include "libmesh/parallel_object.h"
 
@@ -30,6 +30,14 @@ InputParameters validParams<MooseObject>();
 // needed to avoid #include cycle with MooseApp and MooseObject
 [[noreturn]] void callMooseErrorRaw(std::string & msg, MooseApp * app);
 
+/**
+ * Generates a canonical paramError prefix for param-related error/warning/info messages.
+ *
+ * Use this for building custom messages when the default paramError isn't
+ * quite what you need.
+ */
+std::string paramErrorPrefix(const InputParameters & params, const std::string & param);
+
 // helper macro to explicitly instantiate AD classes
 #define adBaseClass(X)                                                                             \
   template class X<RESIDUAL>;                                                                      \
@@ -41,6 +49,8 @@ InputParameters validParams<MooseObject>();
 class MooseObject : public ConsoleStreamInterface, public libMesh::ParallelObject
 {
 public:
+  static InputParameters validParams();
+
   MooseObject(const InputParameters & parameters);
 
   virtual ~MooseObject() = default;
@@ -54,8 +64,9 @@ public:
   /**
    * Get the name of the object
    * @return The name of the object
+   * TODO:MooseVariableToMooseObject (see #10601)
    */
-  const std::string & name() const { return _name; }
+  virtual const std::string & name() const { return _name; }
 
   /**
    * Get the parameters of the object
@@ -69,7 +80,7 @@ public:
    * @return The value of the parameter
    */
   template <typename T>
-  const T & getParamTempl(const std::string & name) const;
+  const T & getParam(const std::string & name) const;
 
   /**
    * Verifies that the requested parameter exists and is not NULL and returns it to the caller.
@@ -104,13 +115,7 @@ public:
    * back to the normal behavior of mooseError - only printing a message using the given args.
    */
   template <typename... Args>
-  [[noreturn]] void paramError(const std::string & param, Args... args)
-  {
-    auto prefix = param + ": ";
-    if (!_pars.inputLocation(param).empty())
-      prefix = _pars.inputLocation(param) + ": (" + _pars.paramFullpath(param) + "):\n";
-    mooseError(prefix, args...);
-  }
+  [[noreturn]] void paramError(const std::string & param, Args... args) const;
 
   /**
    * Emits a warning prefixed with the file and line number of the given param (from the input
@@ -119,13 +124,7 @@ public:
    * back to the normal behavior of mooseWarning - only printing a message using the given args.
    */
   template <typename... Args>
-  void paramWarning(const std::string & param, Args... args)
-  {
-    auto prefix = param + ": ";
-    if (!_pars.inputLocation(param).empty())
-      prefix = _pars.inputLocation(param) + ": (" + _pars.paramFullpath(param) + "):\n";
-    mooseWarning(prefix, args...);
-  }
+  void paramWarning(const std::string & param, Args... args) const;
 
   /**
    * Emits an informational message prefixed with the file and line number of the given param
@@ -135,13 +134,7 @@ public:
    * the given args.
    */
   template <typename... Args>
-  void paramInfo(const std::string & param, Args... args)
-  {
-    auto prefix = param + ": ";
-    if (!_pars.inputLocation(param).empty())
-      prefix = _pars.inputLocation(param) + ": (" + _pars.paramFullpath(param) + "):\n";
-    mooseInfo(prefix, args...);
-  }
+  void paramInfo(const std::string & param, Args... args) const;
 
   template <typename... Args>
   [[noreturn]] void mooseError(Args &&... args) const
@@ -185,11 +178,56 @@ protected:
 
   /// Reference to the "enable" InputParaemters, used by Controls for toggling on/off MooseObjects
   const bool & _enabled;
+
+private:
+  template <typename... Args>
+  std::string paramErrorMsg(const std::string & param, Args... args) const
+  {
+    auto prefix = paramErrorPrefix(_pars, param);
+    std::ostringstream oss;
+    moose::internal::mooseStreamAll(oss, std::forward<Args>(args)...);
+    std::string msg = oss.str();
+
+    // Wrap error message to a separate line from prefix if it is about to
+    // blow past 100 chars.  But only wrap if the prefix is long enough (12
+    // chars) for the wrap to buy us much extra length.
+    if ((prefix.size() > 12 && msg.size() + prefix.size() > 99) ||
+        msg.find("\n") != std::string::npos)
+    {
+      if (prefix.size() > 0 && prefix[prefix.size() - 1] != ':')
+        prefix += ":";
+      return prefix + "\n    " + MooseUtils::replaceAll(msg, "\n", "\n    ");
+    }
+    return prefix + " " + msg;
+  }
 };
 
 template <typename T>
 const T &
-MooseObject::getParamTempl(const std::string & name) const
+MooseObject::getParam(const std::string & name) const
 {
   return InputParameters::getParamHelper(name, _pars, static_cast<T *>(0));
+}
+
+template <typename... Args>
+[[noreturn]] void
+MooseObject::paramError(const std::string & param, Args... args) const
+{
+  Moose::show_trace = false;
+  mooseError(paramErrorMsg(param, std::forward<Args>(args)...));
+  Moose::show_trace = true;
+}
+
+template <typename... Args>
+void
+MooseObject::paramWarning(const std::string & param, Args... args) const
+{
+  mooseWarning(paramErrorMsg(param, std::forward<Args>(args)...));
+}
+
+template <typename... Args>
+void
+MooseObject::paramInfo(const std::string & param, Args... args) const
+{
+  mooseInfo(paramErrorMsg(param, std::forward<Args>(args)...));
 }

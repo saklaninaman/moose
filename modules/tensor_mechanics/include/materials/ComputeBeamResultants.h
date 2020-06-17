@@ -15,15 +15,11 @@
 /**
  * ComputeBeamResultants computes forces and moments using elasticity
  */
-
-class ComputeBeamResultants;
-
-template <>
-InputParameters validParams<ComputeBeamResultants>();
-
 class ComputeBeamResultants : public Material
 {
 public:
+  static InputParameters validParams();
+
   ComputeBeamResultants(const InputParameters & parameters);
 
 protected:
@@ -57,4 +53,3 @@ protected:
   /// Old force vector in global coordinate system
   const MaterialProperty<RealVectorValue> & _moment_old;
 };
-

@@ -12,11 +12,6 @@
 #include "ComputeStressBase.h"
 #include "GuaranteeConsumer.h"
 
-class ComputeFiniteStrainElasticStress;
-
-template <>
-InputParameters validParams<ComputeFiniteStrainElasticStress>();
-
 /**
  * ComputeFiniteStrainElasticStress computes the stress following elasticity
  * theory for finite strains
@@ -24,6 +19,8 @@ InputParameters validParams<ComputeFiniteStrainElasticStress>();
 class ComputeFiniteStrainElasticStress : public ComputeStressBase, public GuaranteeConsumer
 {
 public:
+  static InputParameters validParams();
+
   ComputeFiniteStrainElasticStress(const InputParameters & parameters);
 
   void initialSetup() override;
@@ -48,4 +45,3 @@ protected:
    */
   const MaterialProperty<RankTwoTensor> & _elastic_strain_old;
 };
-

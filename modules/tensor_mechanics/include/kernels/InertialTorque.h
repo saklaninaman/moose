@@ -13,10 +13,6 @@
 #include "Material.h"
 
 // Forward Declarations
-class InertialTorque;
-
-template <>
-InputParameters validParams<InertialTorque>();
 
 /**
  * Computes the inertial torque, which is
@@ -28,6 +24,8 @@ InputParameters validParams<InertialTorque>();
 class InertialTorque : public TimeKernel
 {
 public:
+  static InputParameters validParams();
+
   InertialTorque(const InputParameters & parameters);
 
 protected:
@@ -88,4 +86,3 @@ private:
   /// Derivative of velocity with respect to displacement
   std::vector<Real> _dvel;
 };
-

@@ -11,11 +11,6 @@
 
 #include "InterfaceKernel.h"
 
-class InterfaceDiffusionBase;
-
-template <>
-InputParameters validParams<InterfaceDiffusionBase>();
-
 /**
  * Base class for Diffusion equation terms coupling two different
  * variables across a subdomain boundary.
@@ -23,6 +18,8 @@ InputParameters validParams<InterfaceDiffusionBase>();
 class InterfaceDiffusionBase : public InterfaceKernel
 {
 public:
+  static InputParameters validParams();
+
   InterfaceDiffusionBase(const InputParameters & parameters);
 
 protected:
@@ -32,4 +29,3 @@ protected:
   /// neighbor diffusion coefficient
   const Real _D_neighbor;
 };
-

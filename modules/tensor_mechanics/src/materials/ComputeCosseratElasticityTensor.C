@@ -11,11 +11,10 @@
 
 registerMooseObject("TensorMechanicsApp", ComputeCosseratElasticityTensor);
 
-template <>
 InputParameters
-validParams<ComputeCosseratElasticityTensor>()
+ComputeCosseratElasticityTensor::validParams()
 {
-  InputParameters params = validParams<ComputeElasticityTensorBase>();
+  InputParameters params = ComputeElasticityTensorBase::validParams();
   params.addClassDescription("Compute Cosserat elasticity and flexural bending rigidity tensors");
   params.addRequiredParam<std::vector<Real>>("E_ijkl", "Elastic stiffness tensor for material");
   params.addParam<MooseEnum>(

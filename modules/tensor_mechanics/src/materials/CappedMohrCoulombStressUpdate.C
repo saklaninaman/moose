@@ -13,11 +13,10 @@
 
 registerMooseObject("TensorMechanicsApp", CappedMohrCoulombStressUpdate);
 
-template <>
 InputParameters
-validParams<CappedMohrCoulombStressUpdate>()
+CappedMohrCoulombStressUpdate::validParams()
 {
-  InputParameters params = validParams<MultiParameterPlasticityStressUpdate>();
+  InputParameters params = MultiParameterPlasticityStressUpdate::validParams();
   params.addRequiredParam<UserObjectName>(
       "tensile_strength",
       "A TensorMechanicsHardening UserObject that defines hardening of the "
@@ -40,7 +39,7 @@ validParams<CappedMohrCoulombStressUpdate>()
       "be set positive and not greater than the friction angle.");
   params.addParam<bool>("perfect_guess",
                         true,
-                        "Provide a guess to the Newton-Raphson proceedure "
+                        "Provide a guess to the Newton-Raphson procedure "
                         "that is the result from perfect plasticity.  With "
                         "severe hardening/softening this may be "
                         "suboptimal.");
@@ -820,9 +819,10 @@ CappedMohrCoulombStressUpdate::consistentTangentOperatorV(
           {
             if (trial_stress_params[a] == trial_stress_params[j])
               continue;
-            drot_dstress(i, j, k, l) += 0.5 * _eigvecs(i, a) * (_eigvecs(k, a) * _eigvecs(l, j) +
-                                                                _eigvecs(l, a) * _eigvecs(k, j)) /
-                                        (trial_stress_params[j] - trial_stress_params[a]);
+            drot_dstress(i, j, k, l) +=
+                0.5 * _eigvecs(i, a) *
+                (_eigvecs(k, a) * _eigvecs(l, j) + _eigvecs(l, a) * _eigvecs(k, j)) /
+                (trial_stress_params[j] - trial_stress_params[a]);
           }
 
   const RankTwoTensor eT = _eigvecs.transpose();

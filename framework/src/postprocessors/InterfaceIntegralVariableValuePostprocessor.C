@@ -12,11 +12,10 @@
 
 registerMooseObject("MooseApp", InterfaceIntegralVariableValuePostprocessor);
 
-template <>
 InputParameters
-validParams<InterfaceIntegralVariableValuePostprocessor>()
+InterfaceIntegralVariableValuePostprocessor::validParams()
 {
-  InputParameters params = validParams<InterfaceIntegralPostprocessor>();
+  InputParameters params = InterfaceIntegralPostprocessor::validParams();
 
   params.addRequiredCoupledVar("variable",
                                "The name of the variable on the master side of the interface");

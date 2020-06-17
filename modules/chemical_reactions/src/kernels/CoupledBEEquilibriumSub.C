@@ -11,11 +11,10 @@
 
 registerMooseObject("ChemicalReactionsApp", CoupledBEEquilibriumSub);
 
-template <>
 InputParameters
-validParams<CoupledBEEquilibriumSub>()
+CoupledBEEquilibriumSub::validParams()
 {
-  InputParameters params = validParams<TimeDerivative>();
+  InputParameters params = TimeDerivative::validParams();
   params.addParam<Real>(
       "weight", 1.0, "The weight of the equilibrium species in total concentration");
   params.addCoupledVar("log_k", 0.0, "The equilibrium constant of this equilibrium species");

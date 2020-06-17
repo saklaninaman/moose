@@ -12,10 +12,6 @@
 #include "Kernel.h"
 
 // Forward Declarations
-class INSPressurePoisson;
-
-template <>
-InputParameters validParams<INSPressurePoisson>();
 
 /**
  * This class computes the pressure Poisson solve which is part of
@@ -27,6 +23,8 @@ InputParameters validParams<INSPressurePoisson>();
 class INSPressurePoisson : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   INSPressurePoisson(const InputParameters & parameters);
 
   virtual ~INSPressurePoisson() {}
@@ -49,4 +47,3 @@ protected:
   // Material properties
   const MaterialProperty<Real> & _rho;
 };
-

@@ -13,11 +13,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowPeacemanBorehole);
 
-template <>
 InputParameters
-validParams<PorousFlowPeacemanBorehole>()
+PorousFlowPeacemanBorehole::validParams()
 {
-  InputParameters params = validParams<PorousFlowLineSink>();
+  InputParameters params = PorousFlowLineSink::validParams();
   params.addRequiredParam<FunctionName>(
       "character",
       "If zero then borehole does nothing.  If positive the borehole acts as a sink "
@@ -192,8 +191,9 @@ PorousFlowPeacemanBorehole::wellConstant(const RealTensorValue & perm,
   else if (eig_val2 <= 0.0)
     r0 = _re_constant * ll2;
   else
-    r0 = _re_constant * std::sqrt(std::sqrt(eig_val1 / eig_val2) * std::pow(ll2, 2) +
-                                  std::sqrt(eig_val2 / eig_val1) * std::pow(ll1, 2)) /
+    r0 = _re_constant *
+         std::sqrt(std::sqrt(eig_val1 / eig_val2) * std::pow(ll2, 2) +
+                   std::sqrt(eig_val2 / eig_val1) * std::pow(ll1, 2)) /
          (std::pow(eig_val1 / eig_val2, 0.25) + std::pow(eig_val2 / eig_val1, 0.25));
 
   const Real effective_perm = (det2D >= 0.0 ? std::sqrt(det2D) : 0.0);

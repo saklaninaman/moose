@@ -11,11 +11,10 @@
 
 registerMooseObject("NavierStokesApp", NSGravityPower);
 
-template <>
 InputParameters
-validParams<NSGravityPower>()
+NSGravityPower::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addClassDescription("This class computes the momentum contributed by gravity.");
   params.addRequiredCoupledVar("momentum", "");
   params.addRequiredParam<Real>("acceleration", "The body force vector component.");

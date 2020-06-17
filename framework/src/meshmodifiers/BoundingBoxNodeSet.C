@@ -9,10 +9,14 @@
 
 #include "BoundingBoxNodeSet.h"
 #include "MooseMesh.h"
+#include "MooseUtils.h"
 
 #include "libmesh/node.h"
 
-registerMooseObject("MooseApp", BoundingBoxNodeSet);
+registerMooseObjectReplaced("MooseApp",
+                            BoundingBoxNodeSet,
+                            "11/30/2019 00:00",
+                            BoundingBoxNodeSetGenerator);
 
 template <>
 InputParameters
@@ -39,7 +43,8 @@ validParams<BoundingBoxNodeSet>()
 BoundingBoxNodeSet::BoundingBoxNodeSet(const InputParameters & parameters)
   : MeshModifier(parameters),
     _location(getParam<MooseEnum>("location")),
-    _bounding_box(getParam<RealVectorValue>("bottom_left"), getParam<RealVectorValue>("top_right"))
+    _bounding_box(MooseUtils::buildBoundingBox(getParam<RealVectorValue>("bottom_left"),
+                                               getParam<RealVectorValue>("top_right")))
 {
 }
 

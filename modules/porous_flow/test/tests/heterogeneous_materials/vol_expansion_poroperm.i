@@ -48,25 +48,25 @@
 
 [BCs]
   [./p]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     boundary = 'bottom top'
     variable = p
     function = t
   [../]
   [./xmin]
-    type = PresetBC
+    type = DirichletBC
     boundary = left
     variable = disp_x
     value = 0
   [../]
   [./ymin]
-    type = PresetBC
+    type = DirichletBC
     boundary = bottom
     variable = disp_y
     value = 0
   [../]
   [./zmin]
-    type = PresetBC
+    type = DirichletBC
     boundary = back
     variable = disp_z
     value = 0
@@ -205,7 +205,6 @@
   [../]
   [./porosity]
     type = PorousFlowPorosity
-    at_nodes = false
     fluid = true
     mechanical = true
     porosity_zero = poro0
@@ -214,7 +213,6 @@
   [../]
   [./permeability]
     type = PorousFlowPermeabilityKozenyCarman
-    at_nodes = false
     k_anisotropy = '1 0 0  0 2 0  0 0 0.1'
     poroperm_function = kozeny_carman_fd2
     f = 0.1

@@ -18,6 +18,8 @@
 class BicrystalBoundingBoxICAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   BicrystalBoundingBoxICAction(const InputParameters & params);
 
   virtual void act();
@@ -26,7 +28,3 @@ private:
   const std::string _var_name_base;
   const unsigned int _op_num;
 };
-
-template <>
-InputParameters validParams<BicrystalBoundingBoxICAction>();
-

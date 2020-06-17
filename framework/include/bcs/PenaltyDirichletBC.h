@@ -12,7 +12,6 @@
 #include "IntegratedBC.h"
 
 class PenaltyDirichletBC;
-class Function;
 
 template <>
 InputParameters validParams<PenaltyDirichletBC>();
@@ -40,6 +39,8 @@ InputParameters validParams<PenaltyDirichletBC>();
 class PenaltyDirichletBC : public IntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   PenaltyDirichletBC(const InputParameters & parameters);
 
 protected:
@@ -50,4 +51,3 @@ private:
   Real _p;
   const Real & _v;
 };
-

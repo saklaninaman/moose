@@ -1,57 +1,50 @@
-[Mesh]
-  type = GeneratedMesh
-  dim = 1
-  nx = 1
-  ny = 1
-[]
-
-[Variables]
-  [./u]
-  [../]
+[StochasticTools]
 []
 
 [Distributions]
-  [./d0]
-    type = UniformDistribution
+  [d0]
+    type = Uniform
     lower_bound = 0
     upper_bound = 1
-  [../]
-  [./d1]
-    type = UniformDistribution
+  []
+  [d1]
+    type = Uniform
     lower_bound = 10
     upper_bound = 11
-  [../]
-  [./d2]
-    type = UniformDistribution
+  []
+  [d2]
+    type = Uniform
     lower_bound = 100
     upper_bound = 101
-  [../]
+  []
 []
 
 [Samplers]
-  [./sample]
-    type = SobolSampler
-    n_samples = 4
+  [sample]
+    type = MonteCarlo
     distributions = 'd0 d1 d2'
-    execute_on = 'initial'
-  [../]
+    num_rows = 4
+    seed = 2011
+  []
+  [resample]
+    type = MonteCarlo
+    distributions = 'd0 d1 d2'
+    num_rows = 4
+    seed = 2013
+  []
+  [sobol]
+    type = Sobol
+    sampler_a = sample
+    sampler_b = resample
+  []
 []
 
 [VectorPostprocessors]
-  [./data]
+  [data]
     type = SamplerData
-    sampler = sample
+    sampler = sobol
     execute_on = 'initial'
-  [../]
-[]
-
-[Executioner]
-  type = Steady
-[]
-
-[Problem]
-  solve = false
-  kernel_coverage_check = false
+  []
 []
 
 [Outputs]

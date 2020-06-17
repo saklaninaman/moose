@@ -11,11 +11,10 @@
 
 registerMooseObject("NavierStokesApp", DistributedForce);
 
-template <>
 InputParameters
-validParams<DistributedForce>()
+DistributedForce::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
 
   // The acceleration vector.
   params.addParam<RealVectorValue>(

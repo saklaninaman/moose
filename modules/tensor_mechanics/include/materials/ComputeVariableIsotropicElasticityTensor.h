@@ -11,11 +11,6 @@
 
 #include "ComputeElasticityTensorBase.h"
 
-class ComputeVariableIsotropicElasticityTensor;
-
-template <>
-InputParameters validParams<ComputeVariableIsotropicElasticityTensor>();
-
 /**
  * ComputeVariableIsotropicElasticityTensor defines an elasticity tensor material for
  * isotropic materials in which the elastic constants (Young's modulus and Poisson's ratio)
@@ -24,6 +19,8 @@ InputParameters validParams<ComputeVariableIsotropicElasticityTensor>();
 class ComputeVariableIsotropicElasticityTensor : public ComputeElasticityTensorBase
 {
 public:
+  static InputParameters validParams();
+
   ComputeVariableIsotropicElasticityTensor(const InputParameters & parameters);
 
 protected:
@@ -58,4 +55,3 @@ protected:
   /// Vector of elastic constants to create the elasticity tensor (member to avoid memory churn)
   std::vector<Real> _isotropic_elastic_constants;
 };
-

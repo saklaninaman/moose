@@ -15,11 +15,7 @@
 #include "MooseTypes.h"
 #include "Restartable.h"
 
-class MutableCoefficientsInterface;
 class ConsoleStream;
-
-template <>
-InputParameters validParams<MutableCoefficientsInterface>();
 
 /**
  * This class is designed to provide a uniform interface for any class that uses an array of
@@ -30,6 +26,8 @@ InputParameters validParams<MutableCoefficientsInterface>();
 class MutableCoefficientsInterface : public Restartable
 {
 public:
+  static InputParameters validParams();
+
   MutableCoefficientsInterface(const MooseObject * moose_object,
                                const InputParameters & parameters);
 
@@ -122,4 +120,3 @@ private:
   /// MooseObject instance of `this` to provide access to `_console`
   const ConsoleStream & _console;
 };
-

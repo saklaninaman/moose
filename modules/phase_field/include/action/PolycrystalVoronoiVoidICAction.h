@@ -19,6 +19,8 @@
 class PolycrystalVoronoiVoidICAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   PolycrystalVoronoiVoidICAction(const InputParameters & params);
 
   virtual void act();
@@ -28,7 +30,3 @@ protected:
   const std::string _var_name_base;
   const FileName _file_name;
 };
-
-template <>
-InputParameters validParams<PolycrystalVoronoiVoidICAction>();
-

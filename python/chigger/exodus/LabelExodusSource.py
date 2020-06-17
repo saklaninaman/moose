@@ -9,9 +9,9 @@
 #* https://www.gnu.org/licenses/lgpl-2.1.html
 
 import vtk
-from ExodusSource import ExodusSource
-from ExodusReader import ExodusReader
 import mooseutils
+from .ExodusSource import ExodusSource
+from .ExodusReader import ExodusReader
 from .. import base
 from .. import filters
 from .. import utils
@@ -33,6 +33,8 @@ class LabelExodusSource(base.ChiggerSource2D):
                 allow=['point', 'cell', 'variable'])
         opt.setDefault('justification', 'center')
         opt.setDefault('vertical_justification', 'middle')
+        opt.setDefault('italic', True)
+        opt.setDefault('bold', True)
         return opt
 
     def __init__(self, exodus_source, **kwargs):

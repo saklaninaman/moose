@@ -18,12 +18,12 @@
 #include "DependencyResolverInterface.h"
 #include "BoundaryRestrictable.h"
 #include "MooseTypes.h"
-#include "MemberTemplateMacros.h"
+#include "ElementIDInterface.h"
 
 // forward declarations
 class InitialConditionBase;
 class SystemBase;
-class MooseVariableFEBase;
+class MooseVariableFieldBase;
 namespace libMesh
 {
 class Point;
@@ -45,7 +45,8 @@ class InitialConditionBase : public MooseObject,
                              public UserObjectInterface,
                              public BoundaryRestrictable,
                              public DependencyResolverInterface,
-                             public Restartable
+                             public Restartable,
+                             public ElementIDInterface
 {
 public:
   /**
@@ -56,6 +57,8 @@ public:
   InitialConditionBase(const InputParameters & parameters);
 
   virtual ~InitialConditionBase();
+
+  static InputParameters validParams();
 
   /**
    * retrieves the MOOSE variable that this initial condition acts upon
@@ -93,12 +96,12 @@ public:
    * reimplements the getUserObject method from UserObjectInterface
    */
   template <typename T2>
-  const T2 & getUserObjectTempl(const std::string & name);
+  const T2 & getUserObject(const std::string & name);
   /**
    * reimplements the getUserObjectByName method from UserObjectInterface
    */
   template <typename T2>
-  const T2 & getUserObjectByNameTempl(const UserObjectName & name);
+  const T2 & getUserObjectByName(const UserObjectName & name);
 
   /**
    * reimplements the getUserObjectBase method from UserObjectInterface
@@ -123,18 +126,18 @@ protected:
 
 template <typename T>
 const T &
-InitialConditionBase::getUserObjectTempl(const std::string & name)
+InitialConditionBase::getUserObject(const std::string & name)
 {
   if (!_ignore_uo_dependency)
     _depend_uo.insert(_pars.get<UserObjectName>(name));
-  return UserObjectInterface::getUserObjectTempl<T>(name);
+  return UserObjectInterface::getUserObject<T>(name);
 }
 
 template <typename T>
 const T &
-InitialConditionBase::getUserObjectByNameTempl(const UserObjectName & name)
+InitialConditionBase::getUserObjectByName(const UserObjectName & name)
 {
   if (!_ignore_uo_dependency)
     _depend_uo.insert(name);
-  return UserObjectInterface::getUserObjectByNameTempl<T>(name);
+  return UserObjectInterface::getUserObjectByName<T>(name);
 }

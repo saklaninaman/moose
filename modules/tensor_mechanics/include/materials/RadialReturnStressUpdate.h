@@ -13,10 +13,6 @@
 #include "SingleVariableReturnMappingSolution.h"
 
 // Forward declaration
-class RadialReturnStressUpdate;
-
-template <>
-InputParameters validParams<RadialReturnStressUpdate>();
 
 /**
  * RadialReturnStressUpdate computes the radial return stress increment for
@@ -34,6 +30,8 @@ InputParameters validParams<RadialReturnStressUpdate>();
 class RadialReturnStressUpdate : public StressUpdateBase, public SingleVariableReturnMappingSolution
 {
 public:
+  static InputParameters validParams();
+
   RadialReturnStressUpdate(const InputParameters & parameters);
 
   /**
@@ -79,6 +77,11 @@ public:
    * Does the model require the elasticity tensor to be isotropic?
    */
   bool requiresIsotropicTensor() override { return true; }
+
+  /**
+   * Radial return mapped models should be isotropic by default!
+   */
+  bool isIsotropic() override { return true; };
 
 protected:
   virtual void initQpStatefulProperties() override;
@@ -144,4 +147,3 @@ protected:
    */
   const RankFourTensor _deviatoric_projection_four;
 };
-

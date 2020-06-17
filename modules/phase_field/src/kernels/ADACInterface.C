@@ -9,24 +9,26 @@
 
 #include "ADACInterface.h"
 
-registerADMooseObject("PhaseFieldApp", ADACInterface);
+registerMooseObject("PhaseFieldApp", ADACInterface);
 
-defineADValidParams(
-    ADACInterface, ADKernel, params.addClassDescription("Gradient energy Allen-Cahn Kernel");
-    params.addParam<MaterialPropertyName>("mob_name", "L", "The mobility used with the kernel");
-    params.addParam<MaterialPropertyName>("kappa_name",
-                                          "kappa_op",
-                                          "The kappa used with the kernel");
-    params.addCoupledVar("args", "Vector of nonlinear variable arguments this object depends on");
-    params.addParam<bool>("variable_L",
-                          true,
-                          "The mobility is a function of any MOOSE variable (if "
-                          "this is set to false L must be constant over the "
-                          "entire domain!)"););
+InputParameters
+ADACInterface::validParams()
+{
+  InputParameters params = ADKernel::validParams();
+  params.addClassDescription("Gradient energy Allen-Cahn Kernel");
+  params.addParam<MaterialPropertyName>("mob_name", "L", "The mobility used with the kernel");
+  params.addParam<MaterialPropertyName>("kappa_name", "kappa_op", "The kappa used with the kernel");
+  params.addCoupledVar("args", "Vector of nonlinear variable arguments this object depends on");
+  params.addParam<bool>("variable_L",
+                        true,
+                        "The mobility is a function of any MOOSE variable (if "
+                        "this is set to false L must be constant over the "
+                        "entire domain!)");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADACInterface<compute_stage>::ADACInterface(const InputParameters & parameters)
-  : ADKernel<compute_stage>(parameters),
+ADACInterface::ADACInterface(const InputParameters & parameters)
+  : ADKernel(parameters),
     _prop_L(getADMaterialProperty<Real>("mob_name")),
     _name_L(getParam<MaterialPropertyName>("mob_name")),
     _kappa(getADMaterialProperty<Real>("kappa_name")),
@@ -49,13 +51,12 @@ ADACInterface<compute_stage>::ADACInterface(const InputParameters & parameters)
                    "The kernel variable should not be specified in the coupled `args` parameter.");
 
       _dLdarg[i] = &getADMaterialProperty<Real>(derivativePropertyNameFirst(_name_L, iname));
-      _gradarg[i] = &(ivar->adGradSln<compute_stage>());
+      _gradarg[i] = &(ivar->adGradSln());
     }
 }
 
-template <ComputeStage compute_stage>
 ADReal
-ADACInterface<compute_stage>::computeQpResidual()
+ADACInterface::computeQpResidual()
 {
   // nabla_Lpsi is the product rule gradient \f$ \nabla (L\psi) \f$
   ADRealVectorValue nabla_Lpsi = _prop_L[_qp] * _grad_test[_i][_qp];
@@ -71,5 +72,3 @@ ADACInterface<compute_stage>::computeQpResidual()
 
   return _grad_u[_qp] * _kappa[_qp] * nabla_Lpsi;
 }
-
-adBaseClass(ADACInterface);

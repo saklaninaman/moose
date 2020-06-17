@@ -30,11 +30,12 @@
 
 registerMooseObjectAliased("MooseApp", PhysicsBasedPreconditioner, "PBP");
 
-template <>
+defineLegacyParams(PhysicsBasedPreconditioner);
+
 InputParameters
-validParams<PhysicsBasedPreconditioner>()
+PhysicsBasedPreconditioner::validParams()
 {
-  InputParameters params = validParams<MoosePreconditioner>();
+  InputParameters params = MoosePreconditioner::validParams();
 
   params.addRequiredParam<std::vector<std::string>>(
       "solve_order",
@@ -136,7 +137,7 @@ PhysicsBasedPreconditioner::PhysicsBasedPreconditioner(const InputParameters & p
   for (unsigned int var = 0; var < n_vars; var++)
     addSystem(var, off_diag[var], _pre_type[var]);
 
-  _nl.nonlinearSolver()->attach_preconditioner(this);
+  _nl.attachPreconditioner(this);
 
   if (_fe_problem.solverParams()._type != Moose::ST_JFNK)
     mooseError("PBP must be used with JFNK solve type");
@@ -287,6 +288,11 @@ PhysicsBasedPreconditioner::apply(const NumericVector<Number> & x, NumericVector
       rhs.scale(-1.0);
       rhs.close();
     }
+
+    // If there is no off_diag, then u_system.rhs will not be closed.
+    // Thus, we need to close it right here
+    if (!_off_diag[system_var].size())
+      u_system.rhs->close();
 
     // Apply the preconditioner to the small system
     _preconditioners[system_var]->apply(*u_system.rhs, *u_system.solution);

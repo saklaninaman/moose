@@ -11,16 +11,14 @@
 
 registerMooseObject("PhaseFieldApp", CoupledSusceptibilityTimeDerivative);
 
-template <>
 InputParameters
-validParams<CoupledSusceptibilityTimeDerivative>()
+CoupledSusceptibilityTimeDerivative::validParams()
 {
-  InputParameters params = validParams<CoupledTimeDerivative>();
+  InputParameters params = JvarMapKernelInterface<CoupledTimeDerivative>::validParams();
   params.addClassDescription("A modified coupled time derivative Kernel that multiplies the time "
                              "derivative of a coupled variable by a generalized susceptibility");
   params.addRequiredParam<MaterialPropertyName>(
       "f_name", "Susceptibility function F defined in a FunctionMaterial");
-  params.addCoupledVar("args", "Vector of arguments of the susceptibility");
   return params;
 }
 
@@ -29,11 +27,11 @@ CoupledSusceptibilityTimeDerivative::CoupledSusceptibilityTimeDerivative(
   : DerivativeMaterialInterface<JvarMapKernelInterface<CoupledTimeDerivative>>(parameters),
     _F(getMaterialProperty<Real>("f_name")),
     _dFdu(getMaterialPropertyDerivative<Real>("f_name", _var.name())),
-    _dFdarg(_coupled_moose_vars.size())
+    _dFdarg(_n_args)
 {
   // fetch derivatives
-  for (unsigned int i = 0; i < _dFdarg.size(); ++i)
-    _dFdarg[i] = &getMaterialPropertyDerivative<Real>("f_name", _coupled_moose_vars[i]->name());
+  for (unsigned int i = 0; i < _n_args; ++i)
+    _dFdarg[i] = &getMaterialPropertyDerivative<Real>("f_name", i);
 }
 
 void

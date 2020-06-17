@@ -14,11 +14,6 @@
 #include "SmearedCrackSofteningBase.h"
 #include "Function.h"
 
-class ComputeSmearedCrackingStress;
-
-template <>
-InputParameters validParams<ComputeSmearedCrackingStress>();
-
 /**
  * ComputeSmearedCrackingStress computes the stress for a finite strain
  * material with smeared cracking
@@ -26,6 +21,8 @@ InputParameters validParams<ComputeSmearedCrackingStress>();
 class ComputeSmearedCrackingStress : public ComputeMultipleInelasticStress
 {
 public:
+  static InputParameters validParams();
+
   ComputeSmearedCrackingStress(const InputParameters & parameters);
 
   virtual void initialSetup() override;
@@ -159,4 +156,3 @@ protected:
   /// The user-supplied list of softening models to be used in the 3 crack directions
   std::vector<SmearedCrackSofteningBase *> _softening_models;
 };
-

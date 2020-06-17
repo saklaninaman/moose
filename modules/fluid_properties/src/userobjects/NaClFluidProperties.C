@@ -11,11 +11,10 @@
 
 registerMooseObject("FluidPropertiesApp", NaClFluidProperties);
 
-template <>
 InputParameters
-validParams<NaClFluidProperties>()
+NaClFluidProperties::validParams()
 {
-  InputParameters params = validParams<SinglePhaseFluidProperties>();
+  InputParameters params = SinglePhaseFluidProperties::validParams();
   params.addClassDescription("Fluid properties for NaCl");
   return params;
 }

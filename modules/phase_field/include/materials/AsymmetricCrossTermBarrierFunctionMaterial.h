@@ -12,10 +12,6 @@
 #include "CrossTermBarrierFunctionBase.h"
 
 // Forward Declarations
-class AsymmetricCrossTermBarrierFunctionMaterial;
-
-template <>
-InputParameters validParams<AsymmetricCrossTermBarrierFunctionMaterial>();
 
 /**
  * AsymmetricCrossTermBarrierFunctionMaterial adds a free energy contribution on the
@@ -25,6 +21,8 @@ InputParameters validParams<AsymmetricCrossTermBarrierFunctionMaterial>();
 class AsymmetricCrossTermBarrierFunctionMaterial : public CrossTermBarrierFunctionBase
 {
 public:
+  static InputParameters validParams();
+
   AsymmetricCrossTermBarrierFunctionMaterial(const InputParameters & parameters);
 
 protected:
@@ -36,4 +34,3 @@ protected:
   std::vector<const MaterialProperty<Real> *> _d2h;
   ///@}
 };
-

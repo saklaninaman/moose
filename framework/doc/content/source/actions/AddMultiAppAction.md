@@ -1,14 +1,6 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # AddMultiAppAction
 
-!alert construction title=Undocumented Class
-The AddMultiAppAction has not been documented. The content contained on this page includes the
-typical automatic documentation associated with an Action; however, what is contained is ultimately
-determined by what is necessary to make the documentation clear for users.
-
-!syntax description /MultiApps/AddMultiAppAction
+This Action is responsible for adding all MultiApp objects listed within the `[MultiApps]`
+block in a MOOSE input file. See [syntax/MultiApps/index.md] for more information.
 
 !syntax parameters /MultiApps/AddMultiAppAction
-
-!bibtex bibliography

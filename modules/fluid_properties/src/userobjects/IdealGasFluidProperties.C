@@ -12,61 +12,40 @@
 
 registerMooseObject("FluidPropertiesApp", IdealGasFluidProperties);
 
-template <>
 InputParameters
-validParams<IdealGasFluidProperties>()
+IdealGasFluidProperties::validParams()
 {
-  InputParameters params = validParams<SinglePhaseFluidProperties>();
+  InputParameters params = SinglePhaseFluidProperties::validParams();
   params.addRangeCheckedParam<Real>("gamma", 1.4, "gamma > 1", "gamma value (cp/cv)");
-  params.addRangeCheckedParam<Real>("R", 286.7, "R > 0", "Specific gas constant");
+  params.addParam<Real>("molar_mass", 29.0e-3, "Constant molar mass of the fluid (kg/mol)");
   params.addParam<Real>("mu", 18.23e-6, "Dynamic viscosity, Pa.s");
   params.addParam<Real>("k", 25.68e-3, "Thermal conductivity, W/(m-K)");
-  params.addParam<Real>("molar_mass", 29.0e-3, "Constant molar mass of the fluid (kg/mol)");
   params.addParam<Real>("T_c", 0, "Critical temperature, K");
   params.addParam<Real>("rho_c", 0, "Critical density, kg/m3");
   params.addParam<Real>("e_c", 0, "Internal energy at the critical point, J/kg");
-  params.addRangeCheckedParam<Real>(
-      "cv", 0.718e3, "cv > 0", "Constant specific heat capacity at constant volume (J/kg/K)");
-  params.addParam<Real>(
-      "cp", 1.005e3, "Constant specific heat capacity at constant pressure (J/kg/K)");
-  params.addParam<Real>("henry_constant", 0.0, "Henry constant for dissolution in water");
-  params.addDeprecatedParam<Real>("viscosity", "Dynamic viscosity (Pa.s)", "Use mu instead");
-  params.addDeprecatedParam<Real>(
-      "thermal_conductivity", "Thermal conductivity, W/(m-K)", "Use k instead");
-  params.addDeprecatedParam<Real>(
-      "specific_entropy", "Constant specific entropy (J/kg/K)", "This parameter is no longer used");
+
   params.addClassDescription("Fluid properties for an ideal gas");
+
   return params;
 }
 
 IdealGasFluidProperties::IdealGasFluidProperties(const InputParameters & parameters)
   : SinglePhaseFluidProperties(parameters),
+
     _gamma(getParam<Real>("gamma")),
-    _R_specific(getParam<Real>("R")),
-    _cv(getParam<Real>("cv")),
-    _cp(getParam<Real>("cp")),
-    _mu(parameters.isParamSetByUser("viscosity") ? getParam<Real>("viscosity")
-                                                 : getParam<Real>("mu")),
-    _k(parameters.isParamSetByUser("thermal_conductivity") ? getParam<Real>("thermal_conductivity")
-                                                           : getParam<Real>("k")),
     _molar_mass(getParam<Real>("molar_mass")),
+
+    _R_specific(_R / _molar_mass),
+    _cp(_gamma * _R_specific / (_gamma - 1.0)),
+    _cv(_cp / _gamma),
+
+    _mu(getParam<Real>("mu")),
+    _k(getParam<Real>("k")),
+
     _T_c(getParam<Real>("T_c")),
     _rho_c(getParam<Real>("rho_c")),
-    _e_c(getParam<Real>("e_c")),
-    _henry_constant(getParam<Real>("henry_constant"))
+    _e_c(getParam<Real>("e_c"))
 {
-  // If gamma is provided, calculate cp and cv using this
-  if (parameters.isParamSetByUser("gamma"))
-  {
-    _cp = _gamma * _R_specific / (_gamma - 1.0);
-    _cv = _cp / _gamma;
-  }
-  else
-    _gamma = _cp / _cv;
-
-  // If R is provided, calculate molar mass using this
-  if (parameters.isParamSetByUser("R"))
-    _molar_mass = _R / _R_specific;
 }
 
 IdealGasFluidProperties::~IdealGasFluidProperties() {}
@@ -95,6 +74,15 @@ IdealGasFluidProperties::p_from_v_e(Real v, Real e, Real & p, Real & dp_dv, Real
   dp_de = (_gamma - 1.0) / v;
 }
 
+void
+IdealGasFluidProperties::p_from_v_e(
+    const DualReal & v, const DualReal & e, DualReal & p, DualReal & dp_dv, DualReal & dp_de) const
+{
+  p = SinglePhaseFluidProperties::p_from_v_e(v, e);
+  dp_dv = -(_gamma - 1.0) * e / v / v;
+  dp_de = (_gamma - 1.0) / v;
+}
+
 Real
 IdealGasFluidProperties::T_from_v_e(Real /*v*/, Real e) const
 {
@@ -105,6 +93,15 @@ void
 IdealGasFluidProperties::T_from_v_e(Real v, Real e, Real & T, Real & dT_dv, Real & dT_de) const
 {
   T = T_from_v_e(v, e);
+  dT_dv = 0.0;
+  dT_de = 1.0 / _cv;
+}
+
+void
+IdealGasFluidProperties::T_from_v_e(
+    const DualReal & v, const DualReal & e, DualReal & T, DualReal & dT_dv, DualReal & dT_de) const
+{
+  T = SinglePhaseFluidProperties::T_from_v_e(v, e);
   dT_dv = 0.0;
   dT_de = 1.0 / _cv;
 }
@@ -166,6 +163,14 @@ Real IdealGasFluidProperties::gamma_from_v_e(Real, Real) const { return _gamma; 
 Real IdealGasFluidProperties::gamma_from_p_T(Real, Real) const { return _gamma; }
 
 Real IdealGasFluidProperties::mu_from_v_e(Real, Real) const { return _mu; }
+
+void
+IdealGasFluidProperties::mu_from_v_e(Real v, Real e, Real & mu, Real & dmu_dv, Real & dmu_de) const
+{
+  mu = this->mu_from_v_e(v, e);
+  dmu_dv = 0.0;
+  dmu_de = 0.0;
+}
 
 Real IdealGasFluidProperties::k_from_v_e(Real, Real) const { return _k; }
 
@@ -303,6 +308,18 @@ Real
 IdealGasFluidProperties::rho_from_p_T(Real p, Real T) const
 {
   return p * _molar_mass / (_R * T);
+}
+
+void
+IdealGasFluidProperties::rho_from_p_T(const DualReal & p,
+                                      const DualReal & T,
+                                      DualReal & rho,
+                                      DualReal & drho_dp,
+                                      DualReal & drho_dT) const
+{
+  rho = SinglePhaseFluidProperties::rho_from_p_T(p, T);
+  drho_dp = _molar_mass / (_R * T);
+  drho_dT = -p * _molar_mass / (_R * T * T);
 }
 
 void
@@ -492,6 +509,14 @@ IdealGasFluidProperties::T_from_p_h(Real, Real h) const
   return h / _gamma / _cv;
 }
 
+void
+IdealGasFluidProperties::T_from_p_h(Real /*p*/, Real h, Real & T, Real & dT_dp, Real & dT_dh) const
+{
+  T = h / (_gamma * _cv);
+  dT_dp = 0;
+  dT_dh = 1.0 / (_gamma * _cv);
+}
+
 Real IdealGasFluidProperties::cv_from_p_T(Real /* pressure */, Real /* temperature */) const
 {
   return _cv;
@@ -548,13 +573,4 @@ Real IdealGasFluidProperties::pp_sat_from_p_T(Real /*p*/, Real /*T*/) const
 {
   mooseError(
       name(), ": ", __PRETTY_FUNCTION__, " not implemented. Use a real fluid property class!");
-}
-
-Real IdealGasFluidProperties::henryConstant(Real /*T*/) const { return _henry_constant; }
-
-void
-IdealGasFluidProperties::henryConstant(Real /*T*/, Real & Kh, Real & dKh_dT) const
-{
-  Kh = _henry_constant;
-  dKh_dT = 0.0;
 }

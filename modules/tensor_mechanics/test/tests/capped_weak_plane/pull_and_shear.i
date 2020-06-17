@@ -31,27 +31,27 @@
 # of simulations involving plasticity.  The result depends on the damping
 # parameters and the time stepping.
 [Mesh]
-  type = GeneratedMesh
-  dim = 3
-  nx = 10
-  ny = 1
-  nz = 5
-  bias_z = 1.5
-  xmin = -10
-  xmax = 10
-  ymin = -10
-  ymax = 10
-  zmin = -100
-  zmax = 0
-[]
-
-[MeshModifiers]
-  [./bottomz_middle]
-    type = BoundingBoxNodeSet
+  [generated_mesh]
+    type = GeneratedMeshGenerator
+    dim = 3
+    nx = 10
+    ny = 1
+    nz = 5
+    bias_z = 1.5
+    xmin = -10
+    xmax = 10
+    ymin = -10
+    ymax = 10
+    zmin = -100
+    zmax = 0
+  []
+  [bottomz_middle]
+    type = BoundingBoxNodeSetGenerator
     new_boundary = bottomz_middle
     bottom_left = '-1 -1500 -105'
     top_right = '1 1500 -95'
-  [../]
+    input = generated_mesh
+  []
 []
 
 [GlobalParams]
@@ -100,45 +100,45 @@
 
 [BCs]
   [./no_x2]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_x
     boundary = right
     value = 0.0
   [../]
   [./no_x1]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_x
     boundary = left
     value = 0.0
   [../]
   [./no_y1]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_y
     boundary = bottom
     value = 0.0
   [../]
   [./no_y2]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_y
     boundary = top
     value = 0.0
   [../]
 
   [./z_fixed_sides_xmin]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_z
     boundary = left
     value = 0
   [../]
   [./z_fixed_sides_xmax]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_z
     boundary = right
     value = 0
   [../]
 
   [./bottomz]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = disp_z
     boundary = bottomz_middle
     function = max(-10*t,-10)

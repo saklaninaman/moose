@@ -11,14 +11,11 @@
 
 #include "MooseApp.h"
 
-class FluidPropertiesTestApp;
-
-template <>
-InputParameters validParams<FluidPropertiesTestApp>();
-
 class FluidPropertiesTestApp : public MooseApp
 {
 public:
+  static InputParameters validParams();
+
   FluidPropertiesTestApp(InputParameters parameters);
   virtual ~FluidPropertiesTestApp();
 
@@ -28,4 +25,3 @@ public:
   static void associateSyntax(Syntax & syntax, ActionFactory & action_factory);
   static void registerExecFlags(Factory & factory);
 };
-

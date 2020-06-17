@@ -12,12 +12,11 @@
 
 registerMooseObject("SolidMechanicsApp", CLSHPlasticMaterial);
 
-template <>
 InputParameters
-validParams<CLSHPlasticMaterial>()
+CLSHPlasticMaterial::validParams()
 {
-  InputParameters params = validParams<SolidModel>();
-  params += validParams<CLSHPlasticModel>();
+  InputParameters params = SolidModel::validParams();
+  params += CLSHPlasticModel::validParams();
   return params;
 }
 

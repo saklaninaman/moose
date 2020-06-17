@@ -11,15 +11,12 @@
 
 #include "PorousFlowMaterialVectorBase.h"
 
-class PorousFlowDiffusivityBase;
-
-template <>
-InputParameters validParams<PorousFlowDiffusivityBase>();
-
 /// Base class Material designed to provide the tortuosity and diffusion coefficents
 class PorousFlowDiffusivityBase : public PorousFlowMaterialVectorBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowDiffusivityBase(const InputParameters & parameters);
 
 protected:
@@ -40,4 +37,3 @@ protected:
   /// Input diffusion coefficients
   const std::vector<Real> _input_diffusion_coeff;
 };
-

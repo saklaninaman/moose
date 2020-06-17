@@ -11,20 +11,14 @@
 
 #include "ADVectorIntegratedBC.h"
 
-template <ComputeStage>
-class ADVectorRobinBC;
-
-declareADValidParams(ADVectorRobinBC);
-
-template <ComputeStage compute_stage>
-class ADVectorRobinBC : public ADVectorIntegratedBC<compute_stage>
+class ADVectorRobinBC : public ADVectorIntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   ADVectorRobinBC(const InputParameters & parameters);
 
 protected:
-  ADResidual computeQpResidual() override;
+  ADReal computeQpResidual() override;
 
-  usingVectorIntegratedBCMembers;
 };
-

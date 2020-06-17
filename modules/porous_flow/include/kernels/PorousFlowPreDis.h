@@ -12,11 +12,6 @@
 #include "TimeDerivative.h"
 #include "PorousFlowDictator.h"
 
-class PorousFlowPreDis;
-
-template <>
-InputParameters validParams<PorousFlowPreDis>();
-
 /**
  * Kernel = sum (stoichiometry * density * porosity_old * saturation * reaction_rate)
  * where the sum is over secondary chemical species in
@@ -25,6 +20,8 @@ InputParameters validParams<PorousFlowPreDis>();
 class PorousFlowPreDis : public TimeKernel
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowPreDis(const InputParameters & parameters);
 
 protected:
@@ -66,4 +63,3 @@ protected:
    */
   Real computeQpJac(unsigned int pvar);
 };
-

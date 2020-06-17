@@ -11,11 +11,10 @@
 
 registerMooseObject("XFEMApp", MovingLineSegmentCutSetUserObject);
 
-template <>
 InputParameters
-validParams<MovingLineSegmentCutSetUserObject>()
+MovingLineSegmentCutSetUserObject::validParams()
 {
-  InputParameters params = validParams<LineSegmentCutSetUserObject>();
+  InputParameters params = LineSegmentCutSetUserObject::validParams();
   params.addRequiredParam<UserObjectName>("interface_velocity",
                                           "The name of userobject that computes the velocity.");
   params.addClassDescription(

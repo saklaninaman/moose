@@ -10,13 +10,16 @@
 #include "MaterialTensorIntegral.h"
 #include "RankTwoScalarTools.h"
 
-registerMooseObject("TensorMechanicsApp", MaterialTensorIntegral);
+#include "metaphysicl/raw_type.h"
 
-template <>
+registerMooseObject("TensorMechanicsApp", MaterialTensorIntegral);
+registerMooseObject("TensorMechanicsApp", ADMaterialTensorIntegral);
+
+template <bool is_ad>
 InputParameters
-validParams<MaterialTensorIntegral>()
+MaterialTensorIntegralTempl<is_ad>::validParams()
 {
-  InputParameters params = validParams<ElementIntegralPostprocessor>();
+  InputParameters params = ElementIntegralPostprocessor::validParams();
   params.addClassDescription("This postprocessor computes an element integral of "
                              "a component of a material tensor as specified by "
                              "the user-supplied indices");
@@ -34,16 +37,21 @@ validParams<MaterialTensorIntegral>()
   return params;
 }
 
-MaterialTensorIntegral::MaterialTensorIntegral(const InputParameters & parameters)
+template <bool is_ad>
+MaterialTensorIntegralTempl<is_ad>::MaterialTensorIntegralTempl(const InputParameters & parameters)
   : ElementIntegralPostprocessor(parameters),
-    _tensor(getMaterialProperty<RankTwoTensor>("rank_two_tensor")),
+    _tensor(getGenericMaterialProperty<RankTwoTensor, is_ad>("rank_two_tensor")),
     _i(getParam<unsigned int>("index_i")),
     _j(getParam<unsigned int>("index_j"))
 {
 }
 
+template <bool is_ad>
 Real
-MaterialTensorIntegral::computeQpIntegral()
+MaterialTensorIntegralTempl<is_ad>::computeQpIntegral()
 {
-  return RankTwoScalarTools::component(_tensor[_qp], _i, _j);
+  return RankTwoScalarTools::component(MetaPhysicL::raw_value(_tensor[_qp]), _i, _j);
 }
+
+template class MaterialTensorIntegralTempl<false>;
+template class MaterialTensorIntegralTempl<true>;

@@ -12,11 +12,6 @@
 #include "DiscreteElementUserObject.h"
 #include "RankTwoTensor.h"
 
-class HEVPInternalVarRateUOBase;
-
-template <>
-InputParameters validParams<HEVPInternalVarRateUOBase>();
-
 /**
  * This user object is a pure virtual base classs
  * Derived classes computes internal variable rate and derivatives
@@ -24,6 +19,8 @@ InputParameters validParams<HEVPInternalVarRateUOBase>();
 class HEVPInternalVarRateUOBase : public DiscreteElementUserObject
 {
 public:
+  static InputParameters validParams();
+
   HEVPInternalVarRateUOBase(const InputParameters & parameters);
 
   virtual bool computeValue(unsigned int, Real &) const = 0;
@@ -33,4 +30,3 @@ protected:
   std::string _flow_rate_prop_name;
   const MaterialProperty<Real> & _flow_rate;
 };
-

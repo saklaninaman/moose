@@ -11,14 +11,11 @@
 
 #include "MooseApp.h"
 
-class ContactApp;
-
-template <>
-InputParameters validParams<ContactApp>();
-
 class ContactApp : public MooseApp
 {
 public:
+  static InputParameters validParams();
+
   ContactApp(const InputParameters & parameters);
   virtual ~ContactApp();
 
@@ -27,5 +24,6 @@ public:
   static void registerObjects(Factory & factory);
   static void associateSyntax(Syntax & syntax, ActionFactory & action_factory);
   static void registerExecFlags(Factory & factory);
+  static void registerObjectDepends(Factory & factory);
+  static void associateSyntaxDepends(Syntax & syntax, ActionFactory & action_factory);
 };
-

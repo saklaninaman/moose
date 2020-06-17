@@ -4,7 +4,7 @@
 
 ## Description
 
-`PenaltyDirichletBC` is a `NodalBC` used for enforcing Dirichlet boundary conditions
+`PenaltyDirichletBC` is a `IntegratedBC` used for enforcing Dirichlet boundary conditions
 which differs from the [`DirichletBC`](/DirichletBC.md) class in the way in which it handles the enforcement.
 It is appropriate for partial differential equations (PDEs) in the form
 
@@ -35,7 +35,7 @@ good agreement with the Dirichlet data, but not so large that the
 resulting Jacobian becomes ill-conditioned, resulting in failed solves
 and overall accuracy losses.
 
-Benefits of the penatly-based approach include simplified Dirichlet
+Benefits of the penalty-based approach include simplified Dirichlet
 boundary condition enforcement for non-Lagrange finite element bases,
 maintaining the symmetry (if any) of the original problem, and
 avoiding the need to zero out contributions from other rows in a
@@ -57,12 +57,12 @@ boundary condition
 \end{equation}
 
 replacing the original Dirichlet boundary condition. It has been shown
-[cite!juntunen2009nitsche] that in order for the solution to this perturbed
+[!cite](juntunen2009nitsche) that in order for the solution to this perturbed
 problem to converge to the solution of the original problem in the
 limit as $\epsilon \rightarrow 0$, the penalty parameter must depend
 on the mesh size, and that as we refine the mesh, the problem becomes
 increasingly ill-conditioned.  A related method for imposing Dirichlet boundary
-conditions, known as Nitsche's method [cite!juntunen2009nitsche], does not
+conditions, known as Nitsche's method [!cite](juntunen2009nitsche), does not
 suffer from the same ill-conditioning issues, and is slated for inclusion
 in MOOSE some time in the future.
 

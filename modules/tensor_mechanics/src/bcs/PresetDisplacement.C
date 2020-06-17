@@ -12,23 +12,28 @@
 
 registerMooseObject("TensorMechanicsApp", PresetDisplacement);
 
-template <>
 InputParameters
-validParams<PresetDisplacement>()
+PresetDisplacement::validParams()
 {
-  InputParameters params = validParams<NodalBC>();
+  InputParameters params = DirichletBCBase::validParams();
   params.addClassDescription(
       "Prescribe the displacement on a given boundary in a given direction.");
+
   params.addParam<Real>("scale_factor", 1, "Scale factor if function is given.");
   params.addParam<FunctionName>("function", "1", "Function describing the displacement.");
   params.addRequiredCoupledVar("velocity", "The velocity variable.");
   params.addRequiredCoupledVar("acceleration", "The acceleration variable.");
   params.addRequiredParam<Real>("beta", "beta parameter for Newmark time integration.");
+
+  // Forcefully preset the BC
+  params.set<bool>("preset") = true;
+  params.suppressParameter<bool>("preset");
+
   return params;
 }
 
 PresetDisplacement::PresetDisplacement(const InputParameters & parameters)
-  : PresetNodalBC(parameters),
+  : DirichletBCBase(parameters),
     _u_old(valueOld()),
     _scale_factor(parameters.get<Real>("scale_factor")),
     _function(getFunction("function")),

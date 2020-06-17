@@ -12,13 +12,13 @@
 #include "NonlinearSystem.h"
 
 registerMooseAction("MooseApp", AddDGKernelAction, "add_dg_kernel");
-registerMooseAction("MooseApp", AddDGKernelAction, "ready_to_init");
 
-template <>
+defineLegacyParams(AddDGKernelAction);
+
 InputParameters
-validParams<AddDGKernelAction>()
+AddDGKernelAction::validParams()
 {
-  return validParams<MooseObjectAction>();
+  return MooseObjectAction::validParams();
 }
 
 AddDGKernelAction::AddDGKernelAction(InputParameters params) : MooseObjectAction(params) {}
@@ -27,17 +27,5 @@ void
 AddDGKernelAction::act()
 {
   if (_current_task == "add_dg_kernel")
-  {
-    if (Registry::isADObj(_type + "<RESIDUAL>"))
-    {
-      _problem->addDGKernel(_type + "<RESIDUAL>", _name + "_residual", _moose_object_pars);
-      _problem->addDGKernel(_type + "<JACOBIAN>", _name + "_jacobian", _moose_object_pars);
-      _problem->haveADObjects(true);
-    }
-    else
-      _problem->addDGKernel(_type, _name, _moose_object_pars);
-  }
-
-  if (_current_task == "ready_to_init")
-    _problem->getNonlinearSystemBase().dofMap().set_implicit_neighbor_dofs(true);
+    _problem->addDGKernel(_type, _name, _moose_object_pars);
 }

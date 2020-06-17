@@ -11,11 +11,10 @@
 //
 #include "RichardsSeff.h"
 
-template <>
 InputParameters
-validParams<RichardsSeff>()
+RichardsSeff::validParams()
 {
-  InputParameters params = validParams<GeneralUserObject>();
+  InputParameters params = GeneralUserObject::validParams();
   params.addClassDescription(
       "Fluid seff base class.  Override seff, dseff and d2seff in your class");
   return params;

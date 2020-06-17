@@ -12,14 +12,12 @@
 #include "GeometricCut3DUserObject.h"
 
 // Forward declarations
-class EllipseCutUserObject;
-
-template <>
-InputParameters validParams<EllipseCutUserObject>();
 
 class EllipseCutUserObject : public GeometricCut3DUserObject
 {
 public:
+  static InputParameters validParams();
+
   EllipseCutUserObject(const InputParameters & parameters);
 
   virtual const std::vector<Point>
@@ -37,4 +35,3 @@ private:
 
   virtual bool isInsideCutPlane(Point p) const override;
 };
-

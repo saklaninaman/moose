@@ -1,7 +1,7 @@
 # Rotating Circle
 
 The second example is a typical benchmark problem for the level set equation: a rotating bubble. The
-problem involves initializing $u_h$ (see [Theory](/theory.md)) with a "bubble" of radius 0.15 at
+problem involves initializing $u_h$ (see [Theory](/level_set/theory.md)) with a "bubble" of radius 0.15 at
 $(0.0, 0.5)$ for $\Omega = [-1,1]^2$.  This bubble is then advected with the given velocity field
 $\vec{v}=(4y,-4x)$, so that, at $t=\pi/2$, the bubble should return to its original position.
 
@@ -27,7 +27,7 @@ cd ~/projects/moose/module/level_set/examples/rotating_circle
 
 ## Level Set Equation with SUPG
 
-Adding SUPG stabilization---set the [theory](/theory.md) for details---mitigates the oscillations
+Adding SUPG stabilization---set the [theory](/level_set/theory.md) for details---mitigates the oscillations
 present in the first step, as shown in [circle_rotate_supg_out]. Adding the SUPG stabilization is
 trivial simply add the time and advection SUPG kernels to the input file ([circle_rotate_supg.i])
 shown previously, the kernels block will then appear as:
@@ -40,7 +40,7 @@ in [fig:area-compare].
 
 ## Level Set Equation with Reinitialization
 
-Adding reinitializtion, in this case the scheme proposed by [cite!olsson2007conservative], requires
+Adding reinitializtion, in this case the scheme proposed by [!cite](olsson2007conservative), requires
 the use of the MOOSE [MultiApp](/MultiApps/index.md). The enable reinitialization two input files are
 required: a master and sub-application.
 
@@ -57,12 +57,12 @@ Next, the sub-application input file must be created, which is shown below. This
 the master input file closely, with three notable exceptions. First, the
 [Kernels](syntax/Kernels/index.md) block utilize the time derivative and a new object,
 [LevelSetOlssonReinitialization](/LevelSetOlssonReinitialization.md), that implements the
-reinitialization scheme of [cite!olsson2007conservative]. Second, the [Problem](/Problem/index.md) is
+reinitialization scheme of [!cite](olsson2007conservative). Second, the [Problem](/Problem/index.md) is
 set to use the [LevelSetReinitializationProblem](/LevelSetReinitializationProblem.md). Finally, the
 [UserObjects](/UserObjects/index.md) block includes a terminator,
 [LevelSetOlssonTerminator](/LevelSetOlssonTerminator.md), which is responsible for stopping the
 reinitialization solve when steady-state is achieved according to the criteria defined by
-[cite!olsson2007conservative].
+[!cite](olsson2007conservative).
 
 !listing modules/level_set/examples/rotating_circle/circle_rotate_sub.i
 

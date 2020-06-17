@@ -10,16 +10,10 @@
 #pragma once
 
 #include "Material.h"
+#include "RankTwoTensorForward.h"
 
 // Forward Declarations
-class ComputeGlobalStrain;
 class GlobalStrainUserObjectInterface;
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-
-template <>
-InputParameters validParams<ComputeGlobalStrain>();
 
 /**
  * ComputeGlobalStrain calculates the global strain tensor from the scalar variables
@@ -27,6 +21,8 @@ InputParameters validParams<ComputeGlobalStrain>();
 class ComputeGlobalStrain : public Material
 {
 public:
+  static InputParameters validParams();
+
   ComputeGlobalStrain(const InputParameters & parameters);
 
   virtual void computeProperties();
@@ -43,6 +39,7 @@ protected:
   const VectorValue<bool> & _periodic_dir;
 
   const unsigned int _dim;
+
+  /// Number of displacement variables
   const unsigned int _ndisp;
 };
-

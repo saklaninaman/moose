@@ -12,11 +12,11 @@
 #include "AppFactory.h"
 #include "MooseSyntax.h"
 
-template <>
 InputParameters
-validParams<FluidPropertiesApp>()
+FluidPropertiesApp::validParams()
 {
-  InputParameters params = validParams<MooseApp>();
+  InputParameters params = MooseApp::validParams();
+  params.set<bool>("use_legacy_material_output") = false;
   return params;
 }
 

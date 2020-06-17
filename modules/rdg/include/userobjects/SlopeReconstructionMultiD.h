@@ -12,10 +12,6 @@
 #include "SlopeReconstructionBase.h"
 
 // Forward Declarations
-class SlopeReconstructionMultiD;
-
-template <>
-InputParameters validParams<SlopeReconstructionMultiD>();
 
 /**
  * Multi-dimensional piecewise linear slope reconstruction
@@ -24,10 +20,11 @@ InputParameters validParams<SlopeReconstructionMultiD>();
 class SlopeReconstructionMultiD : public SlopeReconstructionBase
 {
 public:
+  static InputParameters validParams();
+
   SlopeReconstructionMultiD(const InputParameters & parameters);
 
 protected:
   /// store the pair of boundary ID and user object name
   std::map<BoundaryID, UserObjectName> _bnd_uo_name_map;
 };
-

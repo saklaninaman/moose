@@ -1,8 +1,8 @@
 [Tests]
-  [./BasePeacockMainWindow]
+  [BasePeacockMainWindow]
     type = PythonUnitTest
     input = test_BasePeacockMainWindow.py
-    display_required = True
+    display_required = true
     separate = True
-  [../]
+  []
 []

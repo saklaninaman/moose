@@ -11,22 +11,16 @@
 
 #include "ADKernel.h"
 
-template <ComputeStage>
-class ADCoupledValueTest;
-
-declareADValidParams(ADCoupledValueTest);
-
-template <ComputeStage compute_stage>
-class ADCoupledValueTest : public ADKernel<compute_stage>
+class ADCoupledValueTest : public ADKernel
 {
 public:
+  static InputParameters validParams();
+
   ADCoupledValueTest(const InputParameters & parameters);
 
 protected:
-  virtual ADResidual computeQpResidual();
+  virtual ADReal computeQpResidual();
 
   const ADVariableValue & _v;
 
-  usingKernelMembers;
 };
-

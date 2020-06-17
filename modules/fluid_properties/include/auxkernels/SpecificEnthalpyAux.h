@@ -11,11 +11,7 @@
 
 #include "AuxKernel.h"
 
-class SpecificEnthalpyAux;
 class SinglePhaseFluidProperties;
-
-template <>
-InputParameters validParams<SpecificEnthalpyAux>();
 
 /**
  * Computes specific enthalpy from pressure and temperature.
@@ -23,6 +19,8 @@ InputParameters validParams<SpecificEnthalpyAux>();
 class SpecificEnthalpyAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   SpecificEnthalpyAux(const InputParameters & parameters);
 
 protected:
@@ -33,4 +31,3 @@ protected:
 
   const SinglePhaseFluidProperties & _fp;
 };
-

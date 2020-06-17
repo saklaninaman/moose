@@ -11,11 +11,10 @@
 
 registerMooseObject("TensorMechanicsApp", ComputeAxisymmetric1DSmallStrain);
 
-template <>
 InputParameters
-validParams<ComputeAxisymmetric1DSmallStrain>()
+ComputeAxisymmetric1DSmallStrain::validParams()
 {
-  InputParameters params = validParams<Compute1DSmallStrain>();
+  InputParameters params = Compute1DSmallStrain::validParams();
   params.addClassDescription("Compute a small strain in an Axisymmetric 1D problem");
   params.addParam<UserObjectName>("subblock_index_provider",
                                   "SubblockIndexProvider user object name");
@@ -38,9 +37,6 @@ ComputeAxisymmetric1DSmallStrain::ComputeAxisymmetric1DSmallStrain(
 {
   if (_has_out_of_plane_strain && _has_scalar_out_of_plane_strain)
     mooseError("Must define only one of out_of_plane_strain or scalar_out_of_plane_strain");
-
-  if (!_has_out_of_plane_strain && !_has_scalar_out_of_plane_strain)
-    mooseError("Must define either out_of_plane_strain or scalar_out_of_plane_strain");
 
   if (_has_scalar_out_of_plane_strain)
   {

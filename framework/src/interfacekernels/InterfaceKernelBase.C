@@ -16,15 +16,16 @@
 
 #include "libmesh/quadrature.h"
 
-template <>
+defineLegacyParams(InterfaceKernelBase);
+
 InputParameters
-validParams<InterfaceKernelBase>()
+InterfaceKernelBase::validParams()
 {
-  InputParameters params = validParams<MooseObject>();
-  params += validParams<TransientInterface>();
-  params += validParams<BoundaryRestrictable>();
-  params += validParams<MeshChangedInterface>();
-  params += validParams<TaggingInterface>();
+  InputParameters params = MooseObject::validParams();
+  params += TransientInterface::validParams();
+  params += BoundaryRestrictable::validParams();
+  params += MeshChangedInterface::validParams();
+  params += TaggingInterface::validParams();
 
   params.addRequiredParam<NonlinearVariableName>(
       "variable", "The name of the variable that this boundary condition applies to");
@@ -35,6 +36,7 @@ validParams<InterfaceKernelBase>()
                         "the case this is true but no displacements "
                         "are provided in the Mesh block the "
                         "undisplaced mesh will still be used.");
+  params.addPrivateParam<bool>("_use_undisplaced_reference_points", false);
   params.addParamNamesToGroup("use_displaced_mesh", "Advanced");
 
   params.declareControllable("enable");
@@ -65,11 +67,11 @@ validParams<InterfaceKernelBase>()
       "length as diag_save_in. This vector specifies whether the corresponding aux_var should "
       "save-in jacobian contributions from the master ('m') or slave side ('s').");
 
-  // Need one layer of ghosting
+  // InterfaceKernels always need one layer of ghosting.
   params.addRelationshipManager("ElementSideNeighborLayers",
                                 Moose::RelationshipManagerType::GEOMETRIC |
-                                    Moose::RelationshipManagerType::ALGEBRAIC);
-
+                                    Moose::RelationshipManagerType::ALGEBRAIC |
+                                    Moose::RelationshipManagerType::COUPLING);
   return params;
 }
 
@@ -84,6 +86,7 @@ InterfaceKernelBase::InterfaceKernelBase(const InputParameters & parameters)
     TransientInterface(this),
     FunctionInterface(this),
     UserObjectInterface(this),
+    PostprocessorInterface(this),
     NeighborCoupleableMooseVariableDependencyIntermediateInterface(this, false, false),
     Restartable(this, "InterfaceKernels"),
     MeshChangedInterface(parameters),
@@ -97,6 +100,7 @@ InterfaceKernelBase::InterfaceKernelBase(const InputParameters & parameters)
     _current_elem(_assembly.elem()),
     _current_elem_volume(_assembly.elemVolume()),
     _neighbor_elem(_assembly.neighbor()),
+    _neighbor_elem_volume(_assembly.neighborVolume()),
     _current_side(_assembly.side()),
     _current_side_elem(_assembly.sideElem()),
     _current_side_volume(_assembly.sideElemVolume()),

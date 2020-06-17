@@ -13,11 +13,10 @@
 
 registerMooseObject("RichardsApp", Q2PRelPermPowerGas);
 
-template <>
 InputParameters
-validParams<Q2PRelPermPowerGas>()
+Q2PRelPermPowerGas::validParams()
 {
-  InputParameters params = validParams<RichardsRelPerm>();
+  InputParameters params = RichardsRelPerm::validParams();
   params.addRequiredRangeCheckedParam<Real>(
       "simm",
       "simm >= 0 & simm < 1",

@@ -16,11 +16,12 @@
 
 registerMooseObject("MooseApp", ElementVariablesDifferenceMax);
 
-template <>
+defineLegacyParams(ElementVariablesDifferenceMax);
+
 InputParameters
-validParams<ElementVariablesDifferenceMax>()
+ElementVariablesDifferenceMax::validParams()
 {
-  InputParameters params = validParams<ElementVectorPostprocessor>();
+  InputParameters params = ElementVectorPostprocessor::validParams();
 
   params.addRequiredCoupledVar(
       "compare_a",
@@ -34,7 +35,7 @@ validParams<ElementVariablesDifferenceMax>()
 
   // The value from this VPP is naturally already on every processor
   // TODO: Make this not the case!  See #11415
-  params.set<bool>("_is_broadcast") = true;
+  params.set<bool>("_auto_broadcast") = false;
 
   return params;
 }

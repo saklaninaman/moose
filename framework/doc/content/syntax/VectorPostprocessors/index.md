@@ -76,13 +76,17 @@ getScatterVectorPostprocessorValue('the_vpp_parameter_name', 'the_vector_name')
 `getScatterVectorPostprocessorValue()` returns a `const ScatterVectorPostprocessorValue &`... which is a single scalar value that you don't index into.  Each process receives the "correct" value and can just directly use it.
 
 
-If the data in a VPP is naturally replicated on all processors a VectorPostprocessor should set `_is_broadcast = true` in its `validParams()` like so:
+If the data in a VPP is naturally replicated on all processors a VectorPostprocessor should set `_auto_broadcast = false` in its `validParams()` like so:
 
 ```c++
-params.set<bool>("_is_broadcast") = true;
+params.set<MooseEnum>("_auto_broadcast") = "false";
 ```
 
 This tells MOOSE that the data is already replicated and there is no need to broadcast it if another object is asking for it to be broadcast.
+
+## TimeData
+
+The `time_data` parameter produces an additional CSV file containing just the real time and the corresponding time step for any VectorPostprocessor output information. This file may be useful in producing animations or your simulation results.
 
 # VectorPostprocessor List
 

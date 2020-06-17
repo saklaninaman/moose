@@ -1,4 +1,3 @@
-#pylint: disable=missing-docstring
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -7,15 +6,21 @@
 #*
 #* Licensed under LGPL 2.1, please see LICENSE for details
 #* https://www.gnu.org/licenses/lgpl-2.1.html
-#pylint: enable=missing-docstring
 import os
 import re
 import copy
 import logging
 import mooseutils
+
 import MooseDocs
+from ..tree import pages
 
 LOG = logging.getLogger(__name__)
+
+# File extensions to consider when building the content tree
+FILE_EXT = ('.md', '.jpg', '.jpeg', '.gif', '.png', '.svg', '.webm', '.ogv', '.mp4', '.m4v', \
+            '.pdf', '.css', '.js', '.bib', '.woff', '.woff2', '.html', '.ico', 'md.template', \
+            'tar.gz')
 
 def _build_regex(pattern):
     """
@@ -67,7 +72,6 @@ def _doc_import(root_dir, content=None):
         content[list]: List of file/path globs to include, relative to the 'base' directory, paths
                        beginning with '~' are excluded.
     """
-
     # Check root_dir
     if not os.path.isdir(root_dir):
         LOG.error('The "root_dir" must be a valid directory: %s', root_dir)
@@ -78,7 +82,7 @@ def _doc_import(root_dir, content=None):
     for root, _, files in os.walk(root_dir, followlinks=True):
         for fname in files:
             full_name = os.path.join(root, fname)
-            if os.path.isfile(full_name) and full_name.endswith(MooseDocs.FILE_EXT):
+            if os.path.isfile(full_name) and full_name.endswith(FILE_EXT):
                 filenames.add(full_name)
 
     # Return the complete list if content is empty
@@ -121,9 +125,9 @@ def create_file_page(name, filename, in_ext):
     """
     _, ext = os.path.splitext(filename)
     if ext in in_ext:
-        return MooseDocs.tree.pages.Source(name, source=filename)
+        return pages.Source(name, source=filename)
     else:
-        return MooseDocs.tree.pages.File(name, source=filename)
+        return pages.File(name, source=filename)
 
 def get_files(items, in_ext, git_ls_files=True):
     """
@@ -152,11 +156,11 @@ def get_items(options):
     if isinstance(options, list):
         for value in options:
             if isinstance(value, dict):
-                items.append(dict(value[value.keys()[0]]))
+                items.append(dict(value[list(value.keys())[0]]))
             else:
                 items.append(dict(root_dir=value, content=None))
     elif isinstance(options, dict):
-        for _, value in options.iteritems():
+        for _, value in options.items():
             content = value.get('content', None)
             items.append(dict(root_dir=value['root_dir'], content=content))
 
@@ -188,7 +192,7 @@ def get_content(items, in_ext):
         for i in range(1, len(parts)):
             dir_key = os.path.join(*parts[:i])
             if dir_key not in nodes:
-                nodes[dir_key] = MooseDocs.tree.pages.Directory(dir_key,
+                nodes[dir_key] = pages.Directory(dir_key,
                                                                 source=os.path.join(root, dir_key))
 
         # Create the file node, if it doesn't already exist. This enforces that the first
@@ -203,4 +207,4 @@ def get_content(items, in_ext):
         else:
             MooseDocs.PROJECT_FILES.update(mooseutils.list_files(root))
 
-    return nodes.values()
+    return list(nodes.values())

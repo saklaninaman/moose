@@ -12,11 +12,10 @@
 
 registerMooseObject("TensorMechanicsApp", ComputeMeanThermalExpansionFunctionEigenstrain);
 
-template <>
 InputParameters
-validParams<ComputeMeanThermalExpansionFunctionEigenstrain>()
+ComputeMeanThermalExpansionFunctionEigenstrain::validParams()
 {
-  InputParameters params = validParams<ComputeMeanThermalExpansionEigenstrainBase>();
+  InputParameters params = ComputeThermalExpansionEigenstrainBase::validParams();
   params.addClassDescription("Computes eigenstrain due to thermal expansion using a function that "
                              "describes the mean thermal expansion as a function of temperature");
   params.addRequiredParam<FunctionName>(

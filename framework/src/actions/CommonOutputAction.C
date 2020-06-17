@@ -26,15 +26,17 @@
 
 registerMooseAction("MooseApp", CommonOutputAction, "common_output");
 
-template <>
+defineLegacyParams(CommonOutputAction);
+
 InputParameters
-validParams<CommonOutputAction>()
+CommonOutputAction::validParams()
 {
-  InputParameters params = validParams<Action>();
+  InputParameters params = Action::validParams();
+  params.addClassDescription("Adds short-cut syntax and common parameters to the Outputs block.");
 
   // Short-cut methods for typical output objects
   params.addParam<bool>(
-      "exodus", false, "Output the results using the default settings for Exodus output");
+      "exodus", false, "Output the results using the default settings for Exodus output.");
   params.addParam<bool>(
       "nemesis", false, "Output the results using the default settings for Nemesis output");
   params.addParam<bool>(
@@ -43,6 +45,10 @@ validParams<CommonOutputAction>()
                         false,
                         "Output the scalar variable and postprocessors to a *.csv "
                         "file using the default CSV output.");
+  params.addParam<bool>("xml",
+                        false,
+                        "Output the vector postprocessors to a *.xml "
+                        "file using the default XML output.");
   params.addParam<bool>(
       "vtk", false, "Output the results using the default settings for VTKOutput output");
   params.addParam<bool>(
@@ -75,7 +81,7 @@ validParams<CommonOutputAction>()
                                             "strings.  This is helpful in outputting only a subset "
                                             "of outputs when using MultiApps.");
   params.addParam<unsigned int>(
-      "interval", 1, "The interval at which timesteps are output to the solution file");
+      "interval", 1, "The interval at which timesteps are output to the solution file.");
   params.addParam<std::vector<Real>>("sync_times",
                                      std::vector<Real>(),
                                      "Times at which the output and solution is forced to occur");
@@ -155,6 +161,9 @@ CommonOutputAction::act()
   if (getParam<bool>("csv"))
     create("CSV");
 
+  if (getParam<bool>("xml"))
+    create("XMLOutput");
+
 #ifdef LIBMESH_HAVE_VTK
   if (getParam<bool>("vtk"))
     create("VTK");
@@ -187,12 +196,12 @@ CommonOutputAction::act()
   if (getParam<bool>("dofmap"))
     create("DOFMap");
 
-  if (getParam<bool>("controls") || _app.getParamTempl<bool>("show_controls"))
+  if (getParam<bool>("controls") || _app.getParam<bool>("show_controls"))
     create("ControlOutput");
 
-  if (!_app.getParamTempl<bool>("no_timing") &&
+  if (!_app.getParam<bool>("no_timing") &&
       (getParam<bool>("perf_graph") || getParam<bool>("print_perf_log") ||
-       _app.getParamTempl<bool>("timing")))
+       _app.getParam<bool>("timing")))
     create("PerfGraphOutput");
 
   if (!getParam<bool>("color"))

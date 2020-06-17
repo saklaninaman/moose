@@ -17,9 +17,26 @@ reverse, children are deleted and the "parent" element is reactivated. The origi
 refinement level 0. Each time an element is split, the children are assigned a refinement level one
 higher than their parents.
 
-!media media/adaptivity/element_adaptivity.png
-       style=width:30%;margin-left:auto;margin-right:auto;
-       caption=Self-similar refinement pattern utilized by MOOSE for adaptivity.
+!media framework/adaptivity.png
+       caption=Self-similar refinement pattern utilized by MOOSE for adaptivity for 1D linear,
+               2D quadrilatrel, and 3D hexahedron elements.
+
+## Cycles and Intervals
+
+MOOSE normally performs one adaptivity step per solve. However, developers have the ability to
+increase or decrease the amount of adaptivity performed through the "cycles" and "interval" parameters.
+
+The "cycles" parameter can be set to perform multiple adaptivity cycles for a single solve. This is
+useful for cases where one would like to resolve a sharp feature in a single step, such as in the case
+of an introduced nucleus.
+
+!listing test/tests/mesh/adapt/adapt_test_cycles.i block=Executioner/Adaptivity
+
+The "interval" parameter can be set to decrease the amount of adaptivity is performed so that
+it is performed on every _nth_ step. This can sometimes help to speed up your simulation as adaptivity
+can be somewhat expensive to perform.
+
+!listing test/tests/mesh/adapt/interval.i block=Executioner/Adaptivity
 
 !syntax parameters /Adaptivity
 

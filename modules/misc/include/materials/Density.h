@@ -17,6 +17,8 @@
 class Density : public Material
 {
 public:
+  static InputParameters validParams();
+
   Density(const InputParameters & params);
 
 protected:
@@ -32,7 +34,3 @@ protected:
   const Real _orig_density;
   MaterialProperty<Real> & _density;
 };
-
-template <>
-InputParameters validParams<Density>();
-

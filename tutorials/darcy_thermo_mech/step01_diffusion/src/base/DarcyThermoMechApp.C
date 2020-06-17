@@ -15,12 +15,17 @@
 #include "MooseSyntax.h"
 #include "ModulesApp.h"
 
-template <>
 InputParameters
-validParams<DarcyThermoMechApp>()
+DarcyThermoMechApp::validParams()
 {
-  InputParameters params = validParams<MooseApp>();
+  InputParameters params = MooseApp::validParams();
+
   params.set<bool>("automatic_automatic_scaling") = false;
+
+  // Sets DirichletBC default for preset = true
+  // This will be removed in the future when the global default is changed
+  params.set<bool>("use_legacy_dirichlet_bc") = false;
+
   return params;
 }
 

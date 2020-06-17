@@ -11,22 +11,16 @@
 
 #include "ElementUserObject.h"
 #include "SubblockIndexProvider.h"
+#include "RankTwoTensorForward.h"
+#include "RankFourTensorForward.h"
 
-class GeneralizedPlaneStrainUserObject;
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-template <typename>
-class RankFourTensorTempl;
-typedef RankFourTensorTempl<Real> RankFourTensor;
 class Function;
-
-template <>
-InputParameters validParams<GeneralizedPlaneStrainUserObject>();
 
 class GeneralizedPlaneStrainUserObject : public ElementUserObject
 {
 public:
+  static InputParameters validParams();
+
   GeneralizedPlaneStrainUserObject(const InputParameters & parameters);
 
   void initialize() override;
@@ -38,15 +32,21 @@ public:
   virtual Real returnJacobian(unsigned int scalar_var_id = 0) const;
 
 protected:
+  /// Base name of the material system
   const std::string _base_name;
 
   const MaterialProperty<RankFourTensor> & _Cijkl;
+
+  /// The stress tensor
   const MaterialProperty<RankTwoTensor> & _stress;
 
+  /// A Userobject that carries the subblock ID for all elements
   const SubblockIndexProvider * _subblock_id_provider;
 
   const Function & _out_of_plane_pressure;
   const Real _factor;
+
+  /// The direction of the out-of-plane strain scalar variable
   unsigned int _scalar_out_of_plane_strain_direction;
   std::vector<Real> _residual;
   std::vector<Real> _reference_residual;

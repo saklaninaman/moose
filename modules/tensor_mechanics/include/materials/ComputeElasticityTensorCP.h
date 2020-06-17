@@ -14,17 +14,14 @@
 #include "RankTwoTensor.h"
 #include "RotationTensor.h"
 
-class ComputeElasticityTensorCP;
-
-template <>
-InputParameters validParams<ComputeElasticityTensorCP>();
-
 /**
  * ComputeElasticityTensorCP defines an elasticity tensor material object for crystal plasticity.
  */
 class ComputeElasticityTensorCP : public ComputeElasticityTensor
 {
 public:
+  static InputParameters validParams();
+
   ComputeElasticityTensorCP(const InputParameters & parameters);
 
 protected:
@@ -46,4 +43,3 @@ protected:
   /// Rotation matrix
   RotationTensor _R;
 };
-

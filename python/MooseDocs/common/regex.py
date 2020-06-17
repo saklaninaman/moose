@@ -1,4 +1,3 @@
-#pylint: disable=missing-docstring
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -9,7 +8,7 @@
 #* https://www.gnu.org/licenses/lgpl-2.1.html
 
 import re
-from exceptions import MooseDocsException
+from .exceptions import MooseDocsException
 
 def regex(pattern, content, flags=None):
     """

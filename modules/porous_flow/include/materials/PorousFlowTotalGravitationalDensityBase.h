@@ -11,17 +11,14 @@
 
 #include "PorousFlowMaterialVectorBase.h"
 
-class PorousFlowTotalGravitationalDensityBase;
-
-template <>
-InputParameters validParams<PorousFlowTotalGravitationalDensityBase>();
-
 /**
  * Base class Material designed to provide the density of the porous medium
  */
 class PorousFlowTotalGravitationalDensityBase : public PorousFlowMaterialVectorBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowTotalGravitationalDensityBase(const InputParameters & parameters);
 
 protected:
@@ -31,4 +28,3 @@ protected:
   /// d(density)/d(PorousFlow variable)
   MaterialProperty<std::vector<Real>> & _dgravdensity_dvar;
 };
-

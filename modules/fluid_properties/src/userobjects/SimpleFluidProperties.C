@@ -11,11 +11,10 @@
 
 registerMooseObject("FluidPropertiesApp", SimpleFluidProperties);
 
-template <>
 InputParameters
-validParams<SimpleFluidProperties>()
+SimpleFluidProperties::validParams()
 {
-  InputParameters params = validParams<SinglePhaseFluidProperties>();
+  InputParameters params = SinglePhaseFluidProperties::validParams();
   params.addParam<Real>("molar_mass", 1.8E-2, "Constant molar mass of the fluid (kg/mol)");
   params.addParam<Real>(
       "thermal_expansion", 2.14E-4, "Constant coefficient of thermal expansion (1/K)");
@@ -29,7 +28,6 @@ validParams<SimpleFluidProperties>()
   params.addParam<Real>("specific_entropy", 300.0, "Constant specific entropy (J/kg/K)");
   params.addParam<Real>("viscosity", 1.0E-3, "Constant dynamic viscosity (Pa.s)");
   params.addParam<Real>("density0", 1000.0, "Density at zero pressure and zero temperature");
-  params.addParam<Real>("henry_constant", 0.0, "Henry constant for dissolution in water");
   params.addParam<Real>("porepressure_coefficient",
                         1.0,
                         "The enthalpy is internal_energy + P / density * "
@@ -50,7 +48,6 @@ SimpleFluidProperties::SimpleFluidProperties(const InputParameters & parameters)
     _specific_entropy(getParam<Real>("specific_entropy")),
     _viscosity(getParam<Real>("viscosity")),
     _density0(getParam<Real>("density0")),
-    _henry_constant(getParam<Real>("henry_constant")),
     _pp_coeff(getParam<Real>("porepressure_coefficient"))
 {
 }
@@ -195,13 +192,4 @@ SimpleFluidProperties::h_from_p_T(
 
   dh_dp = _pp_coeff / density - _pp_coeff * pressure * ddensity_dp / density / density;
   dh_dT = _cv - _pp_coeff * pressure * ddensity_dT / density / density;
-}
-
-Real SimpleFluidProperties::henryConstant(Real /*temperature*/) const { return _henry_constant; }
-
-void
-SimpleFluidProperties::henryConstant(Real /*temperature*/, Real & Kh, Real & dKh_dT) const
-{
-  Kh = _henry_constant;
-  dKh_dT = 0.0;
 }

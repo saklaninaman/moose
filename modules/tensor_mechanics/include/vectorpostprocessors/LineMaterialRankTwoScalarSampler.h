@@ -13,10 +13,6 @@
 #include "RankTwoTensor.h"
 
 // Forward Declarations
-class LineMaterialRankTwoScalarSampler;
-
-template <>
-InputParameters validParams<LineMaterialRankTwoScalarSampler>();
 
 /**
  * This class samples RankTwoTensor material properties for the integration points
@@ -26,6 +22,8 @@ InputParameters validParams<LineMaterialRankTwoScalarSampler>();
 class LineMaterialRankTwoScalarSampler : public LineMaterialSamplerBase<RankTwoTensor>
 {
 public:
+  static InputParameters validParams();
+
   /**
    * Class constructor
    * Sets up variables for output based on the properties to be output
@@ -50,4 +48,3 @@ protected:
   const Point _point2;
   Point _direction;
 };
-

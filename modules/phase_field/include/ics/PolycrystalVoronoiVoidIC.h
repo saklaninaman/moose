@@ -14,12 +14,8 @@
 #include "PolycrystalICTools.h"
 
 // Forward Declarationsc
-class PolycrystalVoronoiVoidIC;
 class GrainTrackerInterface;
 class PolycrystalVoronoi;
-
-template <>
-InputParameters validParams<PolycrystalVoronoiVoidIC>();
 
 /**
  * PolycrystalVoronoiVoidIC initializes either grain or void values for a
@@ -28,6 +24,8 @@ InputParameters validParams<PolycrystalVoronoiVoidIC>();
 class PolycrystalVoronoiVoidIC : public MultiSmoothCircleIC
 {
 public:
+  static InputParameters validParams();
+
   PolycrystalVoronoiVoidIC(const InputParameters & parameters);
 
   virtual void initialSetup() override;

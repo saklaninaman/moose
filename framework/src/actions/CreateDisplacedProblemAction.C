@@ -18,12 +18,14 @@
 registerMooseAction("MooseApp", CreateDisplacedProblemAction, "init_displaced_problem");
 registerMooseAction("MooseApp", CreateDisplacedProblemAction, "add_geometric_rm");
 registerMooseAction("MooseApp", CreateDisplacedProblemAction, "add_algebraic_rm");
+registerMooseAction("MooseApp", CreateDisplacedProblemAction, "add_coupling_rm");
 
-template <>
+defineLegacyParams(CreateDisplacedProblemAction);
+
 InputParameters
-validParams<CreateDisplacedProblemAction>()
+CreateDisplacedProblemAction::validParams()
 {
-  InputParameters params = validParams<Action>();
+  InputParameters params = Action::validParams();
   params.addParam<std::vector<std::string>>(
       "displacements",
       "The variables corresponding to the x y z displacements of the mesh.  If "
@@ -46,8 +48,10 @@ CreateDisplacedProblemAction::CreateDisplacedProblemAction(InputParameters param
 }
 
 void
-CreateDisplacedProblemAction::addProxyAlgebraicRelationshipManagers(SystemBase & to,
-                                                                    SystemBase & from)
+CreateDisplacedProblemAction::addProxyRelationshipManagers(SystemBase & to,
+                                                           SystemBase & from,
+                                                           Moose::RelationshipManagerType rm_type,
+                                                           std::string type)
 {
   auto rm_params = _factory.getValidParams("ProxyRelationshipManager");
 
@@ -55,8 +59,7 @@ CreateDisplacedProblemAction::addProxyAlgebraicRelationshipManagers(SystemBase &
   rm_params.set<MooseMesh *>("mesh") = &to.mesh();
   rm_params.set<System *>("other_system") = &from.system();
   rm_params.set<std::string>("for_whom") = "DisplacedMesh";
-  rm_params.set<Moose::RelationshipManagerType>("rm_type") =
-      Moose::RelationshipManagerType::ALGEBRAIC;
+  rm_params.set<Moose::RelationshipManagerType>("rm_type") = rm_type;
 
   rm_params.set<bool>("use_displaced_mesh") = to.subproblem().name() == "DisplacedProblem";
 
@@ -65,44 +68,28 @@ CreateDisplacedProblemAction::addProxyAlgebraicRelationshipManagers(SystemBase &
     auto rm_obj = _factory.create<RelationshipManager>(
         "ProxyRelationshipManager",
         to.subproblem().name() + "<-" + from.subproblem().name() + "_" + from.system().name() +
-            "_algebraic_proxy",
+            "_" + type + "_proxy",
         rm_params);
 
     if (!_app.addRelationshipManager(rm_obj))
       _factory.releaseSharedObjects(*rm_obj);
   }
   else
-    mooseError("Invalid initialization of ElementSideNeighborLayers");
+    mooseError("Invalid initialization of ProxyRelationshipManager");
+}
+
+void
+CreateDisplacedProblemAction::addProxyAlgebraicRelationshipManagers(SystemBase & to,
+                                                                    SystemBase & from)
+{
+  addProxyRelationshipManagers(to, from, Moose::RelationshipManagerType::ALGEBRAIC, "algebraic");
 }
 
 void
 CreateDisplacedProblemAction::addProxyGeometricRelationshipManagers(SystemBase & to,
                                                                     SystemBase & from)
 {
-  auto rm_params = _factory.getValidParams("ProxyRelationshipManager");
-
-  rm_params.set<bool>("attach_geometric_early") = false;
-  rm_params.set<MooseMesh *>("mesh") = &to.mesh();
-  rm_params.set<System *>("other_system") = &from.system();
-  rm_params.set<std::string>("for_whom") = "DisplacedMesh";
-  rm_params.set<Moose::RelationshipManagerType>("rm_type") =
-      Moose::RelationshipManagerType::GEOMETRIC;
-
-  rm_params.set<bool>("use_displaced_mesh") = to.subproblem().name() == "DisplacedProblem";
-
-  if (rm_params.areAllRequiredParamsValid())
-  {
-    auto rm_obj = _factory.create<RelationshipManager>(
-        "ProxyRelationshipManager",
-        to.subproblem().name() + "<-" + from.subproblem().name() + "_" + from.system().name() +
-            "_geometric_proxy",
-        rm_params);
-
-    if (!_app.addRelationshipManager(rm_obj))
-      _factory.releaseSharedObjects(*rm_obj);
-  }
-  else
-    mooseError("Invalid initialization of ElementSideNeighborLayers");
+  addProxyRelationshipManagers(to, from, Moose::RelationshipManagerType::GEOMETRIC, "geometric");
 }
 
 void
@@ -121,6 +108,7 @@ CreateDisplacedProblemAction::act()
           getParam<std::vector<std::string>>("displacements");
       object_params.set<MooseMesh *>("mesh") = _displaced_mesh.get();
       object_params.set<FEProblemBase *>("_fe_problem_base") = _problem.get();
+      object_params.set<bool>("default_ghosting") = _problem->defaultGhosting();
 
       // Create the object
       std::shared_ptr<DisplacedProblem> disp_problem =
@@ -145,11 +133,14 @@ CreateDisplacedProblemAction::act()
       auto & displaced_nl = displaced_problem_ptr->nlSys();
       auto & displaced_aux = displaced_problem_ptr->auxSys();
 
+      // Note that there is no reason to copy coupling factors back and forth because the displaced
+      // systems do not have their own matrices (they are constructed with their libMesh::System of
+      // type TransientExplicitSystem)
+
       // Note the "to" system doesn't actually matter much - the GF will
       // get added to both systems on the receiving side
       addProxyAlgebraicRelationshipManagers(undisplaced_nl, displaced_nl);
       addProxyAlgebraicRelationshipManagers(displaced_nl, undisplaced_nl);
-
       addProxyAlgebraicRelationshipManagers(undisplaced_aux, displaced_aux);
       addProxyAlgebraicRelationshipManagers(displaced_aux, undisplaced_aux);
 

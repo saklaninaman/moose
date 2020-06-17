@@ -168,6 +168,14 @@ public:
   Xfem::XFEM_QRULE & getXFEMQRule();
   void setXFEMQRule(std::string & xfem_qrule);
   void setCrackGrowthMethod(bool use_crack_growth_increment, Real crack_growth_increment);
+
+  /**
+   * Controls amount of debugging information output
+   * @param debug_output_level How much information to output (see description of
+   * _debug_output_level)
+   */
+  void setDebugOutputLevel(unsigned int debug_output_level);
+
   virtual bool getXFEMWeights(MooseArray<Real> & weights,
                               const Elem * elem,
                               QBase * qrule,
@@ -286,6 +294,13 @@ private:
 
   ElementFragmentAlgorithm _efa_mesh;
 
+  /// Controls amount of debugging output information
+  /// 0: None
+  /// 1: Summary
+  /// 2: Details on modifications to mesh
+  /// 3: Full dump of element fragment algorithm mesh
+  unsigned int _debug_output_level;
+
   /**
    * Data structure to store the nonlinear solution for nodes/elements affected by XFEM
    * For each node/element, this is stored as a vector that contains all components
@@ -384,4 +399,3 @@ private:
    */
   std::vector<dof_id_type> getNodeSolutionDofs(const Node * node, SystemBase & sys) const;
 };
-

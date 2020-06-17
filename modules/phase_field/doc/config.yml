@@ -4,11 +4,12 @@ Content:
 
 Renderer:
     type: MooseDocs.base.MaterializeRenderer
-    name: MOOSE Phase Field Module
-    repo: https://github.com/idaholab/moose
-    home: /modules/phase_field
 
 Extensions:
+    MooseDocs.extensions.navigation:
+        name: MOOSE Phase Field Module
+        repo: https://github.com/idaholab/moose
+        home: /modules/phase_field
     MooseDocs.extensions.appsyntax:
         executable: ${MOOSE_DIR}/modules/phase_field
         hide:
@@ -22,3 +23,10 @@ Extensions:
         shortcuts: !include framework/doc/globals.yml
     MooseDocs.extensions.acronym:
         acronyms: !include framework/doc/acronyms.yml
+    MooseDocs.extensions.template:
+        active: True
+    MooseDocs.extensions.sqa:
+        active: True
+        categories:
+            framework: !include framework/doc/sqa_framework.yml
+            phase_field: !include modules/phase_field/doc/sqa_phase_field.yml

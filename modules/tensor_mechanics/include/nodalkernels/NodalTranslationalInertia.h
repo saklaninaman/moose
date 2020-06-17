@@ -12,10 +12,7 @@
 #include "TimeNodalKernel.h"
 
 // Forward Declarations
-class NodalTranslationalInertia;
-
-template <>
-InputParameters validParams<NodalTranslationalInertia>();
+class TimeIntegrator;
 
 /**
  * Calculates the inertial force and mass proportional damping for a nodal mass
@@ -23,6 +20,8 @@ InputParameters validParams<NodalTranslationalInertia>();
 class NodalTranslationalInertia : public TimeNodalKernel
 {
 public:
+  static InputParameters validParams();
+
   NodalTranslationalInertia(const InputParameters & parameters);
 
 protected:
@@ -68,19 +67,13 @@ protected:
   /// Map between boundary nodes and nodal mass
   std::map<dof_id_type, Real> _node_id_to_mass;
 
-  /// Velocity variable value
-  const MooseArray<Number> * _vel;
+  // Velocity and acceleration calculated by time integrator
+  const VariableValue * _u_dot_factor;
+  const VariableValue * _u_dotdot_factor;
+  const VariableValue * _u_dot_old;
+  const VariableValue * _du_dot_du;
+  const VariableValue * _du_dotdot_du;
 
-  /// Old velocity variable value
-  const MooseArray<Number> * _vel_old;
-
-  /// Acceleration variable value
-  const MooseArray<Number> * _accel;
-
-  /// du_dot_du variable value
-  const MooseArray<Number> * _du_dot_du;
-
-  /// du_dotdot_du variable value
-  const MooseArray<Number> * _du_dotdot_du;
+  /// The TimeIntegrator
+  TimeIntegrator & _time_integrator;
 };
-

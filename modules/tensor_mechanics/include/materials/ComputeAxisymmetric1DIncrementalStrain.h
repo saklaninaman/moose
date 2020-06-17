@@ -12,11 +12,6 @@
 #include "Compute1DIncrementalStrain.h"
 #include "SubblockIndexProvider.h"
 
-class ComputeAxisymmetric1DIncrementalStrain;
-
-template <>
-InputParameters validParams<ComputeAxisymmetric1DIncrementalStrain>();
-
 /**
  * ComputeAxisymmetric1DIncrementalStrain defines a strain increment only
  * for incremental small strains in an Axisymmetric 1D problem.
@@ -25,6 +20,8 @@ InputParameters validParams<ComputeAxisymmetric1DIncrementalStrain>();
 class ComputeAxisymmetric1DIncrementalStrain : public Compute1DIncrementalStrain
 {
 public:
+  static InputParameters validParams();
+
   ComputeAxisymmetric1DIncrementalStrain(const InputParameters & parameters);
 
   void initialSetup() override;
@@ -53,15 +50,25 @@ protected:
   /// the old value of the first component of the displacements vector
   const VariableValue & _disp_old_0;
 
+  /// A Userobject that carries the subblock ID for all elements
   const SubblockIndexProvider * _subblock_id_provider;
 
+  /// Whether an out-of-plane strain variable is coupled
   bool _has_out_of_plane_strain;
+
+  ///{@ Current and old values of the out-of-plane strain variable
   const VariableValue & _out_of_plane_strain;
   const VariableValue & _out_of_plane_strain_old;
+  ///@}
 
+  /// Whether an out-of-plane strain scalar variable is coupled
   bool _has_scalar_out_of_plane_strain;
+
+  /// Number of out-of-plane strain scalar variables
   unsigned int _nscalar_strains;
+
+  ///{@ Current and old values of the out-of-plane strain scalar variable
   std::vector<const VariableValue *> _scalar_out_of_plane_strain;
   std::vector<const VariableValue *> _scalar_out_of_plane_strain_old;
+  ///@}
 };
-

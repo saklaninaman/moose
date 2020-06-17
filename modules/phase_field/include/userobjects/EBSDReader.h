@@ -12,11 +12,6 @@
 #include "EulerAngleProvider.h"
 #include "EBSDAccessFunctors.h"
 
-class EBSDReader;
-
-template <>
-InputParameters validParams<EBSDReader>();
-
 /**
  * A GeneralUserObject that reads an EBSD file and stores the centroid
  * data in a data structure which indexes on element centroids.
@@ -36,6 +31,8 @@ InputParameters validParams<EBSDReader>();
 class EBSDReader : public EulerAngleProvider, public EBSDAccessFunctors
 {
 public:
+  static InputParameters validParams();
+
   EBSDReader(const InputParameters & params);
   virtual ~EBSDReader();
 
@@ -164,6 +161,12 @@ protected:
   /// Dimension of the problem domain
   unsigned int _mesh_dimension;
 
+  /// number of bins for each quaternion component
+  unsigned int _bins;
+
+  /// L_norm value for averaging
+  unsigned int _L_norm;
+
   /// The number of values in the x, y and z directions.
   unsigned _nx, _ny, _nz;
 
@@ -185,4 +188,3 @@ protected:
   /// Build grain and phase weight maps
   void buildNodeWeightMaps();
 };
-

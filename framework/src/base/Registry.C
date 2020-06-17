@@ -12,6 +12,7 @@
 #include "Factory.h"
 #include "ActionFactory.h"
 
+#include "libmesh/auto_ptr.h"
 #include "libmesh/libmesh_common.h"
 
 static Registry &
@@ -104,16 +105,6 @@ Registry::isRegisteredObj(const std::string & name)
   auto it = r._name_to_entry.find(name);
 
   return it != r._name_to_entry.end();
-}
-
-bool
-Registry::isADObj(const std::string & name)
-{
-  auto & r = getRegistry();
-
-  auto it = r._name_to_entry.find(name);
-
-  return (it != r._name_to_entry.end()) && it->second._is_ad;
 }
 
 void

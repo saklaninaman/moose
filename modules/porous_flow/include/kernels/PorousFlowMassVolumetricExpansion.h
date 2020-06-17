@@ -13,11 +13,6 @@
 #include "PorousFlowDictator.h"
 #include "RankTwoTensor.h"
 
-class PorousFlowMassVolumetricExpansion;
-
-template <>
-InputParameters validParams<PorousFlowMassVolumetricExpansion>();
-
 /**
  * Kernel = mass_component * d(volumetric_strain)/dt
  * where mass_component =
@@ -27,6 +22,8 @@ InputParameters validParams<PorousFlowMassVolumetricExpansion>();
 class PorousFlowMassVolumetricExpansion : public TimeKernel
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowMassVolumetricExpansion(const InputParameters & parameters);
 
 protected:
@@ -105,4 +102,3 @@ protected:
    */
   Real computedVolQpJac(unsigned int jvar) const;
 };
-

@@ -11,11 +11,6 @@
 
 #include "AuxKernel.h"
 
-class KineticDisPreRateAux;
-
-template <>
-InputParameters validParams<KineticDisPreRateAux>();
-
 /**
  * Calculate the kinetic mineral species kinetic rate according to transient
  * state theory rate law
@@ -23,6 +18,8 @@ InputParameters validParams<KineticDisPreRateAux>();
 class KineticDisPreRateAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   KineticDisPreRateAux(const InputParameters & parameters);
 
   virtual ~KineticDisPreRateAux() {}
@@ -49,4 +46,3 @@ protected:
   /// Coupled primary species concentrations
   std::vector<const VariableValue *> _vals;
 };
-

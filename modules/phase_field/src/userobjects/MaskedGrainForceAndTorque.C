@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", MaskedGrainForceAndTorque);
 
-template <>
 InputParameters
-validParams<MaskedGrainForceAndTorque>()
+MaskedGrainForceAndTorque::validParams()
 {
-  InputParameters params = validParams<GeneralUserObject>();
+  InputParameters params = GeneralUserObject::validParams();
   params.addClassDescription("Userobject for masking/pinning grains and making forces and torques "
                              "acting on that grain zero");
   params.addParam<UserObjectName>("grain_force",

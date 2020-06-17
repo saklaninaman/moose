@@ -11,14 +11,11 @@
 
 #include "MooseApp.h"
 
-class XFEMTestApp;
-
-template <>
-InputParameters validParams<XFEMTestApp>();
-
 class XFEMTestApp : public MooseApp
 {
 public:
+  static InputParameters validParams();
+
   XFEMTestApp(InputParameters parameters);
   virtual ~XFEMTestApp();
 
@@ -28,4 +25,3 @@ public:
   static void associateSyntax(Syntax & syntax, ActionFactory & action_factory);
   static void registerExecFlags(Factory & factory);
 };
-

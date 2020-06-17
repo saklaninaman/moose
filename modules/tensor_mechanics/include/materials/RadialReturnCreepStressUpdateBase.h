@@ -11,11 +11,6 @@
 
 #include "RadialReturnStressUpdate.h"
 
-class RadialReturnCreepStressUpdateBase;
-
-template <>
-InputParameters validParams<RadialReturnCreepStressUpdateBase>();
-
 /**
  * This class provides baseline functionallity for creep models based on the stress update material
  * in a radial return isotropic creep calculations.
@@ -23,6 +18,8 @@ InputParameters validParams<RadialReturnCreepStressUpdateBase>();
 class RadialReturnCreepStressUpdateBase : public RadialReturnStressUpdate
 {
 public:
+  static InputParameters validParams();
+
   RadialReturnCreepStressUpdateBase(const InputParameters & parameters);
 
 protected:
@@ -54,4 +51,3 @@ protected:
   MaterialProperty<RankTwoTensor> & _creep_strain;
   const MaterialProperty<RankTwoTensor> & _creep_strain_old;
 };
-

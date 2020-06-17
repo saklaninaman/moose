@@ -20,11 +20,10 @@
 
 registerMooseObject("PhaseFieldApp", SphereSurfaceMeshGenerator);
 
-template <>
 InputParameters
-validParams<SphereSurfaceMeshGenerator>()
+SphereSurfaceMeshGenerator::validParams()
 {
-  InputParameters params = validParams<MeshGenerator>();
+  InputParameters params = MeshGenerator::validParams();
   params.addClassDescription(
       "Generated sphere mesh - a two dimensional manifold embedded in three dimensional space");
   params.addParam<Real>("radius", 1.0, "Sphere radius");
@@ -86,7 +85,7 @@ SphereSurfaceMeshGenerator::generate()
 
   // we need to prepare distributed meshes before using refinement
   if (!mesh->is_replicated())
-    mesh->prepare_for_use(/*skip_renumber =*/false);
+    mesh->prepare_for_use(/*skip_renumber =*/false, /*skip_find_neighbors=*/false);
 
   // Now we have the beginnings of a sphere.
   // Add some more elements by doing uniform refinements and

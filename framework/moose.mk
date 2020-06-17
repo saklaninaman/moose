@@ -9,6 +9,7 @@ APPLICATION_DIR := $(FRAMEWORK_DIR)
 moose_SRC_DIRS := $(FRAMEWORK_DIR)/src
 moose_SRC_DIRS += $(FRAMEWORK_DIR)/contrib/mtwist
 moose_SRC_DIRS += $(FRAMEWORK_DIR)/contrib/jsoncpp
+moose_SRC_DIRS += $(FRAMEWORK_DIR)/contrib/pugixml
 
 #
 # pcre
@@ -36,17 +37,42 @@ hit_deps      := $(patsubst %.cc, %.$(obj-suffix).d, $(hit_srcfiles))
 # hit python bindings
 #
 pyhit_srcfiles  := $(hit_DIR)/hit.cpp $(hit_DIR)/lex.cc $(hit_DIR)/parse.cc $(hit_DIR)/braceexpr.cc
-pyhit_LIB       := $(FRAMEWORK_DIR)/../python/hit.so
 
-# some systems have python2 but no python2-config command - fall back to python-config for them
-pyconfig := python2-config
-ifeq (, $(shell which python2-config 2>/dev/null))
-  pyconfig := python-config
+#
+# FParser JIT defines
+#
+ADDITIONAL_CPPFLAGS += -DADFPARSER_INCLUDES="\"-I$(FRAMEWORK_DIR)/include/utils -I$(FRAMEWORK_DIR)/include/base -I$(LIBMESH_DIR)/include\""
+
+# some systems have python2/3 but no python2/3-config command - fall back to python-config for them
+pyconfig := python3-config
+ifeq (, $(shell which $(pyconfig) 2>/dev/null))
+	pyconfig := python-config
 endif
+
+UNAME := $(shell uname)
+ifeq ($(UNAME), Darwin)
+	DYNAMIC_LOOKUP := -undefined dynamic_lookup
+else
+	DYNAMIC_LOOKUP :=
+endif
+
+# windows (msys2) specific settings (we need to cut the version number off)
+UNAME10 := $(shell uname | cut -c-10)
+ifeq ($(UNAME10), MINGW64_NT)
+	# disable unity build and header symlinking
+	MOOSE_UNITY        := false
+	libmesh_LDFLAGS    += -no-undefined
+	pyhit_LIB          := $(FRAMEWORK_DIR)/../python/pyhit/hit.pyd
+	pyhit_COMPILEFLAGS := $(shell $(pyconfig) --cflags --ldflags --libs)
+else
+	pyhit_LIB          := $(FRAMEWORK_DIR)/../python/pyhit/hit.so
+	pyhit_COMPILEFLAGS := -L$(shell $(pyconfig) --prefix)/lib $(shell $(pyconfig) --includes)
+endif
+
 
 hit $(pyhit_LIB): $(pyhit_srcfiles)
 	@echo "Building and linking "$@"..."
-	@bash -c '(cd "$(hit_DIR)" && $(libmesh_CXX) -std=c++11 -w -fPIC -lstdc++ -shared -L`$(pyconfig) --prefix`/lib `$(pyconfig) --includes` `$(pyconfig) --ldflags` $^ -o $(pyhit_LIB))'
+	@bash -c '(cd "$(hit_DIR)" && $(libmesh_CXX) -std=c++11 -w -fPIC -lstdc++ -shared $^ $(pyhit_COMPILEFLAGS) $(DYNAMIC_LOOKUP) -o $(pyhit_LIB))'
 
 #
 # gtest
@@ -57,6 +83,16 @@ gtest_objects   := $(patsubst %.cc, %.$(obj-suffix), $(gtest_srcfiles))
 gtest_LIB       := $(gtest_DIR)/libgtest.la
 # dependency files
 gtest_deps      := $(patsubst %.cc, %.$(obj-suffix).d, $(gtest_srcfiles))
+
+#
+# MooseConfigure
+#
+moose_config := $(FRAMEWORK_DIR)/include/base/MooseConfig.h
+moose_default_config := $(FRAMEWORK_DIR)/include/base/MooseDefaultConfig.h
+
+$(moose_config):
+	@echo "Copying default MOOSE configuration to: "$@"..."
+	@cp $(moose_default_config) $(moose_config)
 
 #
 # header symlinks
@@ -72,7 +108,7 @@ $(1):
 	@$$(shell mkdir -p $$@)
 endef
 
-include_files	:= $(shell find $(FRAMEWORK_DIR)/include -regex "[^\#~]*\.h")
+include_files	:= $(shell find $(FRAMEWORK_DIR)/include \( -regex "[^\#~]*\.h" ! -name "*MooseConfig.h" \))
 link_names := $(foreach i, $(include_files), $(all_header_dir)/$(notdir $(i)))
 
 # Create a rule for one symlink for one header file
@@ -94,6 +130,11 @@ endef
 
 $(eval $(call all_header_dir_rule, $(all_header_dir)))
 $(call symlink_rules, $(all_header_dir), $(include_files))
+
+moose_config_symlink := $(moose_all_header_dir)/MooseConfig.h
+$(moose_config_symlink): $(moose_config) | $(moose_all_header_dir)
+	@echo "Symlinking MOOSE configure "$(moose_config_symlink)
+	@ln -sf $(moose_config) $(moose_config_symlink)
 
 header_symlinks: $(all_header_dir) $(link_names)
 moose_INC_DIRS := $(all_header_dir)
@@ -255,8 +296,18 @@ $(hit_LIB): $(hit_objects)
 $(moose_LIB): $(moose_objects) $(pcre_LIB) $(gtest_LIB) $(hit_LIB) $(pyhit_LIB)
 	@echo "Linking Library "$@"..."
 	@$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link --quiet \
-	  $(libmesh_CXX) $(CXXFLAGS) $(libmesh_CXXFLAGS) -o $@ $(moose_objects) $(pcre_LIB) $(libmesh_LIBS) $(libmesh_LDFLAGS) $(EXTERNAL_FLAGS) -rpath $(FRAMEWORK_DIR)
+	  $(libmesh_CXX) $(CXXFLAGS) $(libmesh_CXXFLAGS) -o $@ $(moose_objects) $(pcre_LIB) $(png_LIB) $(libmesh_LIBS) $(libmesh_LDFLAGS) $(EXTERNAL_FLAGS) -rpath $(FRAMEWORK_DIR)
 	@$(libmesh_LIBTOOL) --mode=install --quiet install -c $(moose_LIB) $(FRAMEWORK_DIR)
+
+ifeq ($(MOOSE_HEADER_SYMLINKS),true)
+
+$(moose_objects): $(moose_config_symlink)
+
+else
+
+$(moose_objects): $(moose_config)
+
+endif
 
 ## Clang static analyzer
 sa: $(moose_analyzer)
@@ -269,6 +320,7 @@ sa: $(moose_analyzer)
 -include $(wildcard $(FRAMEWORK_DIR)/contrib/pcre/src/*.d)
 -include $(wildcard $(FRAMEWORK_DIR)/contrib/gtest/*.d)
 -include $(wildcard $(FRAMEWORK_DIR)/contrib/hit/*.d)
+-include $(wildcard $(FRAMEWORK_DIR)/contrib/pugixml/src/*.d)
 
 #
 # exodiff
@@ -295,9 +347,37 @@ $(exodiff_APP): $(exodiff_objects)
 -include $(wildcard $(exodiff_DIR)/*.d)
 
 #
+# Install targets
+#
+lib_DIRS         := $(dir $(app_LIBS))
+install: install_libs install_bin
+
+install_libs: all | install_make_dir
+	@(ret_val=0; \
+	for lib in $(app_LIBS); \
+	do \
+		echo Installing Library $${lib}...; \
+		${libmesh_LIBTOOL} --mode=install --warning=none --quiet install $${lib} ${PREFIX} || ret_val=1; \
+	done; \
+	exit $$ret_val;)
+	@$(libmesh_LIBTOOL) --mode=finish --quiet $(lib_DIRS)
+
+install_bin: all | install_make_dir
+	@(ret_val=0; \
+	for exec in $(app_EXEC); \
+	do \
+		echo Installing Executable $${exec}...; \
+		${libmesh_LIBTOOL} --mode=install --warning=none --quiet install $${exec} ${PREFIX} || ret_val=1; \
+	done; \
+	exit $$ret_val;)
+install_make_dir:
+	@echo "Prefix Install Directory $(PREFIX)"
+	@$(shell mkdir -p $(PREFIX))
+
+#
 # Clean targets
 #
-.PHONY: clean clobber cleanall echo_include echo_library libmesh_submodule_status hit
+.PHONY: clean clobber cleanall echo_include echo_library install_make_dir libmesh_submodule_status hit
 
 # Set up app-specific variables for MOOSE, so that it can use the same clean target as the apps
 app_EXEC := $(exodiff_APP)
@@ -356,7 +436,7 @@ clobberall: clobber
 	@echo "Building .clang_complete file"
 	@echo "-xc++" > .clang_complete
 	@echo "-std=c++11" >> .clang_complete
-	@for item in $(libmesh_CPPFLAGS) $(CXXFLAGS) $(libmesh_CXXFLAGS) $(app_INCLUDES) $(libmesh_INCLUDE) $(ADDITIONAL_INCLUDES); do \
+	@for item in $(libmesh_CPPFLAGS) $(CXXFLAGS) $(libmesh_CXXFLAGS) $(app_INCLUDES) $(libmesh_INCLUDE); do \
           echo $$item >> .clang_complete;  \
         done
 
@@ -365,15 +445,15 @@ compile_commands.json:
 ifeq (4.0,$(firstword $(sort $(MAKE_VERSION) 4.0)))
 	$(file > .compile_commands.json,$(CURDIR))
 	$(file >> .compile_commands.json,$(libmesh_CXX))
-	$(file >> .compile_commands.json,$(libmesh_CPPFLAGS) $(CXXFLAGS) $(libmesh_CXXFLAGS) $(app_INCLUDES) $(libmesh_INCLUDE) $(ADDITIONAL_INCLUDES))
+	$(file >> .compile_commands.json,$(libmesh_CPPFLAGS) $(CXXFLAGS) $(libmesh_CXXFLAGS) $(app_INCLUDES) $(libmesh_INCLUDE))
 	$(file >> .compile_commands.json,$(compile_commands_all_srcfiles))
 else
 	@echo $(CURDIR) > .compile_commands.json
 	@echo $(libmesh_CXX) >> .compile_commands.json
-	@echo $(libmesh_CPPFLAGS) $(CXXFLAGS) $(libmesh_CXXFLAGS) $(app_INCLUDES) $(libmesh_INCLUDE) $(ADDITIONAL_INCLUDES) >> .compile_commands.json
+	@echo $(libmesh_CPPFLAGS) $(CXXFLAGS) $(libmesh_CXXFLAGS) $(app_INCLUDES) $(libmesh_INCLUDE) >> .compile_commands.json
 	@echo $(compile_commands_all_srcfiles) >> .compile_commands.json
 endif
-	@ $(FRAMEWORK_DIR)/scripts/compile_commands.py < .compile_commands.json > compile_commands.json
+	@$(FRAMEWORK_DIR)/scripts/compile_commands.py < .compile_commands.json > compile_commands.json
 	@rm .compile_commands.json
 
 # Debugging stuff

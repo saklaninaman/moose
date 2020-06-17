@@ -11,33 +11,33 @@
 
 #include "libmesh/quadrature.h"
 
-defineADValidParams(
-    ADCompute2DSmallStrain,
-    ADComputeSmallStrain,
-    params.addClassDescription("Compute a small strain in a plane strain configuration.");
-    MooseEnum outOfPlaneDirection("x y z", "z");
-    params.addParam<MooseEnum>("out_of_plane_direction",
-                               outOfPlaneDirection,
-                               "The direction of the out-of-plane strain."););
+InputParameters
+ADCompute2DSmallStrain::validParams()
+{
+  InputParameters params = ADComputeSmallStrain::validParams();
+  params.addClassDescription("Compute a small strain in a plane strain configuration.");
+  MooseEnum outOfPlaneDirection("x y z", "z");
+  params.addParam<MooseEnum>(
+      "out_of_plane_direction", outOfPlaneDirection, "The direction of the out-of-plane strain.");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADCompute2DSmallStrain<compute_stage>::ADCompute2DSmallStrain(const InputParameters & parameters)
-  : ADComputeSmallStrain<compute_stage>(parameters),
+ADCompute2DSmallStrain::ADCompute2DSmallStrain(const InputParameters & parameters)
+  : ADComputeSmallStrain(parameters),
     _out_of_plane_direction(getParam<MooseEnum>("out_of_plane_direction"))
 {
 }
 
-template <ComputeStage compute_stage>
 void
-ADCompute2DSmallStrain<compute_stage>::initialSetup()
+ADCompute2DSmallStrain::initialSetup()
 {
   displacementIntegrityCheck();
   for (unsigned int i = 0; i < 3; ++i)
   {
     if (_out_of_plane_direction == i)
     {
-      _disp[i] = &adZeroValue();
-      _grad_disp[i] = &adZeroGradient();
+      _disp[i] = &_ad_zero;
+      _grad_disp[i] = &_ad_grad_zero;
     }
     else
     {
@@ -47,9 +47,8 @@ ADCompute2DSmallStrain<compute_stage>::initialSetup()
   }
 }
 
-template <ComputeStage compute_stage>
 void
-ADCompute2DSmallStrain<compute_stage>::computeProperties()
+ADCompute2DSmallStrain::computeProperties()
 {
   const auto o0 = _out_of_plane_direction;
   const auto o1 = (_out_of_plane_direction + 1) % 3;
@@ -87,13 +86,10 @@ ADCompute2DSmallStrain<compute_stage>::computeProperties()
     for (const auto es : _eigenstrains)
       _mechanical_strain[_qp] -= (*es)[_qp];
   }
-
-  copyDualNumbersToValues();
 }
 
-template <ComputeStage compute_stage>
 void
-ADCompute2DSmallStrain<compute_stage>::displacementIntegrityCheck()
+ADCompute2DSmallStrain::displacementIntegrityCheck()
 {
   if (_out_of_plane_direction != 2 && _ndisp != 3)
     mooseError("For 2D simulations where the out-of-plane direction is x or y the number of "
@@ -102,6 +98,3 @@ ADCompute2DSmallStrain<compute_stage>::displacementIntegrityCheck()
     mooseError("For 2D simulations where the out-of-plane direction is z the number of supplied "
                "displacements must be two.");
 }
-
-// explicit instantiation is required for AD base classes
-adBaseClass(ADCompute2DSmallStrain);

@@ -13,10 +13,6 @@
 #include "ExpressionBuilder.h"
 
 // Forward Declarations
-class RegularSolutionFreeEnergy;
-
-template <>
-InputParameters validParams<RegularSolutionFreeEnergy>();
 
 /**
  * Material class that creates regular solution free energy with the expression builder
@@ -26,6 +22,8 @@ InputParameters validParams<RegularSolutionFreeEnergy>();
 class RegularSolutionFreeEnergy : public DerivativeParsedMaterialHelper, public ExpressionBuilder
 {
 public:
+  static InputParameters validParams();
+
   RegularSolutionFreeEnergy(const InputParameters & parameters);
 
 protected:
@@ -41,4 +39,3 @@ protected:
   /// Boltzmann constant
   const Real _kB;
 };
-

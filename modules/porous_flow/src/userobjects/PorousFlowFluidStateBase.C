@@ -9,11 +9,10 @@
 
 #include "PorousFlowFluidStateBase.h"
 
-template <>
 InputParameters
-validParams<PorousFlowFluidStateBase>()
+PorousFlowFluidStateBase::validParams()
 {
-  InputParameters params = validParams<GeneralUserObject>();
+  InputParameters params = GeneralUserObject::validParams();
   params.addParam<unsigned int>("liquid_phase_number", 0, "The phase number of the liquid phase");
   params.addParam<unsigned int>(
       "liquid_fluid_component", 0, "The fluid component number of the primary liquid component");
@@ -38,11 +37,5 @@ PorousFlowFluidStateBase::PorousFlowFluidStateBase(const InputParameters & param
 void
 PorousFlowFluidStateBase::clearFluidStateProperties(std::vector<FluidStateProperties> & fsp) const
 {
-  std::fill(fsp.begin(), fsp.end(), FluidStateProperties(_num_components));
-}
-
-void
-PorousFlowFluidStateBase::clearFluidStateProperties(std::vector<FluidStatePropertiesAD> & fsp) const
-{
-  std::fill(fsp.begin(), fsp.end(), FluidStatePropertiesAD(_num_components));
+  std::fill(fsp.begin(), fsp.end(), _empty_fsp);
 }

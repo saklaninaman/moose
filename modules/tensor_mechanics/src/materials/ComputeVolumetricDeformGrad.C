@@ -11,11 +11,10 @@
 
 registerMooseObject("TensorMechanicsApp", ComputeVolumetricDeformGrad);
 
-template <>
 InputParameters
-validParams<ComputeVolumetricDeformGrad>()
+ComputeVolumetricDeformGrad::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   params.addClassDescription(
       "Computes volumetric deformation gradient and adjusts the total deformation gradient");
   params.addRequiredParam<MaterialPropertyName>(

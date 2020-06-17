@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", HHPFCRFF);
 
-template <>
 InputParameters
-validParams<HHPFCRFF>()
+HHPFCRFF::validParams()
 {
-  InputParameters params = validParams<KernelValue>();
+  InputParameters params = KernelValue::validParams();
   params.addClassDescription("Reaction type kernel for the RFF phase fit crystal model");
   params.addCoupledVar("coupled_var",
                        "The name of the coupled variable, if one is used in the kernel");

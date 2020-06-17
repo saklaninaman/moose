@@ -11,30 +11,20 @@
 
 #include "ADTimeKernelValue.h"
 
-// Forward Declarations
-template <ComputeStage compute_stage>
-class INSADMomentumTimeDerivative;
-
-declareADValidParams(INSADMomentumTimeDerivative);
-
 /**
  * This class computes the time derivative for the incompressible
  * Navier-Stokes momentum equation.  Could instead use CoefTimeDerivative
  * for this.
  */
-template <ComputeStage compute_stage>
-class INSADMomentumTimeDerivative : public ADVectorTimeKernelValue<compute_stage>
+class INSADMomentumTimeDerivative : public ADVectorTimeKernelValue
 {
 public:
-  INSADMomentumTimeDerivative(const InputParameters & parameters);
+  static InputParameters validParams();
 
-  virtual ~INSADMomentumTimeDerivative() {}
+  INSADMomentumTimeDerivative(const InputParameters & parameters);
 
 protected:
   virtual ADRealVectorValue precomputeQpResidual() override;
 
-  const ADMaterialProperty(Real) & _rho;
-
-  usingVectorTimeKernelValueMembers;
+  const ADMaterialProperty<RealVectorValue> & _td_strong_residual;
 };
-

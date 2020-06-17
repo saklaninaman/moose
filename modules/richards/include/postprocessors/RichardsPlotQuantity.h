@@ -11,11 +11,7 @@
 
 #include "GeneralPostprocessor.h"
 
-class RichardsPlotQuantity;
 class RichardsSumQuantity;
-
-template <>
-InputParameters validParams<RichardsPlotQuantity>();
 
 /**
  * Extracts the value from RichardsSumQuantity userobject
@@ -23,6 +19,8 @@ InputParameters validParams<RichardsPlotQuantity>();
 class RichardsPlotQuantity : public GeneralPostprocessor
 {
 public:
+  static InputParameters validParams();
+
   RichardsPlotQuantity(const InputParameters & parameters);
   virtual ~RichardsPlotQuantity();
 
@@ -36,4 +34,3 @@ protected:
   /// the RichardsSumQuantity userobject
   const RichardsSumQuantity & _total_mass;
 };
-

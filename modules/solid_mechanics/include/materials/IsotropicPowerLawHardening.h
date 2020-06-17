@@ -11,11 +11,6 @@
 
 #include "IsotropicPlasticity.h"
 
-class IsotropicPowerLawHardening;
-
-template <>
-InputParameters validParams<IsotropicPowerLawHardening>();
-
 /**
  * This class creates an Isotropic power law hardening plasticity model.
  * Before yield, stress is youngs modulus* strain. After yield, stress is
@@ -25,6 +20,8 @@ InputParameters validParams<IsotropicPowerLawHardening>();
 class IsotropicPowerLawHardening : public IsotropicPlasticity
 {
 public:
+  static InputParameters validParams();
+
   IsotropicPowerLawHardening(const InputParameters & parameters);
 
 protected:
@@ -44,4 +41,3 @@ protected:
 
 private:
 };
-

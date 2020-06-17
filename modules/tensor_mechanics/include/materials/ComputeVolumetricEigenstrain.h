@@ -12,11 +12,6 @@
 #include "ComputeEigenstrainBase.h"
 #include "DerivativeMaterialInterface.h"
 
-class ComputeVolumetricEigenstrain;
-
-template <>
-InputParameters validParams<ComputeVolumetricEigenstrain>();
-
 /**
  * ComputeVolumetricEigenstrain computes an eigenstrain that is defined by a set of scalar
  * material properties that summed together define the volumetric change.  This also
@@ -26,6 +21,8 @@ InputParameters validParams<ComputeVolumetricEigenstrain>();
 class ComputeVolumetricEigenstrain : public DerivativeMaterialInterface<ComputeEigenstrainBase>
 {
 public:
+  static InputParameters validParams();
+
   ComputeVolumetricEigenstrain(const InputParameters & parameters);
 
 protected:
@@ -50,4 +47,3 @@ protected:
   /// second derivatives of the elastic strain with respect to the args
   std::vector<std::vector<MaterialProperty<RankTwoTensor> *>> _d2elastic_strain;
 };
-

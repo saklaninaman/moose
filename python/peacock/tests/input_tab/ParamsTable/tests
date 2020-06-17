@@ -1,7 +1,7 @@
 [Tests]
-  [./ParamsTable]
+  [ParamsTable]
     type = PythonUnitTest
     input = test_ParamsTable.py
-    display_required = True
-  [../]
+    display_required = true
+  []
 []
