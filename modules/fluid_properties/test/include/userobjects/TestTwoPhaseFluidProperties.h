@@ -11,10 +11,8 @@
 
 #include "TwoPhaseFluidProperties.h"
 
-class TestTwoPhaseFluidProperties;
-
-template <>
-InputParameters validParams<TestTwoPhaseFluidProperties>();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
 
 /**
  * Test 2-phase fluid properties
@@ -24,6 +22,8 @@ InputParameters validParams<TestTwoPhaseFluidProperties>();
 class TestTwoPhaseFluidProperties : public TwoPhaseFluidProperties
 {
 public:
+  static InputParameters validParams();
+
   TestTwoPhaseFluidProperties(const InputParameters & parameters);
 
   virtual Real p_critical() const override;
@@ -35,3 +35,4 @@ public:
   virtual bool supportsPhaseChange() const override;
 };
 
+#pragma GCC diagnostic pop

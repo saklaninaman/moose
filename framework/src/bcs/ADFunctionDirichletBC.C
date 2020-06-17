@@ -12,26 +12,25 @@
 
 #include "libmesh/node.h"
 
-registerADMooseObject("MooseApp", ADFunctionDirichletBC);
+registerMooseObject("MooseApp", ADFunctionDirichletBC);
 
-defineADValidParams(
-    ADFunctionDirichletBC,
-    ADNodalBC,
-    params.addClassDescription("Imposes the essential boundary condition $u=g$, where $g$ "
-                               "is calculated by a function.");
-    params.addParam<FunctionName>("function",
-                                  0,
-                                  "The function describing the Dirichlet condition"););
+InputParameters
+ADFunctionDirichletBC::validParams()
+{
+  InputParameters params = ADDirichletBCBase::validParams();
+  params.addClassDescription("Imposes the essential boundary condition $u=g$, where $g$ "
+                             "is calculated by a function.");
+  params.addParam<FunctionName>("function", 0, "The function describing the Dirichlet condition");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADFunctionDirichletBC<compute_stage>::ADFunctionDirichletBC(const InputParameters & parameters)
-  : ADNodalBC<compute_stage>(parameters), _function(getFunction("function"))
+ADFunctionDirichletBC::ADFunctionDirichletBC(const InputParameters & parameters)
+  : ADDirichletBCBase(parameters), _function(getFunction("function"))
 {
 }
 
-template <ComputeStage compute_stage>
 ADReal
-ADFunctionDirichletBC<compute_stage>::computeQpResidual()
+ADFunctionDirichletBC::computeQpValue()
 {
-  return _u - _function.value(_t, *_current_node);
+  return _function.value(_t, *_current_node);
 }

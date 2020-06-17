@@ -11,12 +11,6 @@
 
 #include "ACBulk.h"
 
-// Forward Declarations
-class AllenCahn;
-
-template <>
-InputParameters validParams<AllenCahn>();
-
 /**
  * AllenCahn uses the Free Energy function and derivatives
  * provided by a DerivativeParsedMaterial to computer the
@@ -25,6 +19,8 @@ InputParameters validParams<AllenCahn>();
 class AllenCahn : public ACBulk<Real>
 {
 public:
+  static InputParameters validParams();
+
   AllenCahn(const InputParameters & parameters);
 
   virtual void initialSetup();
@@ -33,10 +29,8 @@ protected:
   virtual Real computeDFDOP(PFFunctionType type);
   virtual Real computeQpOffDiagJacobian(unsigned int jvar);
 
-  const unsigned int _nvar;
   const MaterialProperty<Real> & _dFdEta;
   const MaterialProperty<Real> & _d2FdEta2;
 
   std::vector<const MaterialProperty<Real> *> _d2FdEtadarg;
 };
-

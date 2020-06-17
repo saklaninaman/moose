@@ -12,6 +12,8 @@
 
 #include "libmesh/transient_system.h"
 #include "libmesh/explicit_system.h"
+#include "libmesh/default_coupling.h"
+#include "libmesh/dof_map.h"
 
 DisplacedSystem::DisplacedSystem(DisplacedProblem & problem,
                                  SystemBase & undisplaced_system,
@@ -21,14 +23,19 @@ DisplacedSystem::DisplacedSystem(DisplacedProblem & problem,
     _undisplaced_system(undisplaced_system),
     _sys(problem.es().add_system<TransientExplicitSystem>(name))
 {
+  if (!problem.defaultGhosting())
+  {
+    auto & dof_map = _sys.get_dof_map();
+    dof_map.remove_algebraic_ghosting_functor(dof_map.default_algebraic_ghosting());
+    dof_map.set_implicit_neighbor_dofs(false);
+  }
+
+  /// Forcefully init the default solution states to match those available in libMesh
+  /// Must be called here because it would call virtuals in the parent class
+  solutionState(_default_solution_states);
 }
 
 DisplacedSystem::~DisplacedSystem() {}
-
-void
-DisplacedSystem::init()
-{
-}
 
 NumericVector<Number> &
 DisplacedSystem::getVector(const std::string & name)
@@ -46,25 +53,13 @@ DisplacedSystem::addTimeIntegrator(std::shared_ptr<TimeIntegrator> ti)
 }
 
 NumericVector<Number> &
-DisplacedSystem::solutionOld()
+DisplacedSystem::solutionOldInternal() const
 {
   return *_sys.old_local_solution;
 }
 
 NumericVector<Number> &
-DisplacedSystem::solutionOlder()
-{
-  return *_sys.older_local_solution;
-}
-
-const NumericVector<Number> &
-DisplacedSystem::solutionOld() const
-{
-  return *_sys.old_local_solution;
-}
-
-const NumericVector<Number> &
-DisplacedSystem::solutionOlder() const
+DisplacedSystem::solutionOlderInternal() const
 {
   return *_sys.older_local_solution;
 }

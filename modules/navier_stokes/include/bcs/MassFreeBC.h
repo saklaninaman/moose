@@ -11,17 +11,14 @@
 
 #include "IntegratedBC.h"
 
-class MassFreeBC;
-
-template <>
-InputParameters validParams<MassFreeBC>();
-
 /**
  *
  */
 class MassFreeBC : public IntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   MassFreeBC(const InputParameters & parameters);
 
 protected:
@@ -31,4 +28,3 @@ protected:
   const VariableValue & _vel_y;
   const VariableValue & _vel_z;
 };
-

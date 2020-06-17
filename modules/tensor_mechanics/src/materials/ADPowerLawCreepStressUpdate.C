@@ -9,30 +9,30 @@
 
 #include "ADPowerLawCreepStressUpdate.h"
 
-registerADMooseObject("TensorMechanicsApp", ADPowerLawCreepStressUpdate);
+registerMooseObject("TensorMechanicsApp", ADPowerLawCreepStressUpdate);
 
-defineADValidParams(
-    ADPowerLawCreepStressUpdate,
-    ADRadialReturnCreepStressUpdateBase,
-    params.addClassDescription(
-        "This class uses the stress update material in a radial return isotropic power law creep "
-        "model. This class can be used in conjunction with other creep and plasticity materials "
-        "for more complex simulations.");
+InputParameters
+ADPowerLawCreepStressUpdate::validParams()
+{
+  InputParameters params = ADRadialReturnCreepStressUpdateBase::validParams();
+  params.addClassDescription(
+      "This class uses the stress update material in a radial return isotropic power law creep "
+      "model. This class can be used in conjunction with other creep and plasticity materials "
+      "for more complex simulations.");
 
-    // Linear strain hardening parameters
-    params.addCoupledVar("temperature", "Coupled temperature");
-    params.addRequiredParam<Real>("coefficient", "Leading coefficient in power-law equation");
-    params.addRequiredParam<Real>("n_exponent",
-                                  "Exponent on effective stress in power-law equation");
-    params.addParam<Real>("m_exponent", 0.0, "Exponent on time in power-law equation");
-    params.addRequiredParam<Real>("activation_energy", "Activation energy");
-    params.addParam<Real>("gas_constant", 8.3143, "Universal gas constant");
-    params.addParam<Real>("start_time", 0.0, "Start time (if not zero)"););
+  // Linear strain hardening parameters
+  params.addCoupledVar("temperature", "Coupled temperature");
+  params.addRequiredParam<Real>("coefficient", "Leading coefficient in power-law equation");
+  params.addRequiredParam<Real>("n_exponent", "Exponent on effective stress in power-law equation");
+  params.addParam<Real>("m_exponent", 0.0, "Exponent on time in power-law equation");
+  params.addRequiredParam<Real>("activation_energy", "Activation energy");
+  params.addParam<Real>("gas_constant", 8.3143, "Universal gas constant");
+  params.addParam<Real>("start_time", 0.0, "Start time (if not zero)");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADPowerLawCreepStressUpdate<compute_stage>::ADPowerLawCreepStressUpdate(
-    const InputParameters & parameters)
-  : ADRadialReturnCreepStressUpdateBase<compute_stage>(parameters),
+ADPowerLawCreepStressUpdate::ADPowerLawCreepStressUpdate(const InputParameters & parameters)
+  : ADRadialReturnCreepStressUpdateBase(parameters),
     _temperature(isParamValid("temperature") ? &adCoupledValue("temperature") : nullptr),
     _coefficient(getParam<Real>("coefficient")),
     _n_exponent(getParam<Real>("n_exponent")),
@@ -48,10 +48,9 @@ ADPowerLawCreepStressUpdate<compute_stage>::ADPowerLawCreepStressUpdate(
                "non-integer m_exponent is used");
 }
 
-template <ComputeStage compute_stage>
 void
-ADPowerLawCreepStressUpdate<compute_stage>::computeStressInitialize(
-    const ADReal & /*effective_trial_stress*/, const ADRankFourTensor & /*elasticity_tensor*/)
+ADPowerLawCreepStressUpdate::computeStressInitialize(const ADReal & /*effective_trial_stress*/,
+                                                     const ADRankFourTensor & /*elasticity_tensor*/)
 {
   if (_temperature)
     _exponential = std::exp(-_activation_energy / (_gas_constant * (*_temperature)[_qp]));
@@ -59,10 +58,9 @@ ADPowerLawCreepStressUpdate<compute_stage>::computeStressInitialize(
   _exp_time = std::pow(_t - _start_time, _m_exponent);
 }
 
-template <ComputeStage compute_stage>
 ADReal
-ADPowerLawCreepStressUpdate<compute_stage>::computeResidual(const ADReal & effective_trial_stress,
-                                                            const ADReal & scalar)
+ADPowerLawCreepStressUpdate::computeResidual(const ADReal & effective_trial_stress,
+                                             const ADReal & scalar)
 {
   const ADReal stress_delta = effective_trial_stress - _three_shear_modulus * scalar;
   const ADReal creep_rate =
@@ -70,10 +68,9 @@ ADPowerLawCreepStressUpdate<compute_stage>::computeResidual(const ADReal & effec
   return creep_rate * _dt - scalar;
 }
 
-template <ComputeStage compute_stage>
 ADReal
-ADPowerLawCreepStressUpdate<compute_stage>::computeDerivative(const ADReal & effective_trial_stress,
-                                                              const ADReal & scalar)
+ADPowerLawCreepStressUpdate::computeDerivative(const ADReal & effective_trial_stress,
+                                               const ADReal & scalar)
 {
   const ADReal stress_delta = effective_trial_stress - _three_shear_modulus * scalar;
   const ADReal creep_rate_derivative = -_coefficient * _three_shear_modulus * _n_exponent *

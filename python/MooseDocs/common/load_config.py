@@ -8,14 +8,14 @@
 #* https://www.gnu.org/licenses/lgpl-2.1.html
 
 """Tool for loading MooseDocs config hit file."""
-import collections
 import types
 import importlib
 import logging
-
+import collections
+from mooseutils import recursive_update
 from mooseutils.yaml_load import yaml_load
 import MooseDocs
-from MooseDocs.common import check_type, exceptions
+from ..common import exceptions
 
 LOG = logging.getLogger(__name__)
 
@@ -58,7 +58,7 @@ def load_config(filename, **kwargs):
     Read the config.yml file and create the Translator object.
     """
     config = yaml_load(filename, root=MooseDocs.ROOT_DIR)
-    config.update(kwargs)
+    recursive_update(config, kwargs)
 
     extensions = _yaml_load_extensions(config)
     reader = _yaml_load_object('Reader', config, DEFAULT_READER)
@@ -67,6 +67,7 @@ def load_config(filename, **kwargs):
     executioner = _yaml_load_object('Executioner', config, DEFAULT_EXECUTIONER)
     translator = _yaml_load_object('Translator', config, DEFAULT_TRANSLATOR,
                                    content, reader, renderer, extensions, executioner)
+
     return translator, config
 
 def load_extensions(ext_list, ext_configs=None):
@@ -80,8 +81,6 @@ def load_extensions(ext_list, ext_configs=None):
     """
     if ext_configs is None:
         ext_configs = dict()
-    check_type('ext_list', ext_list, list)
-    check_type('ext_configs', ext_configs, dict)
 
     extensions = []
     for ext in ext_list:
@@ -107,16 +106,13 @@ def _get_module(ext):
             ext = importlib.import_module(name)
         except ImportError as e:
             msg = "Failed to import the supplied '{}' module.\n{}"
-            raise exceptions.MooseDocsException(msg, name, e.message)
+            raise exceptions.MooseDocsException(msg, name, e)
     else:
         msg = "The supplied module ({}) must be a module type or a string, but a {} object "\
               "was provided."
         raise exceptions.MooseDocsException(msg, ext, type(ext))
 
     return name, ext
-
-def _yaml_load_executioner(config):
-    """Load the Executioner objecte for the translator."""
 
 def _yaml_load_extensions(config):
     """Load extensions from the Extensions block of the YAML configuration file."""
@@ -132,7 +128,7 @@ def _yaml_load_extensions(config):
             ext_configs[ext] = dict()
 
     # Get configuration items from configuration
-    for ext_type, settings in options.iteritems():
+    for ext_type, settings in options.items():
         if (settings is not None) and ('type' in settings):
             msg = "Using 'type' for the extensions is deprecated, the type should be supplied " \
                   "as the key to the dictionary, rather than an arbitrary name."
@@ -156,18 +152,18 @@ def _yaml_load_extensions(config):
                   "keyword should be used."
             LOG.error(msg, ext_type)
 
-    return load_extensions(ext_configs.keys(), ext_configs)
+    return load_extensions(list(ext_configs.keys()), ext_configs)
 
 def _yaml_load_object(name, config, default, *args):
     """Helper for loading MooseDocs objects: Reader, Renderer, Translator"""
 
     options = config.get(name, dict())
     obj_type = options.pop('type', default)
-    #try:
-    return eval(obj_type)(*args, **options)
-    #except NameError:
-    #    msg = "ERROR: The %s block must contain a valid object name."
-    #    LOG.error(msg, name)
+    try:
+        return eval(obj_type)(*args, **options)
+    except NameError:
+        msg = "ERROR: The %s block must contain a valid object name."
+        LOG.error(msg, name)
 
 
 def _yaml_load_content(config, in_ext):

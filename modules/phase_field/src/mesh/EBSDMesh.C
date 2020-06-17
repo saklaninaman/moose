@@ -14,11 +14,10 @@
 
 registerMooseObject("PhaseFieldApp", EBSDMesh);
 
-template <>
 InputParameters
-validParams<EBSDMesh>()
+EBSDMesh::validParams()
 {
-  InputParameters params = validParams<GeneratedMesh>();
+  InputParameters params = GeneratedMesh::validParams();
   params.addClassDescription("Mesh generated from a specified DREAM.3D EBSD data file.");
   params.addRequiredParam<FileName>("filename", "The name of the file containing the EBSD data");
   params.addParam<unsigned int>(

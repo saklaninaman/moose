@@ -13,11 +13,12 @@
 
 registerMooseObject("HeatConductionApp", HomogenizedThermalConductivity);
 
-template <>
 InputParameters
-validParams<HomogenizedThermalConductivity>()
+HomogenizedThermalConductivity::validParams()
 {
-  InputParameters params = validParams<ElementAverageValue>();
+  InputParameters params = ElementAverageValue::validParams();
+  params.addClassDescription(
+      "Postprocessor for asymptotic expansion homogenization for thermal conductivity");
   params.addRequiredCoupledVar("temp_x", "solution in x");
   params.addCoupledVar("temp_y", "solution in y");
   params.addCoupledVar("temp_z", "solution in z");

@@ -12,11 +12,10 @@
 
 #include <fstream>
 
-template <>
 InputParameters
-validParams<PorousFlowLineGeometry>()
+PorousFlowLineGeometry::validParams()
 {
-  InputParameters params = validParams<DiracKernel>();
+  InputParameters params = DiracKernel::validParams();
   params.addRequiredParam<std::string>(
       "point_file",
       "The file containing the coordinates of the points and their weightings that approximate the "

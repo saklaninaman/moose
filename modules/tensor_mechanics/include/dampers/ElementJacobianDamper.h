@@ -14,13 +14,9 @@
 #include "MooseVariable.h"
 
 // Forward Declarations
-class ElementJacobianDamper;
 class FEProblemBase;
 class MooseMesh;
 class DisplacedProblem;
-
-template <>
-InputParameters validParams<ElementJacobianDamper>();
 
 /**
  * This class implements a damper that limits the change in the Jacobian of elements
@@ -28,6 +24,8 @@ InputParameters validParams<ElementJacobianDamper>();
 class ElementJacobianDamper : public GeneralDamper
 {
 public:
+  static InputParameters validParams();
+
   ElementJacobianDamper(const InputParameters & parameters);
 
   virtual void initialSetup() override;

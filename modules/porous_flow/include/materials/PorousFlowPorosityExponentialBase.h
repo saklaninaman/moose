@@ -11,11 +11,6 @@
 
 #include "PorousFlowPorosityBase.h"
 
-class PorousFlowPorosityExponentialBase;
-
-template <>
-InputParameters validParams<PorousFlowPorosityExponentialBase>();
-
 /**
  * Base class Material designed to provide the porosity.
  * In this class
@@ -36,6 +31,8 @@ InputParameters validParams<PorousFlowPorosityExponentialBase>();
 class PorousFlowPorosityExponentialBase : public PorousFlowPorosityBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowPorosityExponentialBase(const InputParameters & parameters);
 
 protected:
@@ -75,4 +72,3 @@ protected:
    */
   const bool _ensure_positive;
 };
-

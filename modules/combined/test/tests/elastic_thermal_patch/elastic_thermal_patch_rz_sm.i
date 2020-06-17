@@ -161,20 +161,20 @@
 
 [BCs]
   [./ur]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = disp_x
     boundary = 10
     function = ur
   [../]
   [./uz]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = disp_y
     boundary = 10
     function = uz
   [../]
 
   [./temp]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = temp
     boundary = 10
     function = temp
@@ -230,8 +230,5 @@
 
 [Outputs]
   file_base = elastic_thermal_patch_rz_out
-  [./exodus]
-    type = Exodus
-    elemental_as_nodal = true
-  [../]
+  exodus = true
 []

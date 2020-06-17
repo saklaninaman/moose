@@ -12,11 +12,7 @@
 #include "Kernel.h"
 
 // Forward Declarations
-class NSKernel;
 class IdealGasFluidProperties;
-
-template <>
-InputParameters validParams<NSKernel>();
 
 /**
  * This class couples together all the variables
@@ -29,6 +25,8 @@ InputParameters validParams<NSKernel>();
 class NSKernel : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   NSKernel(const InputParameters & parameters);
 
 protected:
@@ -71,4 +69,3 @@ protected:
   bool isNSVariable(unsigned var);
   unsigned mapVarNumber(unsigned var);
 };
-

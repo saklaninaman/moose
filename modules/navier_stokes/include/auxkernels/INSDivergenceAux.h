@@ -12,10 +12,6 @@
 #include "AuxKernel.h"
 
 // Forward Declarations
-class INSDivergenceAux;
-
-template <>
-InputParameters validParams<INSDivergenceAux>();
 
 /**
  * Computes h_min / |u|
@@ -23,6 +19,8 @@ InputParameters validParams<INSDivergenceAux>();
 class INSDivergenceAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   INSDivergenceAux(const InputParameters & parameters);
 
   virtual ~INSDivergenceAux() {}
@@ -35,4 +33,3 @@ protected:
   const VariableGradient & _grad_v_vel;
   const VariableGradient & _grad_w_vel;
 };
-

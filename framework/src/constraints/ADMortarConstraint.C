@@ -12,37 +12,30 @@
 // MOOSE includes
 #include "MooseVariable.h"
 #include "Assembly.h"
+#include "SystemBase.h"
+#include "ADUtils.h"
 
-defineADBaseValidParams(ADMortarConstraint, MortarConstraintBase, );
+InputParameters
+ADMortarConstraint::validParams()
+{
+  InputParameters params = MortarConstraintBase::validParams();
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADMortarConstraint<compute_stage>::ADMortarConstraint(const InputParameters & parameters)
+ADMortarConstraint::ADMortarConstraint(const InputParameters & parameters)
   : MortarConstraintBase(parameters),
     _lambda_dummy(),
-    _lambda(_var ? _var->adSlnLower<compute_stage>() : _lambda_dummy),
-    _u_slave(_slave_var.adSln<compute_stage>()),
-    _u_master(_master_var.adSlnNeighbor<compute_stage>()),
-    _grad_u_slave(_slave_var.adGradSln<compute_stage>()),
-    _grad_u_master(_master_var.adGradSlnNeighbor<compute_stage>())
+    _lambda(_var ? _var->adSlnLower() : _lambda_dummy),
+    _u_slave(_slave_var.adSln()),
+    _u_master(_master_var.adSlnNeighbor()),
+    _grad_u_slave(_slave_var.adGradSln()),
+    _grad_u_master(_master_var.adGradSlnNeighbor())
 {
+  _subproblem.haveADObjects(true);
 }
 
-template <ComputeStage compute_stage>
 void
-ADMortarConstraint<compute_stage>::computeResidual(bool has_master)
-{
-  MortarConstraintBase::computeResidual(has_master);
-}
-
-template <>
-void
-ADMortarConstraint<JACOBIAN>::computeResidual(bool /*has_master*/)
-{
-}
-
-template <ComputeStage compute_stage>
-void
-ADMortarConstraint<compute_stage>::computeResidual(Moose::MortarType mortar_type)
+ADMortarConstraint::computeResidual(Moose::MortarType mortar_type)
 {
   unsigned int test_space_size = 0;
   switch (mortar_type)
@@ -66,32 +59,13 @@ ADMortarConstraint<compute_stage>::computeResidual(Moose::MortarType mortar_type
 
   for (_qp = 0; _qp < _qrule_msm->n_points(); _qp++)
     for (_i = 0; _i < test_space_size; _i++)
-      _local_re(_i) += _JxW_msm[_qp] * _coord[_qp] * computeQpResidual(mortar_type);
+      _local_re(_i) += raw_value(_JxW_msm[_qp] * _coord[_qp] * computeQpResidual(mortar_type));
 
   accumulateTaggedLocalResidual();
 }
 
-template <>
-void ADMortarConstraint<JACOBIAN>::computeResidual(Moose::MortarType /*mortar_type*/)
-{
-}
-
-template <ComputeStage compute_stage>
 void
-ADMortarConstraint<compute_stage>::computeJacobian(bool has_master)
-{
-  MortarConstraintBase::computeJacobian(has_master);
-}
-
-template <>
-void
-ADMortarConstraint<RESIDUAL>::computeJacobian(bool /*has_master*/)
-{
-}
-
-template <ComputeStage compute_stage>
-void
-ADMortarConstraint<compute_stage>::computeJacobian(Moose::MortarType mortar_type)
+ADMortarConstraint::computeJacobian(Moose::MortarType mortar_type)
 {
   std::vector<DualReal> residuals;
   size_t test_space_size = 0;
@@ -122,8 +96,7 @@ ADMortarConstraint<compute_stage>::computeJacobian(Moose::MortarType mortar_type
     for (_i = 0; _i < test_space_size; _i++)
       residuals[_i] += _JxW_msm[_qp] * _coord[_qp] * computeQpResidual(mortar_type);
 
-  std::vector<std::pair<MooseVariableFEBase *, MooseVariableFEBase *>> & ce =
-      _assembly.couplingEntries();
+  auto & ce = _assembly.couplingEntries();
   for (const auto & it : ce)
   {
     MooseVariableFEBase & ivariable = *(it.first);
@@ -151,17 +124,27 @@ ADMortarConstraint<compute_stage>::computeJacobian(Moose::MortarType mortar_type
     }
 
     // Derivatives are offset by the variable number
-    std::vector<size_t> ad_offsets{jvar * _sys.getMaxVarNDofsPerElem(),
-                                   jvar * _sys.getMaxVarNDofsPerElem() +
-                                       (_sys.system().n_vars() * _sys.getMaxVarNDofsPerElem()),
-                                   2 * _sys.system().n_vars() * _sys.getMaxVarNDofsPerElem() +
-                                       jvar * _sys.getMaxVarNDofsPerElem()};
+    std::vector<size_t> ad_offsets{
+        Moose::adOffset(jvar, _sys.getMaxVarNDofsPerElem(), Moose::ElementType::Element),
+        Moose::adOffset(jvar,
+                        _sys.getMaxVarNDofsPerElem(),
+                        Moose::ElementType::Neighbor,
+                        _sys.system().n_vars()),
+        Moose::adOffset(
+            jvar, _sys.getMaxVarNDofsPerElem(), Moose::ElementType::Lower, _sys.system().n_vars())};
     std::vector<size_t> shape_space_sizes{jvariable.dofIndices().size(),
                                           jvariable.dofIndicesNeighbor().size(),
                                           jvariable.dofIndicesLower().size()};
 
     for (MooseIndex(3) type_index = 0; type_index < 3; ++type_index)
     {
+      // If we don't have a master element, then we shouldn't be considering derivatives with
+      // respect to master dofs. More practically speaking, the local K matrix will be improperly
+      // sized whenever we don't have a master element because we won't be calling
+      // FEProblemBase::reinitNeighborFaceRef from withing ComputeMortarFunctor::operator()
+      if (type_index == 1 && !_has_master)
+        continue;
+
       prepareMatrixTagLower(_assembly, ivar, jvar, jacobian_types[type_index]);
       for (_i = 0; _i < test_space_size; _i++)
         for (_j = 0; _j < shape_space_sizes[type_index]; _j++)
@@ -170,10 +153,3 @@ ADMortarConstraint<compute_stage>::computeJacobian(Moose::MortarType mortar_type
     }
   }
 }
-
-template <>
-void ADMortarConstraint<RESIDUAL>::computeJacobian(Moose::MortarType /*mortar_type*/)
-{
-}
-
-adBaseClass(ADMortarConstraint);

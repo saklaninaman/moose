@@ -12,10 +12,6 @@
 #include "DamageBase.h"
 
 // Forward declaration
-class ScalarDamageBase;
-
-template <>
-InputParameters validParams<ScalarDamageBase>();
 
 /**
  * Base class for scalar damage models.
@@ -23,6 +19,8 @@ InputParameters validParams<ScalarDamageBase>();
 class ScalarDamageBase : public DamageBase
 {
 public:
+  static InputParameters validParams();
+
   ScalarDamageBase(const InputParameters & parameters);
 
   virtual void initQpStatefulProperties() override;

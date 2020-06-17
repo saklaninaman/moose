@@ -16,11 +16,10 @@
 
 registerMooseObject("TensorMechanicsApp", ComputeCosseratIncrementalSmallStrain);
 
-template <>
 InputParameters
-validParams<ComputeCosseratIncrementalSmallStrain>()
+ComputeCosseratIncrementalSmallStrain::validParams()
 {
-  InputParameters params = validParams<ComputeIncrementalStrainBase>();
+  InputParameters params = ComputeIncrementalStrainBase::validParams();
   params.addClassDescription("Compute incremental small Cosserat strains");
   params.addRequiredCoupledVar("Cosserat_rotations", "The 3 Cosserat rotation variables");
   return params;

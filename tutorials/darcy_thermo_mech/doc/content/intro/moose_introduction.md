@@ -39,7 +39,7 @@ Multi-physics Object Oriented Simulation Environment
 - User code agnostic of dimension
 - Continuous and Discontinuous Galerkin
 - Fully Coupled, Fully Implicit (and explicit)
-- [!ac!AD]
+- [!ac](AD)
 - Unstructured mesh with FEM shapes (Quads, Tris, Hexes, Tets, Pyramids, Wedges,...)
 - Higher order geometry (curvilinear, etc.)
 - Mesh Adaptivity (refinement and coarsening)
@@ -83,7 +83,7 @@ Multi-physics Object Oriented Simulation Environment
 ###### moose-users@googlegroups.com
 
 !media moose_users.png style=width:50%;margin-left:auto;margin-right:auto;display:block;
-       caption=Total posts (top) and topics (bottom) from March 1, 2018 to March 27, 2019.
+       caption=Total posts (top) and topics (bottom) from June 1, 2019 to May 25, 2020.
 
 !---
 

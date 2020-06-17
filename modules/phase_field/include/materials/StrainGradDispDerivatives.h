@@ -11,18 +11,13 @@
 
 #include "Material.h"
 #include "DerivativeMaterialInterface.h"
-
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-class StrainGradDispDerivatives;
-
-template <>
-InputParameters validParams<StrainGradDispDerivatives>();
+#include "RankTwoTensorForward.h"
 
 class StrainGradDispDerivatives : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   StrainGradDispDerivatives(const InputParameters & parameters);
 
 protected:
@@ -33,4 +28,3 @@ protected:
 
   std::vector<MaterialProperty<RankTwoTensor> *> _dstrain;
 };
-

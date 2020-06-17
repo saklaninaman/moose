@@ -13,11 +13,10 @@
 
 registerMooseObject("TensorMechanicsApp", EshelbyTensor);
 
-template <>
 InputParameters
-validParams<EshelbyTensor>()
+EshelbyTensor::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   params.addClassDescription("Computes the Eshelby tensor as a function of "
                              "strain energy density and the first "
                              "Piola-Kirchoff stress");

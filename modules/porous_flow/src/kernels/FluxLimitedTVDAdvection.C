@@ -8,15 +8,15 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "FluxLimitedTVDAdvection.h"
+#include "SystemBase.h"
 #include "Assembly.h"
 
 registerMooseObject("PorousFlowApp", FluxLimitedTVDAdvection);
 
-template <>
 InputParameters
-validParams<FluxLimitedTVDAdvection>()
+FluxLimitedTVDAdvection::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addClassDescription("Conservative form of $\\nabla \\cdot \\vec{v} u$ (advection), using "
                              "the Flux Limited TVD scheme invented by Kuzmin and Turek");
   params.addRequiredParam<UserObjectName>("advective_flux_calculator",

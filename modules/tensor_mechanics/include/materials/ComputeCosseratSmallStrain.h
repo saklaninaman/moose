@@ -11,17 +11,14 @@
 
 #include "ComputeStrainBase.h"
 
-class ComputeCosseratSmallStrain;
-
-template <>
-InputParameters validParams<ComputeCosseratSmallStrain>();
-
 /**
  * ComputeCosseratSmallStrain defines Cossserat strain tensor, assuming small strains.
  */
 class ComputeCosseratSmallStrain : public ComputeStrainBase
 {
 public:
+  static InputParameters validParams();
+
   ComputeCosseratSmallStrain(const InputParameters & parameters);
 
 protected:
@@ -39,4 +36,3 @@ protected:
   /// Grad(Cosserat rotation)
   std::vector<const VariableGradient *> _grad_wc;
 };
-

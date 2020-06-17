@@ -9,26 +9,26 @@
 
 #include "DarcyPressure.h"
 
-registerADMooseObject("DarcyThermoMechApp", DarcyPressure);
+registerMooseObject("DarcyThermoMechApp", DarcyPressure);
 
-defineADValidParams(
-    DarcyPressure,
-    ADDiffusion,
-    params.addClassDescription("Compute the diffusion term for Darcy pressure ($p$) equation: "
-                               "$-\\nabla \\cdot \\frac{\\mathbf{K}}{\\mu} \\nabla p = 0$"););
+InputParameters
+DarcyPressure::validParams()
+{
+  InputParameters params = ADKernel::validParams();
+  params.addClassDescription("Compute the diffusion term for Darcy pressure ($p$) equation: "
+                             "$-\\nabla \\cdot \\frac{\\mathbf{K}}{\\mu} \\nabla p = 0$");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-DarcyPressure<compute_stage>::DarcyPressure(const InputParameters & parameters)
-  : ADDiffusion<compute_stage>(parameters),
-    _permeability(getMaterialProperty<Real>("permeability")),
+DarcyPressure::DarcyPressure(const InputParameters & parameters)
+  : ADKernel(parameters),
+    _permeability(getADMaterialProperty<Real>("permeability")),
     _viscosity(getADMaterialProperty<Real>("viscosity"))
 {
 }
 
-template <ComputeStage compute_stage>
-ADRealVectorValue
-DarcyPressure<compute_stage>::precomputeQpResidual()
+ADReal
+DarcyPressure::computeQpResidual()
 {
-  return (_permeability[_qp] / _viscosity[_qp]) *
-         ADDiffusion<compute_stage>::precomputeQpResidual();
+  return (_permeability[_qp] / _viscosity[_qp]) * _grad_test[_i][_qp] * _grad_u[_qp];
 }

@@ -12,11 +12,7 @@
 #include "AuxKernel.h"
 
 // Forward Declarations
-class LineSegmentLevelSetAux;
 class LineSegmentCutSetUserObject;
-
-template <>
-InputParameters validParams<LineSegmentLevelSetAux>();
 
 /**
  * Calculate level set values for an interface that is defined by a set of line segments
@@ -24,6 +20,8 @@ InputParameters validParams<LineSegmentLevelSetAux>();
 class LineSegmentLevelSetAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   LineSegmentLevelSetAux(const InputParameters & parameters);
 
 protected:
@@ -43,4 +41,3 @@ protected:
   /// Store the cut locations
   std::vector<Real> _cut_data;
 };
-

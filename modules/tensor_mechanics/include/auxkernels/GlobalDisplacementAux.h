@@ -10,26 +10,24 @@
 #pragma once
 
 #include "AuxKernel.h"
+#include "ADRankTwoTensorForward.h"
 
 // Forward Declarations
-class GlobalDisplacementAux;
 class GlobalStrainUserObjectInterface;
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-
-template <>
-InputParameters validParams<GlobalDisplacementAux>();
 
 class GlobalDisplacementAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   GlobalDisplacementAux(const InputParameters & parameters);
 
   virtual Real computeValue() override;
 
 protected:
   const VariableValue & _scalar_global_strain;
+
+  /// Component of the displacement vector
   const unsigned int _component;
 
   bool _output_global_disp;
@@ -39,6 +37,10 @@ protected:
   const Point _ref_point;
 
   const unsigned int _dim;
+
+  /// Number of displacement variables
   const unsigned int _ndisp;
+
+  /// Displacement variables
   std::vector<const VariableValue *> _disp;
 };

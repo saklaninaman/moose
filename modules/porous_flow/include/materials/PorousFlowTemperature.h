@@ -12,17 +12,14 @@
 #include "DerivativeMaterialInterface.h"
 #include "PorousFlowMaterial.h"
 
-class PorousFlowTemperature;
-
-template <>
-InputParameters validParams<PorousFlowTemperature>();
-
 /**
  * Creates temperature Materials
  */
 class PorousFlowTemperature : public DerivativeMaterialInterface<PorousFlowMaterial>
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowTemperature(const InputParameters & parameters);
 
 protected:
@@ -59,4 +56,3 @@ protected:
   /// d(grad temperature)/d(PorousFlow variable) at the quadpoints
   MaterialProperty<std::vector<RealGradient>> * const _dgrad_temperature_dv;
 };
-

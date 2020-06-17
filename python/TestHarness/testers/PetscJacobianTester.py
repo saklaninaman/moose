@@ -26,6 +26,12 @@ class PetscJacobianTester(RunApp):
                                           "at every non-linear iteration of every time step. This is only "
                                           "relevant for petsc versions >= 3.9.")
         params.addParam('turn_off_exodus_output', True, "Whether to set exodus=false in Outputs")
+
+        # override default values
+        params.valid['valgrind'] = 'NONE'
+        params.valid['petsc_version'] = ['>=3.9.4']
+        params.valid['method'] = ['OPT']
+
         return params
 
     def checkRunnable(self, options):
@@ -42,7 +48,7 @@ class PetscJacobianTester(RunApp):
                                         os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                      '..')))
 
-        if os.environ.has_key("LIBMESH_DIR"):
+        if os.environ.get("LIBMESH_DIR"):
             self.libmesh_dir = os.environ['LIBMESH_DIR']
         else:
             self.libmesh_dir = os.path.join(self.moose_dir, 'libmesh', 'installed')
@@ -50,7 +56,7 @@ class PetscJacobianTester(RunApp):
         if self.specs['turn_off_exodus_output']:
             self.specs['cli_args'][:0] = ['Outputs/exodus=false']
 
-        if map(int, util.getPetscVersion(self.libmesh_dir).split(".")) < [3, 9]:
+        if list(map(int, util.getPetscVersion(self.libmesh_dir).split("."))) < [3, 9]:
             self.old_petsc = True
             self.specs['cli_args'].extend(['-snes_type test', '-snes_mf_operator 0'])
         else:

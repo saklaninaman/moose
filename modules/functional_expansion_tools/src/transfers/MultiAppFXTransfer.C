@@ -16,11 +16,10 @@
 
 registerMooseObject("FunctionalExpansionToolsApp", MultiAppFXTransfer);
 
-template <>
 InputParameters
-validParams<MultiAppFXTransfer>()
+MultiAppFXTransfer::validParams()
 {
-  InputParameters params = validParams<MultiAppTransfer>();
+  InputParameters params = MultiAppTransfer::validParams();
 
   params.addClassDescription("Transfers coefficient arrays between objects that are derived from "
                              "MutableCoefficientsInterface; currently includes the following "
@@ -44,6 +43,8 @@ MultiAppFXTransfer::MultiAppFXTransfer(const InputParameters & parameters)
     getMultiAppObject(NULL),
     getSubAppObject(NULL)
 {
+  if (_directions.size() != 1)
+    paramError("direction", "This transfer is only unidirectional");
 }
 
 void
@@ -115,7 +116,7 @@ MultiAppFXTransfer::scanProblemBaseForObject(FEProblemBase & base,
   else if (base.hasUserObject(object_name))
   {
     // Get the non-const qualified UserObject, otherwise we would use getUserObject()
-    auto & user_object = base.getUserObjectTempl<UserObject>(object_name);
+    auto & user_object = base.getUserObject<UserObject>(object_name);
     interface = dynamic_cast<MutableCoefficientsInterface *>(&user_object);
 
     // Check to see if the userObject is a subclass of MutableCoefficientsInterface
@@ -147,7 +148,7 @@ MultiAppFXTransfer::getMutableCoefficientsUserOject(FEProblemBase & base,
                                                     THREAD_ID thread)
 {
   // Get the non-const qualified UserObject, otherwise we would use getUserObject()
-  auto & user_object = base.getUserObjectTempl<UserObject>(object_name, thread);
+  auto & user_object = base.getUserObject<UserObject>(object_name, thread);
   return dynamic_cast<MutableCoefficientsInterface &>(user_object);
 }
 
@@ -156,7 +157,7 @@ MultiAppFXTransfer::execute()
 {
   _console << "Beginning MultiAppFXTransfer: " << name() << std::endl;
 
-  switch (_direction)
+  switch (_current_direction)
   {
     // LocalApp -> MultiApp
     case TO_MULTIAPP:

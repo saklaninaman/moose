@@ -15,19 +15,17 @@
 #include "MooseMesh.h"
 #include "MooseApp.h"
 
-template <>
+defineLegacyParams(MooseObjectAction);
+
 InputParameters
-validParams<MooseObjectAction>()
+MooseObjectAction::validParams()
 {
-  InputParameters params = validParams<Action>();
+  InputParameters params = Action::validParams();
   params.addRequiredParam<std::string>(
       "type", "A string representing the Moose Object that will be built by this Action");
   params.addParam<bool>("isObjectAction", true, "Indicates that this is a MooseObjectAction.");
   return params;
 }
-
-template <>
-InputParameters validParams<MooseObject>();
 
 MooseObjectAction::MooseObjectAction(InputParameters params)
   : Action(params),
@@ -36,10 +34,8 @@ MooseObjectAction::MooseObjectAction(InputParameters params)
     _moose_object_pars(!params.have_parameter<bool>("skip_param_construction") ||
                                (params.have_parameter<bool>("skip_param_construction") &&
                                 !params.get<bool>("skip_param_construction"))
-                           ? (Registry::isADObj(_type + "<RESIDUAL>")
-                                  ? _factory.getValidParams(_type + "<RESIDUAL>")
-                                  : _factory.getValidParams(_type))
-                           : validParams<MooseObject>())
+                           ? _factory.getValidParams(_type)
+                           : MooseObject::validParams())
 {
   _moose_object_pars.blockFullpath() = params.blockFullpath();
 }

@@ -9,27 +9,28 @@
 
 #include "ADMatHeatSource.h"
 
-registerADMooseObject("HeatConductionApp", ADMatHeatSource);
+registerMooseObject("HeatConductionApp", ADMatHeatSource);
 
-defineADValidParams(
-    ADMatHeatSource,
-    ADKernel,
-    params.addParam<Real>("scalar", 1.0, "Scalar multiplied by the body force term");
-    params.addParam<MaterialPropertyName>("material_property",
-                                          1.0,
-                                          "Material property describing the body force"););
+InputParameters
+ADMatHeatSource::validParams()
+{
+  InputParameters params = ADKernel::validParams();
+  params.addParam<Real>("scalar", 1.0, "Scalar multiplied by the body force term");
+  params.addParam<MaterialPropertyName>(
+      "material_property", 1.0, "Material property describing the body force");
+  params.addClassDescription("Force term in thermal transport to represent a heat source");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADMatHeatSource<compute_stage>::ADMatHeatSource(const InputParameters & parameters)
-  : ADKernel<compute_stage>(parameters),
+ADMatHeatSource::ADMatHeatSource(const InputParameters & parameters)
+  : ADKernel(parameters),
     _scalar(getParam<Real>("scalar")),
     _material_property(getADMaterialProperty<Real>("material_property"))
 {
 }
 
-template <ComputeStage compute_stage>
-ADResidual
-ADMatHeatSource<compute_stage>::computeQpResidual()
+ADReal
+ADMatHeatSource::computeQpResidual()
 {
   return -_scalar * _material_property[_qp] * _test[_i][_qp];
 }

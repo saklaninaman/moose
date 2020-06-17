@@ -11,11 +11,10 @@
 
 registerMooseObject("FluidPropertiesTestApp", TestTwoPhaseNCGFluidProperties);
 
-template <>
 InputParameters
-validParams<TestTwoPhaseNCGFluidProperties>()
+TestTwoPhaseNCGFluidProperties::validParams()
 {
-  InputParameters params = validParams<TwoPhaseNCGFluidProperties>();
+  InputParameters params = TwoPhaseNCGFluidProperties::validParams();
 
   params.addClassDescription("Test 2-phase NCG fluid properties");
 
@@ -35,14 +34,14 @@ TestTwoPhaseNCGFluidProperties::TestTwoPhaseNCGFluidProperties(const InputParame
       const std::string class_name = "IdealGasFluidProperties";
       InputParameters params = _app.getFactory().getValidParams(class_name);
       params.set<Real>("gamma") = 1.4;
-      params.set<Real>("R") = 270;
+      params.set<Real>("molar_mass") = 0.030794295555555556;
       _fe_problem.addUserObject(class_name, "test_fp_liquid", params);
     }
     {
       const std::string class_name = "IdealGasFluidProperties";
       InputParameters params = _app.getFactory().getValidParams(class_name);
       params.set<Real>("gamma") = 1.1;
-      params.set<Real>("R") = 300;
+      params.set<Real>("molar_mass") = 0.027714866;
       params.set<Real>("T_c") = 100;
       params.set<Real>("rho_c") = 300;
       _fe_problem.addUserObject(class_name, "test_fp_vapor", params);
@@ -58,7 +57,7 @@ TestTwoPhaseNCGFluidProperties::TestTwoPhaseNCGFluidProperties(const InputParame
     params.set<UserObjectName>("fp_vapor") = "test_fp_vapor";
     _fe_problem.addUserObject(class_name, _2phase_name, params);
   }
-  _fp_2phase = &_fe_problem.getUserObjectTempl<TwoPhaseFluidProperties>(_2phase_name);
+  _fp_2phase = &_fe_problem.getUserObject<TwoPhaseFluidProperties>(_2phase_name);
 
   // create vapor mixture fluid properties
   if (_tid == 0)
@@ -71,5 +70,5 @@ TestTwoPhaseNCGFluidProperties::TestTwoPhaseNCGFluidProperties(const InputParame
     _fe_problem.addUserObject(class_name, _vapor_mixture_name, params);
   }
   _fp_vapor_mixture =
-      &_fe_problem.getUserObjectTempl<VaporMixtureFluidProperties>(_vapor_mixture_name);
+      &_fe_problem.getUserObject<VaporMixtureFluidProperties>(_vapor_mixture_name);
 }

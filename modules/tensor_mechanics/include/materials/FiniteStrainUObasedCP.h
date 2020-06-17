@@ -16,11 +16,6 @@
 #include "CrystalPlasticityStateVariable.h"
 #include "CrystalPlasticityStateVarRateComponent.h"
 
-class FiniteStrainUObasedCP;
-
-template <>
-InputParameters validParams<FiniteStrainUObasedCP>();
-
 /**
  * FiniteStrainUObasedCP uses the multiplicative decomposition of deformation gradient
  * and solves the PK2 stress residual equation at the intermediate configuration to evolve the
@@ -38,6 +33,8 @@ InputParameters validParams<FiniteStrainUObasedCP>();
 class FiniteStrainUObasedCP : public ComputeStressBase
 {
 public:
+  static InputParameters validParams();
+
   FiniteStrainUObasedCP(const InputParameters & parameters);
 
 protected:
@@ -272,4 +269,3 @@ protected:
   /// Scales the substepping increment to obtain deformation gradient at a substep iteration
   Real _dfgrd_scale_factor;
 };
-

@@ -11,14 +11,11 @@
 
 #include "FiniteStrainCrystalPlasticity.h"
 
-class FiniteStrainCPSlipRateRes;
-
-template <>
-InputParameters validParams<FiniteStrainCPSlipRateRes>();
-
 class FiniteStrainCPSlipRateRes : public FiniteStrainCrystalPlasticity
 {
 public:
+  static InputParameters validParams();
+
   FiniteStrainCPSlipRateRes(const InputParameters & parameters);
 
 protected:
@@ -95,4 +92,3 @@ protected:
   DenseMatrix<Real> _jacob;
   DenseMatrix<Real> _dsliprate_dsliprate;
 };
-

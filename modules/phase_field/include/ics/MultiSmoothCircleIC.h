@@ -12,10 +12,6 @@
 #include "SmoothCircleBaseIC.h"
 
 // Forward Declarations
-class MultiSmoothCircleIC;
-
-template <>
-InputParameters validParams<MultiSmoothCircleIC>();
 
 /**
  * MultismoothCircleIC creates multiple SmoothCircles (number = numbub) that are randomly
@@ -27,6 +23,8 @@ InputParameters validParams<MultiSmoothCircleIC>();
 class MultiSmoothCircleIC : public SmoothCircleBaseIC
 {
 public:
+  static InputParameters validParams();
+
   MultiSmoothCircleIC(const InputParameters & parameters);
 
   virtual void initialSetup() override;
@@ -48,4 +46,3 @@ protected:
   Point _top_right;
   Point _range;
 };
-

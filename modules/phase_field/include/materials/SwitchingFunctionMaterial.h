@@ -12,10 +12,6 @@
 #include "OrderParameterFunctionMaterial.h"
 
 // Forward Declarations
-class SwitchingFunctionMaterial;
-
-template <>
-InputParameters validParams<SwitchingFunctionMaterial>();
 
 /**
  * Material class to provide the switching function \f$ h(\eta) \f$ for
@@ -27,6 +23,8 @@ InputParameters validParams<SwitchingFunctionMaterial>();
 class SwitchingFunctionMaterial : public OrderParameterFunctionMaterial
 {
 public:
+  static InputParameters validParams();
+
   SwitchingFunctionMaterial(const InputParameters & parameters);
 
 protected:
@@ -35,4 +33,3 @@ protected:
   /// Polynomial order of the switching function \f$ h(\eta) \f$
   MooseEnum _h_order;
 };
-

@@ -13,11 +13,10 @@
 #include "AppFactory.h"
 #include "MooseSyntax.h"
 
-template <>
 InputParameters
-validParams<FluidPropertiesTestApp>()
+FluidPropertiesTestApp::validParams()
 {
-  InputParameters params = validParams<FluidPropertiesApp>();
+  InputParameters params = FluidPropertiesApp::validParams();
   return params;
 }
 

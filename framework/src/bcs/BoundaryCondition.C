@@ -9,18 +9,18 @@
 
 #include "BoundaryCondition.h"
 #include "Problem.h"
-#include "SubProblem.h"
 #include "SystemBase.h"
 #include "MooseVariableFE.h"
 
-template <>
+defineLegacyParams(BoundaryCondition);
+
 InputParameters
-validParams<BoundaryCondition>()
+BoundaryCondition::validParams()
 {
-  InputParameters params = validParams<MooseObject>();
-  params += validParams<TransientInterface>();
-  params += validParams<BoundaryRestrictableRequired>();
-  params += validParams<TaggingInterface>();
+  InputParameters params = MooseObject::validParams();
+  params += TransientInterface::validParams();
+  params += BoundaryRestrictableRequired::validParams();
+  params += TaggingInterface::validParams();
 
   params.addRequiredParam<NonlinearVariableName>(
       "variable", "The name of the variable that this boundary condition applies to");
@@ -61,16 +61,4 @@ BoundaryCondition::BoundaryCondition(const InputParameters & parameters, bool no
     _assembly(_subproblem.assembly(_tid)),
     _mesh(_subproblem.mesh())
 {
-}
-
-SubProblem &
-BoundaryCondition::subProblem()
-{
-  return _subproblem;
-}
-
-bool
-BoundaryCondition::shouldApply()
-{
-  return true;
 }

@@ -11,11 +11,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowPropertyAux);
 
-template <>
 InputParameters
-validParams<PorousFlowPropertyAux>()
+PorousFlowPropertyAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   params.addRequiredParam<UserObjectName>(
       "PorousFlowDictator", "The UserObject that holds the list of PorousFlow variable names");
   MooseEnum property_enum("pressure saturation temperature density viscosity mass_fraction relperm "

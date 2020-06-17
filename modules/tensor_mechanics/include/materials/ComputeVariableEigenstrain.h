@@ -12,11 +12,6 @@
 #include "ComputeEigenstrain.h"
 #include "DerivativeMaterialInterface.h"
 
-class ComputeVariableEigenstrain;
-
-template <>
-InputParameters validParams<ComputeVariableEigenstrain>();
-
 /**
  * ComputeVariableEigenstrain computes an Eigenstrain that is a function of
  * variables defined by a base tensor and a scalar function defined in a Derivative Material.
@@ -24,6 +19,8 @@ InputParameters validParams<ComputeVariableEigenstrain>();
 class ComputeVariableEigenstrain : public DerivativeMaterialInterface<ComputeEigenstrain>
 {
 public:
+  static InputParameters validParams();
+
   ComputeVariableEigenstrain(const InputParameters & parameters);
 
 protected:
@@ -42,4 +39,3 @@ protected:
   /// second derivatives of the elastic strain w.r.t. to the args
   std::vector<std::vector<MaterialProperty<RankTwoTensor> *>> _d2elastic_strain;
 };
-

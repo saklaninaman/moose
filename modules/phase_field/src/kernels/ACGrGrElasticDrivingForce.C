@@ -15,9 +15,8 @@
 
 registerMooseObject("PhaseFieldApp", ACGrGrElasticDrivingForce);
 
-template <>
 InputParameters
-validParams<ACGrGrElasticDrivingForce>()
+ACGrGrElasticDrivingForce::validParams()
 {
   InputParameters params = ACBulk<Real>::validParams();
   params.addClassDescription("Adds elastic energy contribution to the Allen-Cahn equation");

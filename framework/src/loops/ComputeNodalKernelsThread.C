@@ -48,7 +48,7 @@ ComputeNodalKernelsThread::pre()
 {
   _num_cached = 0;
 
-  if (!_tags.size() || _tags.size() == _fe_problem.numVectorTags())
+  if (!_tags.size() || _tags.size() == _fe_problem.numVectorTags(Moose::VECTOR_TAG_RESIDUAL))
     _nkernel_warehouse = &_nodal_kernels;
   else if (_tags.size() == 1)
     _nkernel_warehouse = &(_nodal_kernels.getVectorTagObjectWarehouse(*(_tags.begin()), _tid));
@@ -71,6 +71,11 @@ ComputeNodalKernelsThread::onNode(ConstNodeRange::const_iterator & node_it)
   for (const auto & block : block_ids)
     if (_nkernel_warehouse->hasActiveBlockObjects(block, _tid))
     {
+      std::set<TagID> needed_fe_var_vector_tags;
+      _nkernel_warehouse->updateBlockFEVariableCoupledVectorTagDependency(
+          block, needed_fe_var_vector_tags, _tid);
+      _fe_problem.setActiveFEVariableCoupleableVectorTags(needed_fe_var_vector_tags, _tid);
+
       const auto & objects = _nkernel_warehouse->getActiveBlockObjects(block, _tid);
       for (const auto & nodal_kernel : objects)
         nodal_kernel->computeResidual();

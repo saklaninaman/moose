@@ -12,11 +12,10 @@
 
 registerMooseObject("RichardsApp", DarcyFlux);
 
-template <>
 InputParameters
-validParams<DarcyFlux>()
+DarcyFlux::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addRequiredParam<RealVectorValue>(
       "fluid_weight",
       "Fluid weight (gravity*density) as a vector pointing downwards (usually "

@@ -11,26 +11,24 @@
 
 #include "ADMaterial.h"
 
-#define usingINSMaterialMembers                                                                    \
-  usingMaterialMembers;                                                                            \
-  using INSADMaterial<compute_stage>::_mu;                                                         \
-  using INSADMaterial<compute_stage>::_rho;                                                        \
-  using INSADMaterial<compute_stage>::_velocity;                                                   \
-  using INSADMaterial<compute_stage>::_transient_term
+class INSADObjectTracker;
 
-template <ComputeStage>
-class INSADMaterial;
-
-declareADValidParams(INSADMaterial);
-
-template <ComputeStage compute_stage>
-class INSADMaterial : public ADMaterial<compute_stage>
+class INSADMaterial : public ADMaterial
 {
 public:
+  static InputParameters validParams();
+
   INSADMaterial(const InputParameters & parameters);
+
+  void initialSetup() override;
 
 protected:
   virtual void computeQpProperties() override;
+
+  /**
+   * compute the strong form corresponding to RZ pieces of the viscous term
+   */
+  void viscousTermRZ();
 
   /// velocity
   const ADVectorVariableValue & _velocity;
@@ -42,57 +40,46 @@ protected:
   const ADVariableGradient & _grad_p;
 
   /// viscosity
-  const ADMaterialProperty(Real) & _mu;
+  const ADMaterialProperty<Real> & _mu;
 
   /// density
-  const ADMaterialProperty(Real) & _rho;
-
-  /// Whether we are performing a transient or steady simulation
-  const bool _transient_term;
+  const ADMaterialProperty<Real> & _rho;
 
   /// Time derivative of the velocity, e.g. the acceleration
   const ADVectorVariableValue * _velocity_dot;
 
-  /// Whether to integrate the pressure term in the momentum equations by parts
-  const bool _integrate_p_by_parts;
-
-  /// Whether to include the strong form of the viscous term in the momentum equation strong residual.
-  /// The method is more consistent if set to true, but it incurs quite a bit more computational
-  /// expense. Note that at present we don't actually support the `true` value of this member!
-  const bool _include_viscous_term_in_strong_form;
-
-  /// Whether the user set a gravity vector. If none is set, we assume there is no gravity term in the simulation
-  bool _gravity_set;
-
-  /// The gravity vector; should be in units of acceleration
-  RealVectorValue _gravity;
-
   /// The strong residual of the mass continuity equation
-  ADMaterialProperty(Real) & _mass_strong_residual;
+  ADMaterialProperty<Real> & _mass_strong_residual;
 
   /// Strong residual corresponding to the momentum convective term
-  ADMaterialProperty(RealVectorValue) & _convective_strong_residual;
+  ADMaterialProperty<RealVectorValue> & _convective_strong_residual;
+
+  /// Strong residual corresponding to the momentum viscous term. This is only used by stabilization
+  /// kernels
+  ADMaterialProperty<RealVectorValue> & _viscous_strong_residual;
 
   /// Strong residual corresponding to the momentum transient term
-  ADMaterialProperty(RealVectorValue) & _td_strong_residual;
+  ADMaterialProperty<RealVectorValue> & _td_strong_residual;
 
   /// Strong residual corresponding to the momentum gravity term
-  ADMaterialProperty(RealVectorValue) & _gravity_strong_residual;
+  ADMaterialProperty<RealVectorValue> & _gravity_strong_residual;
 
-  /// Strong residual corresponding to the mms function term
-  MaterialProperty<RealVectorValue> & _mms_function_strong_residual;
+  /// Strong residual corresponding to the momentum boussinesq term
+  ADMaterialProperty<RealVectorValue> & _boussinesq_strong_residual;
+
+  // /// Future addition pending addition of INSADMMSKernel.
+  // /// Strong residual corresponding to the mms function term
+  // MaterialProperty<RealVectorValue> & _mms_function_strong_residual;
 
   /// The strong residual of the momentum equation
-  ADMaterialProperty(RealVectorValue) & _momentum_strong_residual;
+  ADMaterialProperty<RealVectorValue> & _momentum_strong_residual;
 
-  /// The x velocity mms forcing function
-  const Function & _x_vel_fn;
+  /// Whether we are on the displaced mesh
+  const bool _use_displaced_mesh;
 
-  /// The y velocity mms forcing function
-  const Function & _y_vel_fn;
+  /// The quadrature points with potential partial derivatives with respect to displacement degrees
+  /// of freedom
+  const MooseArray<ADPoint> & _ad_q_point;
 
-  /// The z velocity mms forcing function
-  const Function & _z_vel_fn;
-
-  usingMaterialMembers;
+  static const INSADObjectTracker * _object_tracker;
 };

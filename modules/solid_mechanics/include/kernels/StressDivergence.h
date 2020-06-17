@@ -12,16 +12,14 @@
 #include "Kernel.h"
 
 // Forward Declarations
-class StressDivergence;
 class SymmElasticityTensor;
 class SymmTensor;
-
-template <>
-InputParameters validParams<StressDivergence>();
 
 class StressDivergence : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   StressDivergence(const InputParameters & parameters);
 
 protected:

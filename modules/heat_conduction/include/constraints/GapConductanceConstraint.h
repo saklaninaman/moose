@@ -11,11 +11,6 @@
 
 #include "ADMortarConstraint.h"
 
-template <ComputeStage>
-class GapConductanceConstraint;
-
-declareADValidParams(GapConductanceConstraint);
-
 /**
  * This Constraint implements thermal contact using a "gap
  * conductance" model in which the flux is represented by an
@@ -51,10 +46,11 @@ declareADValidParams(GapConductanceConstraint);
  * variable. Likewise, the term "primal variable" refers to the
  * temperature variable.
  */
-template <ComputeStage compute_stage>
-class GapConductanceConstraint : public ADMortarConstraint<compute_stage>
+class GapConductanceConstraint : public ADMortarConstraint
 {
 public:
+  static InputParameters validParams();
+
   GapConductanceConstraint(const InputParameters & parameters);
 
 protected:
@@ -65,6 +61,4 @@ protected:
 
   /// Thermal conductivity of the gap medium (e.g. air).
   const Real _k;
-
-  usingMortarConstraintMembers;
 };

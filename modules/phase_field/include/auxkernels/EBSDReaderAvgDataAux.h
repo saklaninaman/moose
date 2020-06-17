@@ -13,12 +13,8 @@
 #include "EBSDAccessFunctors.h"
 
 // Forward Declarations
-class EBSDReaderAvgDataAux;
 class EBSDReader;
 class GrainTrackerInterface;
-
-template <>
-InputParameters validParams<EBSDReaderAvgDataAux>();
 
 /**
  * This kernel makes data from the EBSDReader GeneralUserObject available
@@ -27,6 +23,8 @@ InputParameters validParams<EBSDReaderAvgDataAux>();
 class EBSDReaderAvgDataAux : public AuxKernel, EBSDAccessFunctors
 {
 public:
+  static InputParameters validParams();
+
   EBSDReaderAvgDataAux(const InputParameters & parameters);
 
 protected:
@@ -54,4 +52,3 @@ protected:
   /// precalculated element value
   Real _value;
 };
-

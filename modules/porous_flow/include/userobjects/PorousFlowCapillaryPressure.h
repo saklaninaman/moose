@@ -11,11 +11,6 @@
 
 #include "DiscreteElementUserObject.h"
 
-class PorousFlowCapillaryPressure;
-
-template <>
-InputParameters validParams<PorousFlowCapillaryPressure>();
-
 /**
  * Base class for capillary pressure for multiphase flow in porous media. To implement
  * an effective saturation formulation, override effectiveSaturation() and derivatives.
@@ -39,6 +34,8 @@ InputParameters validParams<PorousFlowCapillaryPressure>();
 class PorousFlowCapillaryPressure : public DiscreteElementUserObject
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowCapillaryPressure(const InputParameters & parameters);
 
   virtual void initialize() final{};
@@ -248,4 +245,3 @@ protected:
   /// log(10)
   const Real _log10;
 };
-

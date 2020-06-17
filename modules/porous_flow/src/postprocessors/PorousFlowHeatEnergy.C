@@ -15,11 +15,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowHeatEnergy);
 
-template <>
 InputParameters
-validParams<PorousFlowHeatEnergy>()
+PorousFlowHeatEnergy::validParams()
 {
-  InputParameters params = validParams<ElementIntegralPostprocessor>();
+  InputParameters params = ElementIntegralPostprocessor::validParams();
   params.addRequiredParam<UserObjectName>(
       "PorousFlowDictator", "The UserObject that holds the list of PorousFlow variable names.");
   params.addParam<bool>(
@@ -59,7 +58,11 @@ PorousFlowHeatEnergy::PorousFlowHeatEnergy(const InputParameters & parameters)
                                        "PorousFlow_fluid_phase_internal_energy_nodal")
                                  : nullptr),
     _var(getParam<unsigned>("kernel_variable_number") < _dictator.numVariables()
-             ? _dictator.getCoupledStandardMooseVars()[getParam<unsigned>("kernel_variable_number")]
+             ? &_fe_problem.getStandardVariable(
+                   _tid,
+                   _dictator
+                       .getCoupledStandardMooseVars()[getParam<unsigned>("kernel_variable_number")]
+                       ->name())
              : nullptr)
 {
   if (!_phase_index.empty())
@@ -82,6 +85,10 @@ PorousFlowHeatEnergy::PorousFlowHeatEnergy(const InputParameters & parameters)
                ", however you have used ",
                getParam<unsigned>("kernel_variable_number"),
                ". This is an error");
+
+  // Now that we know kernel_variable_number is OK, _var must be OK,
+  // so ensure that reinit is called on _var:
+  addMooseVariableDependency(_var);
 }
 
 Real

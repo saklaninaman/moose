@@ -14,11 +14,10 @@
 
 registerMooseObject("TensorMechanicsApp", NodalGravity);
 
-template <>
 InputParameters
-validParams<NodalGravity>()
+NodalGravity::validParams()
 {
-  InputParameters params = validParams<NodalKernel>();
+  InputParameters params = NodalKernel::validParams();
   params.addClassDescription("Computes the gravitational force for a given nodal mass.");
   params.addRangeCheckedParam<Real>("alpha",
                                     0.0,

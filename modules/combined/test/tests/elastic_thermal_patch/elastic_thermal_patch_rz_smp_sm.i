@@ -166,20 +166,20 @@
 
 [BCs]
   [./ur]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = disp_x
     boundary = 10
     function = ur
   [../]
   [./uz]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = disp_y
     boundary = 10
     function = uz
   [../]
 
   [./temp]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = temp
     boundary = 10
     function = temp
@@ -244,7 +244,6 @@
   file_base = elastic_thermal_patch_rz_smp_out
   [./exodus]
     type = Exodus
-    elemental_as_nodal = true
     execute_on = 'initial timestep_end nonlinear'
     nonlinear_residual_dt_divisor = 100
   [../]

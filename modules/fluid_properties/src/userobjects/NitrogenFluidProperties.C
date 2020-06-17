@@ -14,11 +14,10 @@
 
 registerMooseObject("FluidPropertiesApp", NitrogenFluidProperties);
 
-template <>
 InputParameters
-validParams<NitrogenFluidProperties>()
+NitrogenFluidProperties::validParams()
 {
-  InputParameters params = validParams<HelmholtzFluidProperties>();
+  InputParameters params = HelmholtzFluidProperties::validParams();
   params.addClassDescription("Fluid properties for Nitrogen (N2)");
   return params;
 }
@@ -238,16 +237,10 @@ NitrogenFluidProperties::k_from_p_T(
   dk_dT = (this->k_from_p_T(pressure, temperature + Teps) - k) / Teps;
 }
 
-Real
-NitrogenFluidProperties::henryConstant(Real temperature) const
+std::vector<Real>
+NitrogenFluidProperties::henryCoefficients() const
 {
-  return henryConstantIAPWS(temperature, -9.67578, 4.72162, 11.70585);
-}
-
-void
-NitrogenFluidProperties::henryConstant(Real temperature, Real & Kh, Real & dKh_dT) const
-{
-  henryConstantIAPWS(temperature, Kh, dKh_dT, -9.67578, 4.72162, 11.70585);
+  return {-9.67578, 4.72162, 11.70585};
 }
 
 Real

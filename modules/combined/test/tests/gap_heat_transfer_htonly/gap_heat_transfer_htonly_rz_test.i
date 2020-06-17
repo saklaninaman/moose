@@ -44,15 +44,16 @@
 []
 
 [Mesh]
-  file = gap_heat_transfer_htonly_rz_test.e
-[]
-
-[MeshModifiers]
-  active = '' # this is modified through CLI args to test Z-R as opposed to R-Z
+  active = 'file'
+  [file]
+    type = FileMeshGenerator
+    file = gap_heat_transfer_htonly_rz_test.e
+  []
   [rotate]
-    type = Transform
+    type = TransformGenerator
     transform = ROTATE
     vector_value = '90 0 0'
+    input = file
   []
 []
 [Functions]
@@ -70,12 +71,16 @@
     variable = temp
     master = 3
     slave = 2
+    emissivity_master = 0
+    emissivity_slave = 0
   [../]
   [./thermal_contact2]
     type = GapHeatTransfer
     variable = temp2
     master = 3
     slave = 2
+    emissivity_master = 0
+    emissivity_slave = 0
     gap_geometry_type = PLATE
     appended_property_name = 2
   [../]
@@ -119,28 +124,28 @@
 
 [BCs]
   [./temp_far_left]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     boundary = 1
     variable = temp
     function = ramp
   [../]
 
   [./temp_far_right]
-    type = PresetBC
+    type = DirichletBC
     boundary = 4
     variable = temp
     value = 100
   [../]
 
   [./temp_far_left2]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     boundary = 1
     variable = temp2
     function = ramp
   [../]
 
   [./temp_far_right2]
-    type = PresetBC
+    type = DirichletBC
     boundary = 4
     variable = temp2
     value = 100

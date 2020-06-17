@@ -11,11 +11,10 @@
 
 registerMooseObject("RichardsApp", RichardsSumQuantity);
 
-template <>
 InputParameters
-validParams<RichardsSumQuantity>()
+RichardsSumQuantity::validParams()
 {
-  InputParameters params = validParams<GeneralUserObject>();
+  InputParameters params = GeneralUserObject::validParams();
 
   return params;
 }

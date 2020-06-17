@@ -15,11 +15,6 @@
 #include "RotationTensor.h"
 #include "DerivativeMaterialInterface.h"
 
-class ComputeCrackedStress;
-
-template <>
-InputParameters validParams<ComputeCrackedStress>();
-
 /**
  * Computes energy and modifies the stress for phase field fracture. Can be used with any
  * constitutive model or elastic symmetry.
@@ -27,6 +22,8 @@ InputParameters validParams<ComputeCrackedStress>();
 class ComputeCrackedStress : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   ComputeCrackedStress(const InputParameters & parameters);
 
 protected:
@@ -90,4 +87,3 @@ protected:
   /// Property where the value for L will be defined
   MaterialProperty<Real> & _L;
 };
-

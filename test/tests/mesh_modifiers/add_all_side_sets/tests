@@ -1,10 +1,12 @@
 [Tests]
+  deprecated = True
   [./simple]
     type = 'Exodiff'
     input = 'simple.i'
     exodiff = 'simple_in.e'
     cli_args = '--mesh-only'
     recover = false
+    no_error_deprecated = true
   [../]
 
   [./less_simple]
@@ -13,5 +15,6 @@
     exodiff = 'less_simple_in.e'
     cli_args = '--mesh-only'
     recover = false
+    no_error_deprecated = true
   [../]
 []

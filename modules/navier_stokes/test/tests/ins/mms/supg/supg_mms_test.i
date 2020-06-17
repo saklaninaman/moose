@@ -16,22 +16,22 @@ rho=2.5
 []
 
 [Mesh]
-  type = GeneratedMesh
-  dim = 2
-  xmin = 0
-  xmax = 1.0
-  ymin = 0
-  ymax = 1.0
-  elem_type = QUAD9
-  nx = 4
-  ny = 4
-[]
-
-[MeshModifiers]
+  [gen]
+    type = GeneratedMeshGenerator
+    dim = 2
+    xmin = 0
+    xmax = 1.0
+    ymin = 0
+    ymax = 1.0
+    elem_type = QUAD9
+    nx = 4
+    ny = 4
+  []
   [./corner_node]
-    type = AddExtraNodeset
+    type = ExtraNodesetGenerator
     new_boundary = 'pinned_node'
     nodes = '0'
+    input = gen
   [../]
 []
 
@@ -80,18 +80,21 @@ rho=2.5
 [BCs]
   [./vel_x]
     type = FunctionDirichletBC
+    preset = false
     boundary = 'left right top bottom'
     function = vel_x_func
     variable = vel_x
   [../]
   [./vel_y]
     type = FunctionDirichletBC
+    preset = false
     boundary = 'left right top bottom'
     function = vel_y_func
     variable = vel_y
   [../]
   [./p]
     type = FunctionDirichletBC
+    preset = false
     boundary = 'left right top bottom'
     function = p_func
     variable = p

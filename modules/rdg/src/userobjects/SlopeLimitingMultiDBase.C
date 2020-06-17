@@ -9,11 +9,10 @@
 
 #include "SlopeLimitingMultiDBase.h"
 
-template <>
 InputParameters
-validParams<SlopeLimitingMultiDBase>()
+SlopeLimitingMultiDBase::validParams()
 {
-  InputParameters params = validParams<SlopeLimitingBase>();
+  InputParameters params = SlopeLimitingBase::validParams();
 
   params.addClassDescription("Base class for multi-dimensional slope limiting to limit the slopes "
                              "of cell average variables.");

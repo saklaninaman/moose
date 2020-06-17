@@ -223,7 +223,7 @@
     value=0.0
   [../]
   [./bottom_y]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = disp_y
     boundary = bottom
     function = displacement_bc
@@ -232,7 +232,7 @@
 
 [Materials]
   [./Elasticity_tensor]
-    type = ComputeElasticityTensor
+    type = ADComputeElasticityTensor
     block = 0
     fill_method = symmetric_isotropic
     C_ijkl = '1 0'

@@ -12,10 +12,6 @@
 #include "InitialCondition.h"
 
 class SinglePhaseFluidProperties;
-class PorousFlowFluidPropertyIC;
-
-template <>
-InputParameters validParams<PorousFlowFluidPropertyIC>();
 
 /**
  * PorousFlowFluidPropertyIC calculates an initial value for a fluid property
@@ -24,6 +20,8 @@ InputParameters validParams<PorousFlowFluidPropertyIC>();
 class PorousFlowFluidPropertyIC : public InitialCondition
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowFluidPropertyIC(const InputParameters & parameters);
 
   virtual Real value(const Point & p) override;

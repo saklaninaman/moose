@@ -17,10 +17,12 @@
 #include "SystemBase.h"
 #include "Conversion.h"
 
-template <>
+defineLegacyParams(BlockRestrictable);
+
 InputParameters
-validParams<BlockRestrictable>()
+BlockRestrictable::validParams()
 {
+
   // Create InputParameters object that will be appended to the parameters for the inheriting object
   InputParameters params = emptyInputParameters();
 
@@ -30,7 +32,7 @@ validParams<BlockRestrictable>()
 
   // A parameter for disabling error message for objects restrictable by boundary and block,
   // if the parameter is valid it was already set so don't do anything
-  if (!params.isParamValid("_dual_restrictable"))
+  if (!params.have_parameter<bool>("_dual_restrictable"))
     params.addPrivateParam<bool>("_dual_restrictable", false);
 
   // Return the parameters
@@ -38,36 +40,33 @@ validParams<BlockRestrictable>()
 }
 
 // Standard constructor
-BlockRestrictable::BlockRestrictable(const MooseObject * moose_object)
-  : _blk_dual_restrictable(moose_object->getParamTempl<bool>("_dual_restrictable")),
+BlockRestrictable::BlockRestrictable(const MooseObject * moose_object, bool initialize /*=true*/)
+  : _blk_dual_restrictable(moose_object->getParam<bool>("_dual_restrictable")),
     _blk_feproblem(moose_object->isParamValid("_fe_problem_base")
-                       ? moose_object->getParamTempl<FEProblemBase *>("_fe_problem_base")
+                       ? moose_object->getParam<FEProblemBase *>("_fe_problem_base")
                        : NULL),
-    _blk_mesh(moose_object->isParamValid("_mesh")
-                  ? moose_object->getParamTempl<MooseMesh *>("_mesh")
-                  : NULL),
+    _blk_mesh(moose_object->isParamValid("_mesh") ? moose_object->getParam<MooseMesh *>("_mesh")
+                                                  : NULL),
     _boundary_ids(_empty_boundary_ids),
-    _blk_tid(moose_object->isParamValid("_tid") ? moose_object->getParamTempl<THREAD_ID>("_tid")
-                                                : 0),
-    _blk_name(moose_object->getParamTempl<std::string>("_object_name"))
+    _blk_tid(moose_object->isParamValid("_tid") ? moose_object->getParam<THREAD_ID>("_tid") : 0),
+    _blk_name(moose_object->getParam<std::string>("_object_name"))
 {
-  initializeBlockRestrictable(moose_object);
+  if (initialize)
+    initializeBlockRestrictable(moose_object);
 }
 
 // Dual restricted constructor
 BlockRestrictable::BlockRestrictable(const MooseObject * moose_object,
                                      const std::set<BoundaryID> & boundary_ids)
-  : _blk_dual_restrictable(moose_object->getParamTempl<bool>("_dual_restrictable")),
+  : _blk_dual_restrictable(moose_object->getParam<bool>("_dual_restrictable")),
     _blk_feproblem(moose_object->isParamValid("_fe_problem_base")
-                       ? moose_object->getParamTempl<FEProblemBase *>("_fe_problem_base")
+                       ? moose_object->getParam<FEProblemBase *>("_fe_problem_base")
                        : NULL),
-    _blk_mesh(moose_object->isParamValid("_mesh")
-                  ? moose_object->getParamTempl<MooseMesh *>("_mesh")
-                  : NULL),
+    _blk_mesh(moose_object->isParamValid("_mesh") ? moose_object->getParam<MooseMesh *>("_mesh")
+                                                  : NULL),
     _boundary_ids(boundary_ids),
-    _blk_tid(moose_object->isParamValid("_tid") ? moose_object->getParamTempl<THREAD_ID>("_tid")
-                                                : 0),
-    _blk_name(moose_object->getParamTempl<std::string>("_object_name"))
+    _blk_tid(moose_object->isParamValid("_tid") ? moose_object->getParam<THREAD_ID>("_tid") : 0),
+    _blk_name(moose_object->getParam<std::string>("_object_name"))
 {
   initializeBlockRestrictable(moose_object);
 }
@@ -92,7 +91,7 @@ BlockRestrictable::initializeBlockRestrictable(const MooseObject * moose_object)
   if (moose_object->isParamValid("block"))
   {
     // Extract the blocks from the input
-    _blocks = moose_object->getParamTempl<std::vector<SubdomainName>>("block");
+    _blocks = moose_object->getParam<std::vector<SubdomainName>>("block");
 
     // Get the IDs from the supplied names
     std::vector<SubdomainID> vec_ids = _blk_mesh->getSubdomainIDs(_blocks);
@@ -120,9 +119,10 @@ BlockRestrictable::initializeBlockRestrictable(const MooseObject * moose_object)
   // Produce error if the object is not allowed to be both block and boundary restricted
   if (!_blk_dual_restrictable && !_boundary_ids.empty() && !_boundary_ids.empty())
     if (!_boundary_ids.empty() && _boundary_ids.find(Moose::ANY_BOUNDARY_ID) == _boundary_ids.end())
-      mooseError("Attempted to restrict the object '",
-                 _blk_name,
-                 "' to a block, but the object is already restricted by boundary");
+      moose_object->paramError("block",
+                               "Attempted to restrict the object '",
+                               _blk_name,
+                               "' to a block, but the object is already restricted by boundary");
 
   // If no blocks were defined above, specify that it is valid on all blocks
   if (_blk_ids.empty() && !moose_object->isParamValid("boundary"))
@@ -146,11 +146,10 @@ BlockRestrictable::initializeBlockRestrictable(const MooseObject * moose_object)
     if (!diff.empty())
     {
       std::ostringstream msg;
-      msg << "The object '" << _blk_name
-          << "' contains the following block ids that do not exist on the mesh:";
+      msg << "the following block ids do not exist on the mesh:";
       for (const auto & id : diff)
         msg << " " << id;
-      mooseError(msg.str());
+      moose_object->paramError("block", msg.str());
     }
   }
 }
@@ -268,7 +267,7 @@ BlockRestrictable::hasBlockMaterialPropertyHelper(const std::string & prop_name)
     // If block materials exist, populated the set of properties that were declared
     if (warehouse.hasActiveBlockObjects(id))
     {
-      const std::vector<std::shared_ptr<Material>> & mats = warehouse.getActiveBlockObjects(id);
+      const std::vector<std::shared_ptr<MaterialBase>> & mats = warehouse.getActiveBlockObjects(id);
       for (const auto & mat : mats)
       {
         const std::set<std::string> & mat_props = mat->getSuppliedItems();
@@ -308,7 +307,7 @@ BlockRestrictable::getBlockCoordSystem()
 }
 
 void
-BlockRestrictable::checkVariable(const MooseVariableFEBase & variable) const
+BlockRestrictable::checkVariable(const MooseVariableFieldBase & variable) const
 {
   if (!isBlockSubset(variable.activeSubdomains()))
   {

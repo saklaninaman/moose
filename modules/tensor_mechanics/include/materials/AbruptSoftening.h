@@ -12,10 +12,6 @@
 #include "SmearedCrackSofteningBase.h"
 
 // Forward declaration
-class AbruptSoftening;
-
-template <>
-InputParameters validParams<AbruptSoftening>();
 
 /**
  * AbruptSoftening is a smeared crack softening model that abruptly
@@ -25,6 +21,8 @@ InputParameters validParams<AbruptSoftening>();
 class AbruptSoftening : public SmearedCrackSofteningBase
 {
 public:
+  static InputParameters validParams();
+
   AbruptSoftening(const InputParameters & parameters);
 
   virtual void computeCrackingRelease(Real & stress,
@@ -39,4 +37,3 @@ protected:
   /// Residual stress after full softening
   const Real & _residual_stress;
 };
-

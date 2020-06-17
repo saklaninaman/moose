@@ -11,11 +11,6 @@
 
 #include "Compute2DSmallStrain.h"
 
-class ComputeAxisymmetricRZSmallStrain;
-
-template <>
-InputParameters validParams<ComputeAxisymmetricRZSmallStrain>();
-
 /**
  * ComputeAxisymmetricRZSmallStrain defines small strains in an Axisymmetric system.
  * The COORD_TYPE in the Problem block must be set to RZ.
@@ -23,6 +18,8 @@ InputParameters validParams<ComputeAxisymmetricRZSmallStrain>();
 class ComputeAxisymmetricRZSmallStrain : public Compute2DSmallStrain
 {
 public:
+  static InputParameters validParams();
+
   ComputeAxisymmetricRZSmallStrain(const InputParameters & parameters);
 
   virtual void initialSetup() override;
@@ -30,4 +27,3 @@ public:
 protected:
   virtual Real computeOutOfPlaneStrain() override;
 };
-

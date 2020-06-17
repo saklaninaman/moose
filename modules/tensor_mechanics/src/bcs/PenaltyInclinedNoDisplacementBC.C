@@ -12,11 +12,10 @@
 
 registerMooseObject("TensorMechanicsApp", PenaltyInclinedNoDisplacementBC);
 
-template <>
 InputParameters
-validParams<PenaltyInclinedNoDisplacementBC>()
+PenaltyInclinedNoDisplacementBC::validParams()
 {
-  InputParameters params = validParams<IntegratedBC>();
+  InputParameters params = IntegratedBC::validParams();
   params.addRequiredParam<Real>("penalty", "Penalty parameter");
   params.addRequiredParam<unsigned int>(
       "component", "An integer corresponding to the direction (0 for x, 1 for y, 2 for z)");

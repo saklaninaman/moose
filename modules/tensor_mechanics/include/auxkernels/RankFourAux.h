@@ -12,32 +12,31 @@
 #include "AuxKernel.h"
 #include "RankFourTensor.h"
 
-class RankFourAux;
-
 /**
  * RankFourAux is designed to take the data in the RankFourTensor material
  * property, for example stiffness, and output the value for the
  * supplied indices.
  */
-
-template <>
-InputParameters validParams<RankFourAux>();
-
-class RankFourAux : public AuxKernel
+template <bool is_ad>
+class RankFourAuxTempl : public AuxKernel
 {
 public:
-  RankFourAux(const InputParameters & parameters);
+  static InputParameters validParams();
 
-  virtual ~RankFourAux() {}
+  RankFourAuxTempl(const InputParameters & parameters);
+
+  virtual ~RankFourAuxTempl() {}
 
 protected:
   virtual Real computeValue();
 
 private:
-  const MaterialProperty<RankFourTensor> & _tensor;
+  const GenericMaterialProperty<RankFourTensor, is_ad> & _tensor;
   const unsigned int _i;
   const unsigned int _j;
   const unsigned int _k;
   const unsigned int _l;
 };
 
+typedef RankFourAuxTempl<false> RankFourAux;
+typedef RankFourAuxTempl<true> ADRankFourAux;

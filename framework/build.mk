@@ -8,6 +8,9 @@ LIBMESH_DIR       ?= $(MOOSE_DIR)/libmesh/installed
 # Default number of parallel jobs to use for run_tests
 MOOSE_JOBS        ?= 8
 
+# Include variables defined by MOOSE configure if it's been run
+-include $(FRAMEWORK_DIR)/conf_vars.mk
+
 # If the user has no environment variable
 # called METHOD, he gets optimized mode.
 ifeq (x$(METHOD),x)
@@ -42,6 +45,11 @@ ifneq (x$(MOOSE_NO_PERF_GRAPH), x)
   libmesh_CXXFLAGS += -DMOOSE_NO_PERF_GRAPH
 endif
 
+ifneq ($(GPERF_DIR), )
+    libmesh_CXXFLAGS += -DHAVE_GPERFTOOLS -I$(GPERF_DIR)/include
+    libmesh_LDFLAGS += -L$(GPERF_DIR)/lib -ltcmalloc_and_profiler
+endif
+
 # Make.common used to provide an obj-suffix which was related to the
 # machine in question (from config.guess, i.e. @host@ in
 # contrib/utils/Make.common.in) and the $(METHOD).
@@ -56,6 +64,18 @@ endif
 libmesh_shared  := $(shell $(libmesh_LIBTOOL) --config | grep build_libtool_libs | cut -d'=' -f2)
 libmesh_static  := $(shell $(libmesh_LIBTOOL) --config | grep build_old_libs | cut -d'=' -f2)
 
+#
+# libPNG Definition
+#
+png_LIB         :=
+# There is a linking problem where we have undefined symbols in the png library on Linux
+# systems that we have not resolved. We won't attempt to use libpng with static
+ifneq ($(libmesh_static),yes)
+  # See conf_vars.mk
+  png_LIB          := $(libPNG_LIBS)
+  libmesh_CXXFLAGS += $(libPNG_INCLUDE)
+endif
+
 # If $(libmesh_CXX) is an mpiXXX compiler script, use -show
 # to determine the base compiler
 cxx_compiler := $(libmesh_CXX)
@@ -69,6 +89,7 @@ all:
 header_symlinks:
 
 unity_files:
+
 
 #
 # C++ rules
@@ -286,6 +307,26 @@ libmesh_update:
 	@echo Downloading and updating libMesh
 	@echo ======================================================
 	$(MOOSE_DIR)/scripts/update_and_rebuild_libmesh.sh
+
+libmesh:
+	@echo ======================================================
+	@echo Updating libMesh
+	@echo ======================================================
+	$(MOOSE_DIR)/scripts/update_and_rebuild_libmesh.sh --fast
+
+show_libmesh_configs:
+	@echo "libmesh_CXX     :" $(libmesh_CXX)
+	@echo "libmesh_CC      :" $(libmesh_CC)
+	@echo "libmesh_F77     :" $(libmesh_F77)
+	@echo "libmesh_F90     :" $(libmesh_F90)
+	@echo "libmesh_INCLUDE :" $(libmesh_INCLUDE)
+	@echo "libmesh_CPPFLAGS:" $(libmesh_CPPFLAGS)
+	@echo "libmesh_CXXFLAGS:" $(libmesh_CXXFLAGS)
+	@echo "libmesh_CFLAGS  :" $(libmesh_CFLAGS)
+	@echo "libmesh_FFLAGS  :" $(libmesh_FFLAGS)
+	@echo "libmesh_LIBS    :" $(libmesh_LIBS)
+	@echo "libmesh_HOST    :" $(libmesh_HOST)
+	@echo "libmesh_LDFLAGS :" $(libmesh_LDFLAGS)
 
 #
 # Maintenance

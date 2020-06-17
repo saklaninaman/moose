@@ -13,10 +13,6 @@
 #include "ExpressionBuilder.h"
 
 // Forward Declarations
-class PolynomialFreeEnergy;
-
-template <>
-InputParameters validParams<PolynomialFreeEnergy>();
 
 /**
  * Derivative free energy material defining polynomial free energies for single component materials,
@@ -25,6 +21,8 @@ InputParameters validParams<PolynomialFreeEnergy>();
 class PolynomialFreeEnergy : public DerivativeParsedMaterialHelper, public ExpressionBuilder
 {
 public:
+  static InputParameters validParams();
+
   PolynomialFreeEnergy(const InputParameters & parameters);
 
 protected:
@@ -40,4 +38,3 @@ protected:
   ///Polynomial order
   MooseEnum _order;
 };
-

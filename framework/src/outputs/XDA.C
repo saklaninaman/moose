@@ -19,15 +19,16 @@
 registerMooseObject("MooseApp", XDA);
 registerMooseObjectAliased("MooseApp", XDA, "XDR");
 
-template <>
+defineLegacyParams(XDA);
+
 InputParameters
-validParams<XDA>()
+XDA::validParams()
 {
   // Get the base class parameters
-  InputParameters params = validParams<OversampleOutput>();
+  InputParameters params = OversampleOutput::validParams();
 
   // Add description for the XDA class
-  params.addClassDescription("Object for outputting data in the XDA/XDR format");
+  params.addClassDescription("Object for outputting data in the XDA/XDR format.");
 
   /* Set a private parameter for controlling the output type (XDR = binary), the value
      of this parameter is set by the AddOutputAction*/

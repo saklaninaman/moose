@@ -11,12 +11,11 @@
 
 registerMooseObject("PhaseFieldApp", ACGrGrPoly);
 
-template <>
 InputParameters
-validParams<ACGrGrPoly>()
+ACGrGrPoly::validParams()
 {
-  InputParameters params = validParams<ACGrGrBase>();
-  params.addClassDescription("Grain-Boundary model poly-crystaline interface Allen-Cahn Kernel");
+  InputParameters params = ACGrGrBase::validParams();
+  params.addClassDescription("Grain-Boundary model poly-crystalline interface Allen-Cahn Kernel");
   return params;
 }
 

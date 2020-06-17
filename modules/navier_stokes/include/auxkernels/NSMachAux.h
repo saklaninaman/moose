@@ -13,11 +13,7 @@
 #include "AuxKernel.h"
 
 // Forward Declarations
-class NSMachAux;
 class SinglePhaseFluidProperties;
-
-template <>
-InputParameters validParams<NSMachAux>();
 
 /**
  * Auxiliary kernel for computing the Mach number assuming an ideal gas.
@@ -25,6 +21,8 @@ InputParameters validParams<NSMachAux>();
 class NSMachAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   NSMachAux(const InputParameters & parameters);
 
   virtual ~NSMachAux() {}
@@ -41,4 +39,3 @@ protected:
   // Fluid properties
   const SinglePhaseFluidProperties & _fp;
 };
-

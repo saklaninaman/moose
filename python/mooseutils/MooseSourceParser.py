@@ -46,7 +46,7 @@ class MooseSourceParser(object):
         # Check that the supplied file exists
         if not os.path.exists(filename):
             #TODO: Proper exception and logging
-            print 'The supplied source/header file does not exist:', filename
+            print('The supplied source/header file does not exist:', filename)
             return
 
         # Build the flags to pass to clang
@@ -101,7 +101,7 @@ class MooseSourceParser(object):
             cursor = self._translation_unit.cursor,
         recursive = kwargs.pop('recursive', True)
         for c in cursor.get_children():
-            print ' '*4*level, c.kind, c.spelling, c.extent.start.file, c.extent.start.line
+            print(' '*4*level, c.kind, c.spelling, c.extent.start.file, c.extent.start.line)
             if recursive and c.get_children():
                 self.dump(c, level+1)
 
@@ -133,7 +133,7 @@ class MooseSourceParser(object):
 
         for cursor in self._translation_unit.cursor.walk_preorder():
             if (hasattr(cursor, 'kind')) and (cursor.kind == kind) and (name == None or cursor.spelling == name):
-                #print cursor.extent.start.file
+                #print(cursor.extent.start.file)
                 yield cursor
 
 
@@ -146,4 +146,4 @@ if __name__ == '__main__':
     parser = MooseSourceParser('%s/projects/moose/framework' % os.environ["HOME"])
     parser.parse(src)
     decl, defn = parser.method('computeQpResidual')
-    print decl, defn
+    print(decl, defn)

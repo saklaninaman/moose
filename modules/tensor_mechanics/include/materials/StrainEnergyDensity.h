@@ -11,15 +11,7 @@
 
 #include "Material.h"
 #include "DerivativeMaterialInterface.h"
-
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-
-class StrainEnergyDensity;
-
-template <>
-InputParameters validParams<StrainEnergyDensity>();
+#include "RankTwoTensorForward.h"
 
 /**
  * StrainEnergyDensity calculates the strain energy density.
@@ -27,6 +19,8 @@ InputParameters validParams<StrainEnergyDensity>();
 class StrainEnergyDensity : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   StrainEnergyDensity(const InputParameters & parameters);
 
   virtual void initQpStatefulProperties() override;
@@ -34,6 +28,7 @@ public:
   virtual void computeQpProperties() override;
 
 protected:
+  /// Base name of the material system
   const std::string _base_name;
 
   /// Whether the material model is a total or incremental model
@@ -43,9 +38,10 @@ protected:
   MaterialProperty<Real> & _strain_energy_density;
   const MaterialProperty<Real> & _strain_energy_density_old;
 
-  /// Current and old values of stress
+  ///{@ Current and old values of stress
   const MaterialProperty<RankTwoTensor> & _stress;
   const MaterialProperty<RankTwoTensor> & _stress_old;
+  ///@}
 
   /// Current value of mechanical strain which includes elastic and
   /// inelastic components of the strain
@@ -54,4 +50,3 @@ protected:
   /// Current value of the strain increment for incremental models
   const MaterialProperty<RankTwoTensor> * _strain_increment;
 };
-

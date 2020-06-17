@@ -18,6 +18,8 @@ class SymmTensor;
 class StressDivergenceRSpherical : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   StressDivergenceRSpherical(const InputParameters & parameters);
   virtual ~StressDivergenceRSpherical() {}
 
@@ -37,7 +39,3 @@ private:
   const bool _temp_coupled;
   const unsigned int _temp_var;
 };
-
-template <>
-InputParameters validParams<StressDivergenceRSpherical>();
-

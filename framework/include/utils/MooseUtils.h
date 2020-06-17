@@ -15,9 +15,12 @@
 #include "MooseEnumItem.h"
 #include "MooseError.h"
 #include "Moose.h"
+#include "DualReal.h"
 
 #include "libmesh/compare_types.h"
+#include "libmesh/bounding_box.h"
 #include "metaphysicl/raw_type.h"
+#include "metaphysicl/metaphysicl_version.h"
 
 // C++ includes
 #include <string>
@@ -42,19 +45,33 @@ class Communicator;
 class MultiMooseEnum;
 namespace MetaPhysicL
 {
+#if METAPHYSICL_MAJOR_VERSION < 1
 template <typename, typename>
 class DualNumber;
+#else
+#include "metaphysicl/dualnumber_forward.h"
+#endif
 }
 namespace std
 {
+#if METAPHYSICL_MAJOR_VERSION < 1
 template <typename T, typename D>
 MetaPhysicL::DualNumber<T, D> abs(const MetaPhysicL::DualNumber<T, D> & in);
 template <typename T, typename D>
 MetaPhysicL::DualNumber<T, D> abs(MetaPhysicL::DualNumber<T, D> && in);
+#else
+template <typename T, typename D, bool asd>
+MetaPhysicL::DualNumber<T, D, asd> abs(const MetaPhysicL::DualNumber<T, D, asd> & in);
+template <typename T, typename D, bool asd>
+MetaPhysicL::DualNumber<T, D, asd> abs(MetaPhysicL::DualNumber<T, D, asd> && in);
+#endif
 }
 
 namespace MooseUtils
 {
+
+/// Replaces all occurences of from in str with to and returns the result.
+std::string replaceAll(std::string str, const std::string & from, const std::string & to);
 
 /**
  * Replaces "LATEST" placeholders with the latest checkpoint file name.  If base_only is true, then
@@ -735,6 +752,54 @@ void linearPartitionItems(dof_id_type num_items,
  */
 processor_id_type
 linearPartitionChunk(dof_id_type num_items, dof_id_type num_chunks, dof_id_type item_id);
+
+/**
+ * Wrapper around PetscGetRealPath, which is a cross-platform replacement for realpath
+ */
+std::string realpath(const std::string & path);
+
+/**
+ * Like python's os.path.relpath
+ */
+std::string relativepath(const std::string & path, const std::string & start = ".");
+
+/**
+ * Custom type trait that has a ::value of true for types that cam be use interchangably
+ * with Real. Most notably it is false for complex numbers, which do not have a
+ * strict ordering (and therefore no <,>,<=,>= operators).
+ */
+template <typename T>
+struct IsLikeReal
+{
+  static constexpr bool value = false;
+};
+template <>
+struct IsLikeReal<Real>
+{
+  static constexpr bool value = true;
+};
+template <>
+struct IsLikeReal<DualReal>
+{
+  static constexpr bool value = true;
+};
+
+/**
+ * Construct a valid bounding box from 2 arbitrary points
+ *
+ * If you have 2 points in space and you wish to construct a bounding box, you should use
+ * this method to avoid unexpected behavior of the underlying BoundingBox class in libMesh.
+ * BoundingBox class expect 2 points whose coordinates are "sorted" (i.e., x-, y- and -z coordinates
+ * of the first point are smaller then the corresponding coordinates of the second point).
+ * If this "sorting" is not present, the BoundingBox class will build an empty box and any further
+ * testing of points inside the box will fail. This method will allow you to obtain the correct
+ * bounding box for any valid combination of 2 corner points of a box.
+ *
+ * @param p1 First corner of the constructed bounding box
+ * @param p2 Second corner of the constructed bounding box
+ * @return Valid bounding box
+ */
+BoundingBox buildBoundingBox(const Point & p1, const Point & p2);
 
 } // MooseUtils namespace
 

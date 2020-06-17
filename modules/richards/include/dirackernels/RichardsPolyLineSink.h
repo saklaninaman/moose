@@ -15,10 +15,6 @@
 #include "RichardsVarNames.h"
 
 // Forward Declarations
-class RichardsPolyLineSink;
-
-template <>
-InputParameters validParams<RichardsPolyLineSink>();
 
 /**
  * Approximates a polyline by a sequence of Dirac Points
@@ -28,6 +24,8 @@ InputParameters validParams<RichardsPolyLineSink>();
 class RichardsPolyLineSink : public DiracKernel
 {
 public:
+  static InputParameters validParams();
+
   RichardsPolyLineSink(const InputParameters & parameters);
 
   virtual void addPoints();
@@ -84,4 +82,3 @@ protected:
    */
   bool parseNextLineReals(std::ifstream & ifs, std::vector<Real> & myvec);
 };
-

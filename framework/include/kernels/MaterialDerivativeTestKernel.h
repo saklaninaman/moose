@@ -22,6 +22,8 @@ InputParameters validParams<MaterialDerivativeTestKernel>();
 class MaterialDerivativeTestKernel : public MaterialDerivativeTestKernelBase<Real>
 {
 public:
+  static InputParameters validParams();
+
   MaterialDerivativeTestKernel(const InputParameters & parameters);
 
 protected:
@@ -29,4 +31,3 @@ protected:
   virtual Real computeQpJacobian() override;
   virtual Real computeQpOffDiagJacobian(unsigned int jvar) override;
 };
-

@@ -11,17 +11,14 @@
 
 #include "ElementIntegralPostprocessor.h"
 
-class GrainBoundaryArea;
-
-template <>
-InputParameters validParams<GrainBoundaryArea>();
-
 /**
  * Calculate total grain boundary length in 2D and area in 3D.
  */
 class GrainBoundaryArea : public ElementIntegralPostprocessor
 {
 public:
+  static InputParameters validParams();
+
   GrainBoundaryArea(const InputParameters & parameters);
 
   virtual Real getValue() override;
@@ -38,4 +35,3 @@ protected:
   /// normalization factor, depending on order parameter range and grains per side
   const Real _factor;
 };
-

@@ -22,18 +22,6 @@ class ElementSetupInterfaceCount;
 class SideSetupInterfaceCount;
 class InternalSideSetupInterfaceCount;
 class NodalSetupInterfaceCount;
-
-template <>
-InputParameters validParams<GeneralSetupInterfaceCount>();
-template <>
-InputParameters validParams<ElementSetupInterfaceCount>();
-template <>
-InputParameters validParams<SideSetupInterfaceCount>();
-template <>
-InputParameters validParams<InternalSideSetupInterfaceCount>();
-template <>
-InputParameters validParams<NodalSetupInterfaceCount>();
-
 /**
  * A class for testing the number of calls to the various SetupInterface methods.
  */
@@ -83,9 +71,9 @@ private:
 template <class T>
 SetupInterfaceCount<T>::SetupInterfaceCount(const InputParameters & parameters)
   : T(parameters),
-    _count_type(T::template getParamTempl<MooseEnum>("count_type")),
+    _count_type(T::template getParam<MooseEnum>("count_type")),
     _execute(0),
-    _counts(T::template declareRestartableDataTempl<std::map<std::string, unsigned int>>("counts"))
+    _counts(T::template declareRestartableData<std::map<std::string, unsigned int>>("counts"))
 {
   // Initialize the count storage map
   const std::vector<std::string> & names = _count_type.getNames();
@@ -132,6 +120,8 @@ SetupInterfaceCount<T>::threadJoinHelper(const UserObject & uo)
 class GeneralSetupInterfaceCount : public SetupInterfaceCount<GeneralPostprocessor>
 {
 public:
+  static InputParameters validParams();
+
   GeneralSetupInterfaceCount(const InputParameters & parameters);
 };
 

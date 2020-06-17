@@ -12,10 +12,6 @@
 #include "ScalarDamageBase.h"
 
 // Forward declaration
-class ScalarMaterialDamage;
-
-template <>
-InputParameters validParams<ScalarMaterialDamage>();
 
 /**
  * Scalar damage model for which the damage is prescribed by another material
@@ -23,6 +19,8 @@ InputParameters validParams<ScalarMaterialDamage>();
 class ScalarMaterialDamage : public ScalarDamageBase
 {
 public:
+  static InputParameters validParams();
+
   ScalarMaterialDamage(const InputParameters & parameters);
 
 protected:
@@ -32,4 +30,3 @@ protected:
   const MaterialProperty<Real> & _damage_property;
   ///@}
 };
-

@@ -12,10 +12,6 @@
 #include "InitialCondition.h"
 
 // Forward Declarations
-class ThumbIC;
-
-template <>
-InputParameters validParams<ThumbIC>();
 
 /**
  * ThumbIC creates a rectangle with a half circle on top
@@ -23,6 +19,8 @@ InputParameters validParams<ThumbIC>();
 class ThumbIC : public InitialCondition
 {
 public:
+  static InputParameters validParams();
+
   ThumbIC(const InputParameters & parameters);
 
   virtual Real value(const Point & p);
@@ -34,4 +32,3 @@ protected:
   const Real _invalue;
   const Real _outvalue;
 };
-

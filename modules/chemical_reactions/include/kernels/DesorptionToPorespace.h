@@ -13,10 +13,6 @@
 #include "LangmuirMaterial.h"
 
 // Forward Declarations
-class DesorptionToPorespace;
-
-template <>
-InputParameters validParams<DesorptionToPorespace>();
 
 /**
  * Mass flow rate of fluid to the porespace from the matrix
@@ -26,6 +22,8 @@ InputParameters validParams<DesorptionToPorespace>();
 class DesorptionToPorespace : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   DesorptionToPorespace(const InputParameters & parameters);
 
 protected:

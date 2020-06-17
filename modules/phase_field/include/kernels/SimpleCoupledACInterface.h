@@ -11,17 +11,14 @@
 
 #include "Kernel.h"
 
-class SimpleCoupledACInterface;
-
-template <>
-InputParameters validParams<SimpleCoupledACInterface>();
-
 /**
  * Compute the Allen-Cahn interface term with constant Mobility and Interfacial parameter
  */
 class SimpleCoupledACInterface : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   SimpleCoupledACInterface(const InputParameters & parameters);
 
 protected:
@@ -37,4 +34,3 @@ protected:
   /// Index of the coupled variable
   unsigned int _v_var;
 };
-

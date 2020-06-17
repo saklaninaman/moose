@@ -14,11 +14,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowDictator);
 
-template <>
 InputParameters
-validParams<PorousFlowDictator>()
+PorousFlowDictator::validParams()
 {
-  InputParameters params = validParams<GeneralUserObject>();
+  InputParameters params = GeneralUserObject::validParams();
   params.addClassDescription("Holds information on the PorousFlow variable names");
   params.addRequiredCoupledVar("porous_flow_vars",
                                "List of primary variables that are used in the PorousFlow "
@@ -89,6 +88,10 @@ PorousFlowDictator::PorousFlowDictator(const InputParameters & parameters)
   if ((_num_phases > 0) && (_aqueous_phase_number >= _num_phases))
     mooseError("PorousflowDictator: The aqueous phase number must be less than the number of fluid "
                "phases.  The Dictator does not appreciate jokes.");
+
+  // Don't include permeabiity derivatives in the Jacobian by default (overwrite using
+  // usePermDerivs()) when necessary in permeabiity material classes
+  _perm_derivs = false;
 }
 
 unsigned int

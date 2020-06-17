@@ -12,11 +12,10 @@
 
 registerMooseObject("PhaseFieldApp", FeatureVolumeFraction);
 
-template <>
 InputParameters
-validParams<FeatureVolumeFraction>()
+FeatureVolumeFraction::validParams()
 {
-  InputParameters params = validParams<GeneralPostprocessor>();
+  InputParameters params = GeneralPostprocessor::validParams();
   MooseEnum value_type("VOLUME_FRACTION AVRAMI", "VOLUME_FRACTION");
   params.addParam<MooseEnum>(
       "value_type", value_type, "The value to output (VOLUME_FRACTION or AVRAMI value)");

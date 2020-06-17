@@ -12,10 +12,6 @@
 #include "Kernel.h"
 
 // Forward Declarations
-class INSCompressibilityPenalty;
-
-template <>
-InputParameters validParams<INSCompressibilityPenalty>();
 
 /**
  * The penalty term may be used when Dirichlet boundary condition is applied to the entire boundary.
@@ -23,6 +19,8 @@ InputParameters validParams<INSCompressibilityPenalty>();
 class INSCompressibilityPenalty : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   INSCompressibilityPenalty(const InputParameters & parameters);
 
   virtual ~INSCompressibilityPenalty() {}
@@ -37,4 +35,3 @@ protected:
   // solve
   Real _penalty;
 };
-

@@ -62,21 +62,21 @@
 
 [BCs]
   [./left_right_x]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_x
     boundary = '1 4'
     value = 0.0
   [../]
 
   [./left_right_y]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_y
     boundary = '1 4'
     value = 0.0
   [../]
 
   [./left_right_z]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_z
     boundary = '1 4'
     value = 0.0
@@ -95,7 +95,6 @@
     master = 2
     slave = 3
     penalty = 1e8
-    system = Constraint
   [../]
 []
 

@@ -13,19 +13,20 @@
 #include "MooseTypes.h"
 #include "Assembly.h"
 
-template <>
+defineLegacyParams(NodalUserObject);
+
 InputParameters
-validParams<NodalUserObject>()
+NodalUserObject::validParams()
 {
-  InputParameters params = validParams<UserObject>();
+  InputParameters params = UserObject::validParams();
   params.addParam<bool>("unique_node_execute",
                         false,
                         "When false (default), block restricted objects will have the "
                         "execute method called multiple times on a single node if the "
                         "node lies on a interface between two subdomains.");
-  params += validParams<BlockRestrictable>();
-  params += validParams<BoundaryRestrictable>();
-  params += validParams<RandomInterface>();
+  params += BlockRestrictable::validParams();
+  params += BoundaryRestrictable::validParams();
+  params += RandomInterface::validParams();
   return params;
 }
 
@@ -33,11 +34,9 @@ NodalUserObject::NodalUserObject(const InputParameters & parameters)
   : UserObject(parameters),
     BlockRestrictable(this),
     BoundaryRestrictable(this, blockIDs(), true), // true for applying to nodesets
-    UserObjectInterface(this),
     Coupleable(this, true),
     MooseVariableDependencyInterface(),
     TransientInterface(this),
-    PostprocessorInterface(this),
     RandomInterface(parameters, _fe_problem, _tid, true),
     _mesh(_subproblem.mesh()),
     _qp(0),

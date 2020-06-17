@@ -11,24 +11,32 @@
 
 registerMooseObject("MooseApp", DerivativeParsedMaterial);
 
-template <>
+template <bool is_ad>
 InputParameters
-validParams<DerivativeParsedMaterial>()
+DerivativeParsedMaterialTempl<is_ad>::validParams()
 {
-  InputParameters params = validParams<DerivativeParsedMaterialHelper>();
-  params += validParams<ParsedMaterialBase>();
+
+  InputParameters params = DerivativeParsedMaterialHelperTempl<is_ad>::validParams();
+  params += ParsedMaterialBase::validParams();
   params.addClassDescription("Parsed Function Material with automatic derivatives.");
   return params;
 }
 
-DerivativeParsedMaterial::DerivativeParsedMaterial(const InputParameters & parameters)
-  : DerivativeParsedMaterialHelper(parameters, USE_MOOSE_NAMES), ParsedMaterialBase(parameters)
+template <bool is_ad>
+DerivativeParsedMaterialTempl<is_ad>::DerivativeParsedMaterialTempl(
+    const InputParameters & parameters)
+  : DerivativeParsedMaterialHelperTempl<is_ad>(parameters,
+                                               VariableNameMappingMode::USE_MOOSE_NAMES),
+    ParsedMaterialBase(parameters)
 {
   // Build function, take derivatives, optimize
   functionParse(_function,
                 _constant_names,
                 _constant_expressions,
-                getParam<std::vector<std::string>>("material_property_names"),
+                this->template getParam<std::vector<std::string>>("material_property_names"),
                 _tol_names,
                 _tol_values);
 }
+
+// explicit instantiation
+template class DerivativeParsedMaterialTempl<false>;

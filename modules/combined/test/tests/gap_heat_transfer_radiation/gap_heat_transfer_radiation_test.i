@@ -92,10 +92,9 @@
     variable = temp
     master = 3
     slave = 2
-
     gap_conductivity = 0.09187557
-    emissivity_1 = 0.5
-    emissivity_2 = 0.5
+    emissivity_master = 0.5
+    emissivity_slave = 0.5
   [../]
 []
 

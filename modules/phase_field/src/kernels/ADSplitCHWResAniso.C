@@ -9,16 +9,18 @@
 
 #include "ADSplitCHWResAniso.h"
 
-registerADMooseObject("PhaseFieldApp", ADSplitCHWResAniso);
+registerMooseObject("PhaseFieldApp", ADSplitCHWResAniso);
 
-defineADValidParams(
-    ADSplitCHWResAniso,
-    ADSplitCHWResBase,
-    params.addClassDescription("Split formulation Cahn-Hilliard Kernel for the chemical potential "
-                               "variable with a scalar (isotropic) mobility"););
+InputParameters
+ADSplitCHWResAniso::validParams()
+{
+  InputParameters params = ADSplitCHWResBase<RealTensorValue>::validParams();
+  params.addClassDescription("Split formulation Cahn-Hilliard Kernel for the chemical potential "
+                             "variable with a scalar (isotropic) mobility");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADSplitCHWResAniso<compute_stage>::ADSplitCHWResAniso(const InputParameters & parameters)
-  : ADSplitCHWResBase<compute_stage, RealTensorValue>(parameters)
+ADSplitCHWResAniso::ADSplitCHWResAniso(const InputParameters & parameters)
+  : ADSplitCHWResBase<RealTensorValue>(parameters)
 {
 }

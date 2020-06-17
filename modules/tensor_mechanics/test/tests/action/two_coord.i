@@ -1,25 +1,26 @@
 [Mesh]
-  type = GeneratedMesh
-  dim = 2
-  nx = 16
-  ny = 8
-  xmin = -1
-  xmax = 1
-[]
-
-[MeshModifiers]
-  [./block1]
-    type = SubdomainBoundingBox
+  [generated_mesh]
+    type = GeneratedMeshGenerator
+    dim = 2
+    nx = 16
+    ny = 8
+    xmin = -1
+    xmax = 1
+  []
+  [block1]
+    type = SubdomainBoundingBoxGenerator
     block_id = 1
     bottom_left = '-1 0 0'
     top_right = '0 1 0'
-  [../]
-  [./block2]
-    type = SubdomainBoundingBox
+    input = generated_mesh
+  []
+  [block2]
+    type = SubdomainBoundingBoxGenerator
     block_id = 2
     bottom_left = '0 0 0'
     top_right = '1 1 0'
-  [../]
+    input = block1
+  []
 []
 
 [Problem]
@@ -80,25 +81,25 @@
 
 [BCs]
   [./topx]
-    type = PresetBC
+    type = DirichletBC
     boundary = 'top'
     variable = disp_x
     value = 0.0
   [../]
   [./topy]
-    type = PresetBC
+    type = DirichletBC
     boundary = 'top'
     variable = disp_y
     value = 0.0
   [../]
   [./bottomx]
-    type = PresetBC
+    type = DirichletBC
     boundary = 'bottom'
     variable = disp_x
     value = 0.0
   [../]
   [./bottomy]
-    type = PresetBC
+    type = DirichletBC
     boundary = 'bottom'
     variable = disp_y
     value = 0.05

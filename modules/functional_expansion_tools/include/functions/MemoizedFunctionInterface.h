@@ -15,11 +15,6 @@
 
 #include "Hashing.h"
 
-class MemoizedFunctionInterface;
-
-template <>
-InputParameters validParams<MemoizedFunctionInterface>();
-
 /**
  * Implementation of Function that memoizes (caches) former evaluations in an unordered map using a
  * hash of the evaluation locations as the key. The purpose is to allow for quick evaluation of a
@@ -28,6 +23,8 @@ InputParameters validParams<MemoizedFunctionInterface>();
 class MemoizedFunctionInterface : public Function
 {
 public:
+  static InputParameters validParams();
+
   MemoizedFunctionInterface(const InputParameters & parameters);
 
   // Override from MeshChangedInterface

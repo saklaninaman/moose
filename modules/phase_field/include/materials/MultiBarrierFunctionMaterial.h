@@ -13,10 +13,6 @@
 #include "DerivativeMaterialInterface.h"
 
 // Forward Declarations
-class MultiBarrierFunctionMaterial;
-
-template <>
-InputParameters validParams<MultiBarrierFunctionMaterial>();
 
 /**
  * Double well phase transformation barrier free energy contribution.
@@ -25,6 +21,8 @@ InputParameters validParams<MultiBarrierFunctionMaterial>();
 class MultiBarrierFunctionMaterial : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   MultiBarrierFunctionMaterial(const InputParameters & parameters);
 
 protected:
@@ -47,4 +45,3 @@ protected:
   MaterialProperty<Real> & _prop_g;
   std::vector<MaterialProperty<Real> *> _prop_dg, _prop_d2g;
 };
-

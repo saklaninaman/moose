@@ -11,11 +11,10 @@
 
 #include "libmesh/quadrature.h"
 
-template <>
 InputParameters
-validParams<PFMobility>()
+PFMobility::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   params.addRequiredParam<Real>("mob", "The mobility value");
   params.addParam<Real>("kappa", 1.0, "The kappa parameter for the vacancy concentration");
   return params;

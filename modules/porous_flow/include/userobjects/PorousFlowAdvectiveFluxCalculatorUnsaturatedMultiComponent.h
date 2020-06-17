@@ -11,11 +11,6 @@
 
 #include "PorousFlowAdvectiveFluxCalculatorSaturatedMultiComponent.h"
 
-class PorousFlowAdvectiveFluxCalculatorUnsaturatedMultiComponent;
-
-template <>
-InputParameters validParams<PorousFlowAdvectiveFluxCalculatorUnsaturatedMultiComponent>();
-
 /**
  * Computes the advective flux of fluid of given phase and component.
  * Hence this UserObject is relevant to multi-phase, multi-component situations.
@@ -27,6 +22,8 @@ class PorousFlowAdvectiveFluxCalculatorUnsaturatedMultiComponent
   : public PorousFlowAdvectiveFluxCalculatorSaturatedMultiComponent
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowAdvectiveFluxCalculatorUnsaturatedMultiComponent(const InputParameters & parameters);
 
 protected:
@@ -40,4 +37,3 @@ protected:
   /// Derivative of relative permeability of each phase wrt PorousFlow variables
   const MaterialProperty<std::vector<std::vector<Real>>> & _drelative_permeability_dvar;
 };
-

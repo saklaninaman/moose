@@ -13,11 +13,10 @@
 
 #include "libmesh/utility.h"
 
-template <>
 InputParameters
-validParams<SmoothCircleBaseIC>()
+SmoothCircleBaseIC::validParams()
 {
-  InputParameters params = validParams<InitialCondition>();
+  InputParameters params = InitialCondition::validParams();
   params.addRequiredParam<Real>("invalue", "The variable value inside the circle");
   params.addRequiredParam<Real>("outvalue", "The variable value outside the circle");
   params.addParam<Real>(

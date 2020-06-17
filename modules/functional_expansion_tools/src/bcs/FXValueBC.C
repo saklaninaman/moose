@@ -12,11 +12,10 @@
 
 registerMooseObject("FunctionalExpansionToolsApp", FXValueBC);
 
-template <>
 InputParameters
-validParams<FXValueBC>()
+FXValueBC::validParams()
 {
-  InputParameters params = validParams<FunctionDirichletBC>();
+  InputParameters params = FunctionDirichletBC::validParams();
 
   params.addClassDescription(
       "Imposes a fixed value boundary condition, evaluated using a FunctionSeries instance.");

@@ -11,11 +11,6 @@
 
 #include "TensorMechanicsPlasticIsotropicSD.h"
 
-class TensorMechanicsPlasticOrthotropic;
-
-template <>
-InputParameters validParams<TensorMechanicsPlasticOrthotropic>();
-
 /**
  * Orthotropic plasticity model from Yoon (2013)
  * the name of the paper is "Asymmetric yield function based on the
@@ -30,6 +25,8 @@ InputParameters validParams<TensorMechanicsPlasticOrthotropic>();
 class TensorMechanicsPlasticOrthotropic : public TensorMechanicsPlasticIsotropicSD
 {
 public:
+  static InputParameters validParams();
+
   TensorMechanicsPlasticOrthotropic(const InputParameters & parameters);
 
 protected:
@@ -57,4 +54,3 @@ protected:
   /// Receives the flag for associative or non-associative and calculates the flow potential accordingly
   RankTwoTensor flowPotential(const RankTwoTensor & stress, Real intnl) const override;
 };
-

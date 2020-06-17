@@ -10,11 +10,10 @@
 #include "GrainTrackerInterface.h"
 #include "FeatureFloodCount.h"
 
-template <>
 InputParameters
-validParams<GrainTrackerInterface>()
+GrainTrackerInterface::validParams()
 {
-  InputParameters params = validParams<FeatureFloodCount>();
+  InputParameters params = FeatureFloodCount::validParams();
   params.addParam<int>("tracking_step", 0, "The timestep for when we should start tracking grains");
   params.addParam<unsigned short>(
       "halo_level", 2, "The thickness of the halo surrounding each feature.");
@@ -24,7 +23,7 @@ validParams<GrainTrackerInterface>()
                         false,
                         "Allow the grain tracker to continue when it fails to find suitable grains "
                         "for remapping. This will allow the simulation to continue but it will "
-                        "also allow non-physical grain coalesnce. DO NOT USE for production "
+                        "also allow non-physical grain coalescence. DO NOT USE for production "
                         "results!");
 
   params.addParam<unsigned short>(

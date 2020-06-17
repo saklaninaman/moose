@@ -12,11 +12,6 @@
 #include "Compute2DIncrementalStrain.h"
 #include "SubblockIndexProvider.h"
 
-class ComputePlaneIncrementalStrain;
-
-template <>
-InputParameters validParams<ComputePlaneIncrementalStrain>();
-
 /**
  * ComputePlaneIncrementalStrain defines strain increment
  * for small strains in a 2D planar simulation.
@@ -24,6 +19,8 @@ InputParameters validParams<ComputePlaneIncrementalStrain>();
 class ComputePlaneIncrementalStrain : public Compute2DIncrementalStrain
 {
 public:
+  static InputParameters validParams();
+
   ComputePlaneIncrementalStrain(const InputParameters & parameters);
 
 protected:
@@ -36,15 +33,25 @@ protected:
     return _subblock_id_provider ? _subblock_id_provider->getSubblockIndex(*_current_elem) : 0;
   };
 
+  /// A Userobject that carries the subblock ID for all elements
   const SubblockIndexProvider * _subblock_id_provider;
 
+  /// Whether out-of-plane strain scalar variables are coupled
   const bool _scalar_out_of_plane_strain_coupled;
+
+  /// Number of out-of-plane strain scalar variables
   unsigned int _nscalar_strains;
+
+  ///{@ Current and old values of the out-of-plane strain scalar variable
   std::vector<const VariableValue *> _scalar_out_of_plane_strain;
   std::vector<const VariableValue *> _scalar_out_of_plane_strain_old;
+  ///@}
 
+  /// Whether an out-of-plane strain variable is coupled
   const bool _out_of_plane_strain_coupled;
+
+  ///{@ Current and old values of the out-of-plane strain variable
   const VariableValue & _out_of_plane_strain;
   const VariableValue & _out_of_plane_strain_old;
+  ///@}
 };
-

@@ -11,11 +11,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowDiffusivityMillingtonQuirk);
 
-template <>
 InputParameters
-validParams<PorousFlowDiffusivityMillingtonQuirk>()
+PorousFlowDiffusivityMillingtonQuirk::validParams()
 {
-  InputParameters params = validParams<PorousFlowDiffusivityBase>();
+  InputParameters params = PorousFlowDiffusivityBase::validParams();
   params.addClassDescription(
       "This Material provides saturation-dependent diffusivity using the Millington-Quirk model");
   return params;

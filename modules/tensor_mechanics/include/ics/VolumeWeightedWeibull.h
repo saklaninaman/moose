@@ -13,13 +13,9 @@
 
 // Forward Declarations
 class InputParameters;
-class VolumeWeightedWeibull;
 
 template <typename T>
 InputParameters validParams();
-
-template <>
-InputParameters validParams<VolumeWeightedWeibull>();
 
 /**
  * VolumeWeightedWeibull generates a spatially randomized field that follows
@@ -33,6 +29,8 @@ InputParameters validParams<VolumeWeightedWeibull>();
 class VolumeWeightedWeibull : public RandomICBase
 {
 public:
+  static InputParameters validParams();
+
   VolumeWeightedWeibull(const InputParameters & parameters);
 
   virtual Real value(const Point & p) override;
@@ -45,4 +43,3 @@ protected:
   /// The median value of the strength for specimens having volume equal to the reference volume
   const Real _median;
 };
-

@@ -14,11 +14,6 @@
 #include "Function.h"
 #include "RichardsSumQuantity.h"
 
-class PeacemanBorehole;
-
-template <>
-InputParameters validParams<PeacemanBorehole>();
-
 /**
  * Approximates a borehole by a sequence of Dirac Points
  */
@@ -33,6 +28,8 @@ public:
    * It also calculates segment-lengths and rotation matrices
    * needed for computing the borehole well constant
    */
+  static InputParameters validParams();
+
   PeacemanBorehole(const InputParameters & parameters);
 
 private:

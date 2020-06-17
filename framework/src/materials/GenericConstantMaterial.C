@@ -9,24 +9,25 @@
 
 #include "GenericConstantMaterial.h"
 
-#include "libmesh/quadrature.h"
-
 registerMooseObject("MooseApp", GenericConstantMaterial);
+registerMooseObject("MooseApp", ADGenericConstantMaterial);
 
-template <>
+template <bool is_ad>
 InputParameters
-validParams<GenericConstantMaterial>()
+GenericConstantMaterialTempl<is_ad>::validParams()
 {
-  InputParameters params = validParams<Material>();
-  params.addParam<std::vector<std::string>>("prop_names",
-                                            "The names of the properties this material will have");
-  params.addParam<std::vector<Real>>("prop_values",
-                                     "The values associated with the named properties");
+  InputParameters params = Material::validParams();
+  params.addRequiredParam<std::vector<std::string>>(
+      "prop_names", "The names of the properties this material will have");
+  params.addRequiredParam<std::vector<Real>>("prop_values",
+                                             "The values associated with the named properties");
   params.declareControllable("prop_values");
   return params;
 }
 
-GenericConstantMaterial::GenericConstantMaterial(const InputParameters & parameters)
+template <bool is_ad>
+GenericConstantMaterialTempl<is_ad>::GenericConstantMaterialTempl(
+    const InputParameters & parameters)
   : Material(parameters),
     _prop_names(getParam<std::vector<std::string>>("prop_names")),
     _prop_values(getParam<std::vector<Real>>("prop_values"))
@@ -43,18 +44,23 @@ GenericConstantMaterial::GenericConstantMaterial(const InputParameters & paramet
   _properties.resize(num_names);
 
   for (unsigned int i = 0; i < _num_props; i++)
-    _properties[i] = &declareProperty<Real>(_prop_names[i]);
+    _properties[i] = &declareGenericProperty<Real, is_ad>(_prop_names[i]);
 }
 
+template <bool is_ad>
 void
-GenericConstantMaterial::initQpStatefulProperties()
+GenericConstantMaterialTempl<is_ad>::initQpStatefulProperties()
 {
   computeQpProperties();
 }
 
+template <bool is_ad>
 void
-GenericConstantMaterial::computeQpProperties()
+GenericConstantMaterialTempl<is_ad>::computeQpProperties()
 {
   for (unsigned int i = 0; i < _num_props; i++)
     (*_properties[i])[_qp] = _prop_values[i];
 }
+
+template class GenericConstantMaterialTempl<false>;
+template class GenericConstantMaterialTempl<true>;

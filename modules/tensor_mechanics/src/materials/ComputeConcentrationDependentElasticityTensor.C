@@ -12,11 +12,10 @@
 
 registerMooseObject("TensorMechanicsApp", ComputeConcentrationDependentElasticityTensor);
 
-template <>
 InputParameters
-validParams<ComputeConcentrationDependentElasticityTensor>()
+ComputeConcentrationDependentElasticityTensor::validParams()
 {
-  InputParameters params = validParams<ComputeRotatedElasticityTensorBase>();
+  InputParameters params = ComputeRotatedElasticityTensorBase::validParams();
   params.addClassDescription("Compute concentration dependent elasticity tensor.");
   params.addRequiredParam<std::vector<Real>>("C0_ijkl",
                                              "Stiffness tensor for zero concentration phase");

@@ -11,11 +11,6 @@
 
 #include "ComputeEigenstrainBeamBase.h"
 
-class ComputeEigenstrainBeamFromVariable;
-
-template <>
-InputParameters validParams<ComputeEigenstrainBeamFromVariable>();
-
 /**
  * ComputeEigenstrainBeamFromVariable computes an eigenstrain from displacement and rotational
  * eigenstrain variables
@@ -23,6 +18,8 @@ InputParameters validParams<ComputeEigenstrainBeamFromVariable>();
 class ComputeEigenstrainBeamFromVariable : public ComputeEigenstrainBeamBase
 {
 public:
+  static InputParameters validParams();
+
   ComputeEigenstrainBeamFromVariable(const InputParameters & parameters);
 
 protected:
@@ -40,4 +37,3 @@ protected:
   /// Rotational eigenstrain variable values
   std::vector<const VariableValue *> _rot;
 };
-

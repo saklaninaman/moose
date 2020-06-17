@@ -13,11 +13,6 @@
 #include "TensorMechanicsHardeningModel.h"
 #include "TensorMechanicsPlasticDruckerPrager.h"
 
-class CappedDruckerPragerStressUpdate;
-
-template <>
-InputParameters validParams<CappedDruckerPragerStressUpdate>();
-
 /**
  * CappedDruckerPragerStressUpdate performs the return-map
  * algorithm and associated stress updates for plastic
@@ -60,12 +55,16 @@ InputParameters validParams<CappedDruckerPragerStressUpdate>();
 class CappedDruckerPragerStressUpdate : public TwoParameterPlasticityStressUpdate
 {
 public:
+  static InputParameters validParams();
+
   CappedDruckerPragerStressUpdate(const InputParameters & parameters);
 
   /**
    * Does the model require the elasticity tensor to be isotropic?
    */
   bool requiresIsotropicTensor() override { return true; }
+
+  bool isIsotropic() override { return true; };
 
 protected:
   /// Hardening model for cohesion, friction and dilation angles
@@ -189,4 +188,3 @@ protected:
 
   virtual RankFourTensor d2qdstress2(const RankTwoTensor & stress) const override;
 };
-

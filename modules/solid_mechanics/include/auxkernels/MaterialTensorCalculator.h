@@ -16,11 +16,6 @@
 
 #include "libmesh/vector_value.h"
 
-class MaterialTensorCalculator;
-
-template <>
-InputParameters validParams<MaterialTensorCalculator>();
-
 class MaterialTensorCalculator
 {
 public:
@@ -44,6 +39,8 @@ public:
     VOLUMETRICSTRAIN
   };
 
+  static InputParameters validParams();
+
   MaterialTensorCalculator(const InputParameters & parameters);
 
   ~MaterialTensorCalculator() {}
@@ -62,4 +59,3 @@ public:
                          const Point & curr_point,
                          RealVectorValue & direction);
 };
-

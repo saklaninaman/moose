@@ -11,12 +11,6 @@
 
 #include "SmearedCrackSofteningBase.h"
 
-// Forward declaration
-class ExponentialSoftening;
-
-template <>
-InputParameters validParams<ExponentialSoftening>();
-
 /**
  * ExponentialSoftening is a smeared crack softening model that
  * uses an exponential softening curve. It is for use with
@@ -25,6 +19,8 @@ InputParameters validParams<ExponentialSoftening>();
 class ExponentialSoftening : public SmearedCrackSofteningBase
 {
 public:
+  static InputParameters validParams();
+
   ExponentialSoftening(const InputParameters & parameters);
 
   virtual void computeCrackingRelease(Real & stress,
@@ -48,4 +44,3 @@ protected:
   /// Multiplier on alpha to determine the initial softening slope
   const Real & _beta;
 };
-

@@ -14,11 +14,10 @@
 
 registerMooseObject("PhaseFieldApp", DiscreteNucleationInserter);
 
-template <>
 InputParameters
-validParams<DiscreteNucleationInserter>()
+DiscreteNucleationInserter::validParams()
 {
-  InputParameters params = validParams<DiscreteNucleationInserterBase>();
+  InputParameters params = DiscreteNucleationInserterBase::validParams();
   params.addClassDescription("Manages the list of currently active nucleation sites and adds new "
                              "sites according to a given probability function.");
   params.addRequiredParam<MaterialPropertyName>(

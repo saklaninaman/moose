@@ -14,10 +14,6 @@
 #include "NSTemperatureDerivs.h"
 
 // Forward Declarations
-class NSEnergyViscousBC;
-
-template <>
-InputParameters validParams<NSEnergyViscousBC>();
 
 /**
  * This class corresponds to the viscous part of the "natural"
@@ -33,6 +29,8 @@ InputParameters validParams<NSEnergyViscousBC>();
 class NSEnergyViscousBC : public NSIntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   NSEnergyViscousBC(const InputParameters & parameters);
 
 protected:
@@ -69,4 +67,3 @@ protected:
   // the ctor.
   std::vector<const VariableGradient *> _gradU;
 };
-

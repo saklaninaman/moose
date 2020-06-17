@@ -24,6 +24,8 @@ class FEProblemBase;
 class VectorPostprocessorData : public Restartable, public libMesh::ParallelObject
 {
 public:
+  static InputParameters validParams();
+
   /**
    * Class constructor
    */
@@ -48,6 +50,9 @@ public:
 
     /// Whether or not this vector needs to be scatterd
     bool needs_scatter = false;
+
+    /// Whether or not this vector is distributed
+    bool is_distributed = false;
   };
 
   /**
@@ -64,7 +69,8 @@ public:
   VectorPostprocessorValue & declareVector(const std::string & vpp_name,
                                            const std::string & vector_name,
                                            bool contains_complete_history,
-                                           bool is_broadcast);
+                                           bool is_broadcast,
+                                           bool is_distributed);
 
   /**
    * Returns a true value if the VectorPostprocessor exists
@@ -125,6 +131,11 @@ public:
   bool containsCompleteHistory(const std::string & name) const;
 
   /**
+   * Returns a Boolean indicating whether the specified VPP vectors are distributed
+   */
+  bool isDistributed(const std::string & name) const;
+
+  /**
    * Get the map of vectors for a particular VectorPostprocessor
    * @param vpp_name The name of the VectorPostprocessor
    */
@@ -149,6 +160,7 @@ private:
                                                           bool get_current = true,
                                                           bool contains_complete_history = false,
                                                           bool is_broadcast = false,
+                                                          bool is_distributed = false,
                                                           bool needs_broadcast = false,
                                                           bool needs_scatter = false);
   /**
@@ -165,16 +177,25 @@ private:
     VectorPostprocessorVectors & operator=(VectorPostprocessorVectors &&) = default;
     ///@}
 
+    /// The state (pointers to the correct data) of the vectors for the VPP object, see
+    /// the header for the declaration of the VectorPostprocessorState class
     std::vector<std::pair<std::string, VectorPostprocessorState>> _values;
 
+    /// The following flags default to false, they can each be switched to true from within the
+    /// getVectorPostprocessorHelper. Once true they remain true. When they become true depends on
+    /// the flag. The various getter methods should be inspected to see how they are set.
+
     /// Boolean indicating whether these vectors contain complete history (append mode)
-    bool _contains_complete_history;
+    bool _contains_complete_history = false;
 
     /// Boolean indicating whether the vector will already be replicated in parallel by the VPP
-    bool _is_broadcast;
+    bool _is_broadcast = false;
 
     /// Boolean indicating whether any old vectors have been requested.
-    bool _needs_old;
+    bool _needs_old = false;
+
+    /// Flag if data is distributed
+    bool _is_distributed = false;
   };
 
   /// The VPP data store in a map: VPP Name to vector storage
@@ -183,4 +204,3 @@ private:
   std::set<std::string> _requested_items;
   std::set<std::string> _supplied_items;
 };
-

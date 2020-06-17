@@ -10,15 +10,7 @@
 #pragma once
 
 #include "Material.h"
-
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-
-class ComputeEigenstrainBase;
-
-template <>
-InputParameters validParams<ComputeEigenstrainBase>();
+#include "RankTwoTensorForward.h"
 
 /**
  * ComputeEigenstrainBase is the base class for eigenstrain tensors
@@ -26,6 +18,8 @@ InputParameters validParams<ComputeEigenstrainBase>();
 class ComputeEigenstrainBase : public Material
 {
 public:
+  static InputParameters validParams();
+
   ComputeEigenstrainBase(const InputParameters & parameters);
 
 protected:
@@ -57,4 +51,3 @@ protected:
   /// Restartable data to check for the zeroth and first time steps for thermal calculations
   bool & _step_zero;
 };
-

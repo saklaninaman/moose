@@ -16,11 +16,10 @@
 
 registerMooseObject("RichardsApp", RichardsRelPermBW);
 
-template <>
 InputParameters
-validParams<RichardsRelPermBW>()
+RichardsRelPermBW::validParams()
 {
-  InputParameters params = validParams<RichardsRelPerm>();
+  InputParameters params = RichardsRelPerm::validParams();
   params.addRequiredRangeCheckedParam<Real>(
       "Sn",
       "Sn >= 0",

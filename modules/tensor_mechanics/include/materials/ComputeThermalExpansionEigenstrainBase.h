@@ -11,14 +11,7 @@
 
 #include "ComputeEigenstrainBase.h"
 #include "DerivativeMaterialInterface.h"
-
-class ComputeThermalExpansionEigenstrainBase;
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-
-template <>
-InputParameters validParams<ComputeThermalExpansionEigenstrainBase>();
+#include "RankTwoTensorForward.h"
 
 /**
  * ComputeThermalExpansionEigenstrainBase is a base class for all models that
@@ -28,6 +21,8 @@ class ComputeThermalExpansionEigenstrainBase
   : public DerivativeMaterialInterface<ComputeEigenstrainBase>
 {
 public:
+  static InputParameters validParams();
+
   ComputeThermalExpansionEigenstrainBase(const InputParameters & parameters);
 
 protected:
@@ -48,4 +43,3 @@ protected:
   MaterialProperty<RankTwoTensor> & _deigenstrain_dT;
   const VariableValue & _stress_free_temperature;
 };
-

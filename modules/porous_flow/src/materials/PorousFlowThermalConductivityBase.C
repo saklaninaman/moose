@@ -9,11 +9,10 @@
 
 #include "PorousFlowThermalConductivityBase.h"
 
-template <>
 InputParameters
-validParams<PorousFlowThermalConductivityBase>()
+PorousFlowThermalConductivityBase::validParams()
 {
-  InputParameters params = validParams<PorousFlowMaterialVectorBase>();
+  InputParameters params = PorousFlowMaterialVectorBase::validParams();
   params.set<bool>("at_nodes") = false;
   params.set<std::string>("pf_material_type") = "thermal_conductivity";
   params.addClassDescription("Base class Material for thermal conductivity");

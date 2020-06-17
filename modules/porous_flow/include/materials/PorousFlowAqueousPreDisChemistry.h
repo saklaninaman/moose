@@ -11,11 +11,6 @@
 
 #include "PorousFlowMaterialVectorBase.h"
 
-class PorousFlowAqueousPreDisChemistry;
-
-template <>
-InputParameters validParams<PorousFlowAqueousPreDisChemistry>();
-
 /**
  * Material designed to form a std::vector
  * of mass fractions of mineral concentrations from primary-species concentrations
@@ -24,6 +19,8 @@ InputParameters validParams<PorousFlowAqueousPreDisChemistry>();
 class PorousFlowAqueousPreDisChemistry : public PorousFlowMaterialVectorBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowAqueousPreDisChemistry(const InputParameters & parameters);
 
 protected:
@@ -151,4 +148,3 @@ protected:
   /// Initial values of the secondary species concentrations
   std::vector<const VariableValue *> _initial_conc;
 };
-

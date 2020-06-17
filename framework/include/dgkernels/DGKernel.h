@@ -20,7 +20,7 @@ InputParameters validParams<DGKernel>();
  * The DGKernel class is responsible for calculating the residuals for various
  * physics on internal sides (edges/faces).
  */
-class DGKernel : public DGKernelBase
+class DGKernel : public DGKernelBase, public NeighborMooseVariableInterface<Real>
 {
 public:
   /**
@@ -30,9 +30,14 @@ public:
    * @param parameters The parameters object for holding additional parameters for kernels and
    * derived kernels
    */
+  static InputParameters validParams();
+
   DGKernel(const InputParameters & parameters);
 
-  virtual ~DGKernel();
+  /**
+   * The variable that this kernel operates on.
+   */
+  virtual MooseVariableFEBase & variable() override { return _var; }
 
   /**
    * Computes the residual for this element or the neighbor
@@ -67,5 +72,31 @@ protected:
    * This is the virtual that derived classes should override for computing the off-diag Jacobian.
    */
   virtual Real computeQpOffDiagJacobian(Moose::DGJacobianType type, unsigned int jvar);
-};
 
+  /// Variable this kernel operates on
+  MooseVariable & _var;
+  /// Holds the current solution at the current quadrature point on the face.
+  const VariableValue & _u;
+  /// Holds the current solution gradient at the current quadrature point on the face.
+  const VariableGradient & _grad_u;
+  /// Shape functions
+  const VariablePhiValue & _phi;
+  /// Gradient of shape function
+  const VariablePhiGradient & _grad_phi;
+  /// test functions
+  const VariableTestValue & _test;
+  /// Gradient of side shape function
+  const VariableTestGradient & _grad_test;
+  /// Side shape function
+  const VariablePhiValue & _phi_neighbor;
+  /// Gradient of side shape function
+  const VariablePhiGradient & _grad_phi_neighbor;
+  /// Side test function
+  const VariableTestValue & _test_neighbor;
+  /// Gradient of side shape function
+  const VariableTestGradient & _grad_test_neighbor;
+  /// Holds the current solution at the current quadrature point
+  const VariableValue & _u_neighbor;
+  /// Holds the current solution gradient at the current quadrature point
+  const VariableGradient & _grad_u_neighbor;
+};

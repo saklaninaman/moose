@@ -16,7 +16,6 @@
 #include "RankTwoTensor.h"
 
 // Forward declaration
-class StressUpdateBase;
 
 /**
  * TangentCalculationMethod is an enum that determines the calculation method for the tangent
@@ -34,9 +33,6 @@ enum class TangentCalculationMethod
   PARTIAL
 };
 
-template <>
-InputParameters validParams<StressUpdateBase>();
-
 /**
  * StressUpdateBase is a material that is not called by MOOSE because
  * of the compute=false flag set in the parameter list.  This class is a base class
@@ -52,6 +48,8 @@ InputParameters validParams<StressUpdateBase>();
 class StressUpdateBase : public Material
 {
 public:
+  static InputParameters validParams();
+
   StressUpdateBase(const InputParameters & parameters);
 
   /**
@@ -104,6 +102,11 @@ public:
    */
   virtual bool requiresIsotropicTensor() = 0;
 
+  /**
+   * Is the implmented model isotropic? The safe default is 'false'.
+   */
+  virtual bool isIsotropic() { return false; };
+
   virtual Real computeTimeStepLimit();
 
   virtual TangentCalculationMethod getTangentCalculationMethod()
@@ -120,4 +123,3 @@ protected:
   /// Name used as a prefix for all material properties related to the stress update model.
   const std::string _base_name;
 };
-

@@ -11,11 +11,7 @@
 
 #include "AuxKernel.h"
 
-class StagnationPressureAux;
 class SinglePhaseFluidProperties;
-
-template <>
-InputParameters validParams<StagnationPressureAux>();
 
 /**
  * Compute stagnation pressure from specific volume, specific internal energy, and velocity.
@@ -23,6 +19,8 @@ InputParameters validParams<StagnationPressureAux>();
 class StagnationPressureAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   StagnationPressureAux(const InputParameters & parameters);
 
 protected:
@@ -34,4 +32,3 @@ protected:
 
   const SinglePhaseFluidProperties & _fp;
 };
-

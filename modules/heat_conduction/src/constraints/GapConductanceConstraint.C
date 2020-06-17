@@ -9,28 +9,27 @@
 
 #include "GapConductanceConstraint.h"
 
-registerADMooseObject("HeatConductionApp", GapConductanceConstraint);
+registerMooseObject("HeatConductionApp", GapConductanceConstraint);
 
-defineADValidParams(
-    GapConductanceConstraint,
-    ADMortarConstraint,
-    params.addClassDescription(
-        "Computes the residual and Jacobian contributions for the 'Lagrange Multiplier' "
-        "implementation of the thermal contact problem. For more information, see the "
-        "detailed description here: http://tinyurl.com/gmmhbe9");
+InputParameters
+GapConductanceConstraint::validParams()
+{
+  InputParameters params = ADMortarConstraint::validParams();
+  params.addClassDescription(
+      "Computes the residual and Jacobian contributions for the 'Lagrange Multiplier' "
+      "implementation of the thermal contact problem. For more information, see the "
+      "detailed description here: http://tinyurl.com/gmmhbe9");
+  params.addRequiredParam<Real>("k", "Gap conductance");
+  return params;
+}
 
-    params.addRequiredParam<Real>("k", "Gap conductance"););
-
-template <ComputeStage compute_stage>
-GapConductanceConstraint<compute_stage>::GapConductanceConstraint(
-    const InputParameters & parameters)
-  : ADMortarConstraint<compute_stage>(parameters), _k(getParam<Real>("k"))
+GapConductanceConstraint::GapConductanceConstraint(const InputParameters & parameters)
+  : ADMortarConstraint(parameters), _k(getParam<Real>("k"))
 {
 }
 
-template <ComputeStage compute_stage>
 ADReal
-GapConductanceConstraint<compute_stage>::computeQpResidual(Moose::MortarType mortar_type)
+GapConductanceConstraint::computeQpResidual(Moose::MortarType mortar_type)
 {
   switch (mortar_type)
   {

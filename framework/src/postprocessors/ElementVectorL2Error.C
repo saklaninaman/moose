@@ -12,17 +12,21 @@
 
 registerMooseObject("MooseApp", ElementVectorL2Error);
 
-template <>
+defineLegacyParams(ElementVectorL2Error);
+
 InputParameters
-validParams<ElementVectorL2Error>()
+ElementVectorL2Error::validParams()
 {
-  InputParameters params = validParams<ElementIntegralPostprocessor>();
+  InputParameters params = ElementIntegralPostprocessor::validParams();
   params.addRequiredParam<FunctionName>("function_x", "The analytic solution to compare against");
   params.addParam<FunctionName>("function_y", 0, "The analytic solution to compare against");
   params.addParam<FunctionName>("function_z", 0, "The analytic solution to compare against");
   params.addRequiredCoupledVar("var_x", "The FE solution in x direction");
   params.addCoupledVar("var_y", 0, "The FE solution in y direction");
   params.addCoupledVar("var_z", 0, "The FE solution in z direction");
+
+  params.addClassDescription("Computes the Vector L2 difference of up to three variables "
+                             "simultaneously (normally x, y, z)");
   return params;
 }
 

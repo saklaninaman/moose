@@ -14,29 +14,33 @@
 #include "RankFourTensor.h"
 #include "GuaranteeProvider.h"
 
-class ComputeElasticityTensorBase;
-
-template <>
-InputParameters validParams<ComputeElasticityTensorBase>();
-
 /**
  * ComputeElasticityTensorBase the base class for computing elasticity tensors
  */
-class ComputeElasticityTensorBase : public DerivativeMaterialInterface<Material>,
-                                    public GuaranteeProvider
+template <bool is_ad>
+class ComputeElasticityTensorBaseTempl : public DerivativeMaterialInterface<Material>,
+                                         public GuaranteeProvider
 {
 public:
-  ComputeElasticityTensorBase(const InputParameters & parameters);
+  static InputParameters validParams();
+
+  ComputeElasticityTensorBaseTempl(const InputParameters & parameters);
 
 protected:
   virtual void computeQpProperties();
   virtual void computeQpElasticityTensor() = 0;
 
+  /// Base name of the material system
   const std::string _base_name;
+
   std::string _elasticity_tensor_name;
 
-  MaterialProperty<RankFourTensor> & _elasticity_tensor;
+  GenericMaterialProperty<RankFourTensor, is_ad> & _elasticity_tensor;
+  GenericMaterialProperty<Real, is_ad> & _effective_stiffness;
 
   /// prefactor function to multiply the elasticity tensor with
   const Function * const _prefactor_function;
 };
+
+typedef ComputeElasticityTensorBaseTempl<false> ComputeElasticityTensorBase;
+typedef ComputeElasticityTensorBaseTempl<true> ADComputeElasticityTensorBase;

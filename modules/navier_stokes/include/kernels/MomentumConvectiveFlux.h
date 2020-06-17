@@ -11,11 +11,6 @@
 
 #include "Kernel.h"
 
-class MomentumConvectiveFlux;
-
-template <>
-InputParameters validParams<MomentumConvectiveFlux>();
-
 /**
  * Momentum convective flux: \f$\rho \vec u \vec u : \nabla v \f$
  *
@@ -23,6 +18,8 @@ InputParameters validParams<MomentumConvectiveFlux>();
 class MomentumConvectiveFlux : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   MomentumConvectiveFlux(const InputParameters & parameters);
 
 protected:
@@ -34,4 +31,3 @@ protected:
   const VariableValue & _vel_y;
   const VariableValue & _vel_z;
 };
-

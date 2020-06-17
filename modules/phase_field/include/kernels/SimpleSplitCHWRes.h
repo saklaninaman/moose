@@ -11,17 +11,14 @@
 
 #include "Kernel.h"
 
-class SimpleSplitCHWRes;
-
-template <>
-InputParameters validParams<SimpleSplitCHWRes>();
-
 /**
  * Simple case for SplitCHWRes kernel, only with constant Mobility
  */
 class SimpleSplitCHWRes : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   SimpleSplitCHWRes(const InputParameters & parameters);
 
 protected:
@@ -31,4 +28,3 @@ protected:
   /// Mobility
   const MaterialProperty<Real> & _M;
 };
-

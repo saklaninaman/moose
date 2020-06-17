@@ -13,11 +13,10 @@
 
 registerMooseObject("PhaseFieldApp", SolutionRasterizer);
 
-template <>
 InputParameters
-validParams<SolutionRasterizer>()
+SolutionRasterizer::validParams()
 {
-  InputParameters params = validParams<SolutionUserObject>();
+  InputParameters params = SolutionUserObject::validParams();
   params.addClassDescription("Process an XYZ file of atomic coordinates and filter atoms via "
                              "threshold or map variable values.");
   params.addRequiredParam<FileName>("xyz_input", "XYZ input file.");

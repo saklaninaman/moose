@@ -12,10 +12,6 @@
 #include "NSIntegratedBC.h"
 
 // Forward Declarations
-class NSPenalizedNormalFlowBC;
-
-template <>
-InputParameters validParams<NSPenalizedNormalFlowBC>();
 
 /**
  * This class penalizes the the value of u.n on the boundary
@@ -24,6 +20,8 @@ InputParameters validParams<NSPenalizedNormalFlowBC>();
 class NSPenalizedNormalFlowBC : public NSIntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   NSPenalizedNormalFlowBC(const InputParameters & parameters);
 
 protected:
@@ -38,4 +36,3 @@ protected:
   const Real _penalty;
   const Real _specified_udotn;
 };
-

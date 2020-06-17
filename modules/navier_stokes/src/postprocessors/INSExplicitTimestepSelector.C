@@ -13,11 +13,10 @@
 
 registerMooseObject("NavierStokesApp", INSExplicitTimestepSelector);
 
-template <>
 InputParameters
-validParams<INSExplicitTimestepSelector>()
+INSExplicitTimestepSelector::validParams()
 {
-  InputParameters params = validParams<ElementPostprocessor>();
+  InputParameters params = ElementPostprocessor::validParams();
 
   params.addClassDescription("Postprocessor that computes the minimum value of h_min/|u|, where "
                              "|u| is coupled in as an aux variable.");

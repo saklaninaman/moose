@@ -22,12 +22,13 @@
 
 registerMooseObject("MooseApp", Exodus);
 
-template <>
+defineLegacyParams(Exodus);
+
 InputParameters
-validParams<Exodus>()
+Exodus::validParams()
 {
   // Get the base class parameters
-  InputParameters params = validParams<OversampleOutput>();
+  InputParameters params = OversampleOutput::validParams();
   params += AdvancedOutput::enableOutputTypes("nodal elemental scalar postprocessor input");
 
   // Enable sequential file output (do not set default, the use_displace criteria relies on
@@ -100,12 +101,12 @@ Exodus::Exodus(const InputParameters & parameters)
   }
   // If user sets 'discontinuous = true' and 'elemental_as_nodal = false', issue an error that these
   // are incompatible states
-  if (_discontinuous && parameters.isParamSetByUser("elemental_as_nodal") &&
-      !getParam<bool>("elemental_as_nodal"))
+  if (_discontinuous && parameters.isParamSetByUser("elemental_as_nodal") && !_elemental_as_nodal)
     mooseError(name(),
                ": Invalid parameters. 'elemental_as_nodal' set to false while 'discontinuous' set "
                "to true.");
-  // Discontinuous output implies that elemental values are output as nodal values
+  // At this point, if we have discontinuous ouput, we know the user hasn't explicitly set
+  // 'elemental_as_nodal = false', so we can safely default it to true
   if (_discontinuous)
     _elemental_as_nodal = true;
 }
@@ -430,4 +431,10 @@ Exodus::outputEmptyTimestep()
     _exodus_num++;
 
   _exodus_initialized = true;
+}
+
+void
+Exodus::clear()
+{
+  _exodus_io_ptr.reset();
 }

@@ -12,14 +12,11 @@
 #include "AuxKernel.h"
 #include <sstream>
 
-class PFCEnergyDensity;
-
-template <>
-InputParameters validParams<PFCEnergyDensity>();
-
 class PFCEnergyDensity : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   PFCEnergyDensity(const InputParameters & parameters);
 
 protected:
@@ -32,4 +29,3 @@ protected:
   const MaterialProperty<Real> & _a;
   const MaterialProperty<Real> & _b;
 };
-

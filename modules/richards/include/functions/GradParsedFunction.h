@@ -12,10 +12,6 @@
 #include "MooseParsedFunction.h"
 
 // Forward declarations
-class GradParsedFunction;
-
-template <>
-InputParameters validParams<GradParsedFunction>();
 
 /**
  * returns the central difference approx to the derivative
@@ -26,6 +22,8 @@ InputParameters validParams<GradParsedFunction>();
 class GradParsedFunction : public MooseParsedFunction
 {
 public:
+  static InputParameters validParams();
+
   GradParsedFunction(const InputParameters & parameters);
 
   virtual Real value(Real t, const Point & pt) const;

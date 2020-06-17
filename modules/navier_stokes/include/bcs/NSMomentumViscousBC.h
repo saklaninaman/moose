@@ -13,10 +13,6 @@
 #include "NSViscStressTensorDerivs.h"
 
 // Forward Declarations
-class NSMomentumViscousBC;
-
-template <>
-InputParameters validParams<NSMomentumViscousBC>();
 
 /**
  * This class corresponds to the viscous part of the "natural"
@@ -32,6 +28,8 @@ InputParameters validParams<NSMomentumViscousBC>();
 class NSMomentumViscousBC : public NSIntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   NSMomentumViscousBC(const InputParameters & parameters);
 
 protected:
@@ -54,4 +52,3 @@ protected:
   template <class U>
   friend class NSViscStressTensorDerivs;
 };
-

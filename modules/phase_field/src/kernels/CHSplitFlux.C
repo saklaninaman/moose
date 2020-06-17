@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", CHSplitFlux);
 
-template <>
 InputParameters
-validParams<CHSplitFlux>()
+CHSplitFlux::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addClassDescription("Computes flux $j$ as nodal variable $j = -M\\nabla\\mu$");
   params.addRequiredParam<unsigned int>("component", "Flux component");
   params.addRequiredParam<MaterialPropertyName>("mobility_name", "Mobility property name");
@@ -32,10 +31,9 @@ CHSplitFlux::CHSplitFlux(const InputParameters & parameters)
     _mobility(getMaterialProperty<RealTensorValue>("mobility_name")),
     _has_coupled_c(isCoupled("c")),
     _c_var(_has_coupled_c ? coupled("c") : 0),
-    _dmobility_dc(_has_coupled_c
-                      ? &getMaterialPropertyDerivative<RealTensorValue>("mobility_name",
-                                                                        getVar("c", 0)->name())
-                      : NULL)
+    _dmobility_dc(_has_coupled_c ? &getMaterialPropertyDerivative<RealTensorValue>(
+                                       "mobility_name", getVar("c", 0)->name())
+                                 : NULL)
 {
 }
 

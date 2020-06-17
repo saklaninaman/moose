@@ -8,6 +8,8 @@
     part_package = parmetis
   []
   parallel_type = distributed
+  # Need a fine enough mesh to have good partition
+  uniform_refine = 1
 []
 
 [Variables]
@@ -44,10 +46,6 @@
   petsc_options_value = 'hypre boomeramg'
 []
 
-[Outputs]
-  exodus = true
-[]
-
 [AuxVariables]
   [pid]
     family = MONOMIAL
@@ -69,5 +67,44 @@
     type = ProcessorIDAux
     variable = npid
     execute_on = 'INITIAL'
+  []
+[]
+
+[Postprocessors]
+  [sum_sides]
+    type = StatVector
+    stat = sum
+    object = nl_wb_element
+    vector = num_partition_sides
+  []
+  [min_elems]
+    type = StatVector
+    stat = min
+    object = nl_wb_element
+    vector = num_elems
+  []
+  [max_elems]
+    type = StatVector
+    stat = max
+    object = nl_wb_element
+    vector = num_elems
+  []
+[]
+
+[VectorPostprocessors]
+  [nl_wb_element]
+    type = WorkBalance
+    execute_on = initial
+    system = nl
+    balances = 'num_elems num_partition_sides'
+    outputs = none
+  []
+[]
+
+[Outputs]
+  exodus = true
+  [out]
+    type = CSV
+    execute_on = FINAL
   []
 []

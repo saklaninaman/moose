@@ -11,17 +11,14 @@
 
 #include "CrystalPlasticitySlipResistance.h"
 
-class CrystalPlasticitySlipResistanceGSS;
-
-template <>
-InputParameters validParams<CrystalPlasticitySlipResistanceGSS>();
-
 /**
  * Phenomenological constitutive model slip resistance userobject class.
  */
 class CrystalPlasticitySlipResistanceGSS : public CrystalPlasticitySlipResistance
 {
 public:
+  static InputParameters validParams();
+
   CrystalPlasticitySlipResistanceGSS(const InputParameters & parameters);
 
   virtual bool calcSlipResistance(unsigned int qp, std::vector<Real> & val) const;
@@ -29,4 +26,3 @@ public:
 protected:
   const MaterialProperty<std::vector<Real>> & _mat_prop_state_var;
 };
-

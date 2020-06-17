@@ -9,18 +9,17 @@
 
 """Developer tools for MooseDocs."""
 import os
+import re
 import collections
 import logging
 
-import anytree
+import moosetree
 
-import MooseDocs
-from MooseDocs import common
-from MooseDocs.tree import syntax
-from MooseDocs.common import exceptions
+from .. import common
+from ..common import exceptions
+from ..tree import syntax
 
 LOG = logging.getLogger(__name__)
-STUB_HEADER = '<!-- MOOSE Documentation Stub: Remove this when content is added. -->'
 
 def command_line_options(subparser, parent):
     """Define the 'check' command."""
@@ -45,6 +44,8 @@ def command_line_options(subparser, parent):
     parser.add_argument('--syntax_prefix',
                         default=os.path.join('doc', 'content', 'syntax'),
                         help="The folder install prefix for MooseObject documentations pages.")
+    parser.add_argument('--error', action='store_true',
+                        help="Convert warnings to errors.")
 
 def main(options):
     """./moosedocs check"""
@@ -54,6 +55,7 @@ def main(options):
                 dump=options.dump,
                 update=options.update,
                 generate=options.generate,
+                error=options.error,
                 object_prefix=options.object_prefix,
                 syntax_prefix=options.syntax_prefix)
     return err
@@ -62,9 +64,13 @@ def check(translator,
           dump=False,
           update=False,
           generate=False,
+          error=False,
           object_prefix=os.path.join('doc', 'content', 'source'),
           syntax_prefix=os.path.join('doc', 'content', 'syntax')):
     """Helper to all both main and build.py:main to perform check."""
+
+    # Error mode
+    log_type = logging.ERROR if error else logging.WARNING
 
     # Extract the syntax root node
     app_syntax = None
@@ -72,7 +78,7 @@ def check(translator,
     for ext in translator.extensions:
         if ext.name == 'appsyntax':
             extension = ext
-            extension.preExecute(translator.content)
+            extension.preExecute()
             app_syntax = ext.syntax
             break
 
@@ -86,7 +92,7 @@ def check(translator,
 
     # Dump the complete syntax for the application
     if dump:
-        print app_syntax
+        print(app_syntax)
 
     # The default build for any application creates the test app (e.g., FrogTestApp), therefore
     # the actual application name must be captured from this name to properly generate stub pages.
@@ -99,13 +105,13 @@ def check(translator,
     app_name = extension.apptype.replace('TestApp', 'App')
 
     # Perform check for all the nodes
-    for node in anytree.PreOrderIter(app_syntax):
+    for node in moosetree.iterate(app_syntax):
         if node.is_root or node.removed:
             continue
         elif isinstance(node, syntax.ObjectNode):
-            _check_object_node(node, app_name, generate, update, object_prefix)
+            _check_object_node(node, app_name, generate, update, object_prefix, log_type)
         elif isinstance(node, syntax.SyntaxNode):
-            _check_syntax_node(node, app_name, generate, update, syntax_prefix)
+            _check_syntax_node(node, app_name, generate, update, syntax_prefix, log_type)
         else:
             LOG.critical("Unexpected object type of %s, only %s and %s based types are supported",
                          type(node).__name__,
@@ -114,7 +120,7 @@ def check(translator,
 
     return 0
 
-def _check_object_node(node, app_name, generate, update, prefix):
+def _check_object_node(node, app_name, generate, update, prefix, log_type):
     """
     Check that required pages for supplied ObjectNode (i.e., MooseObject/Action).
     """
@@ -132,7 +138,7 @@ def _check_object_node(node, app_name, generate, update, prefix):
         msg += "    - The page should be located at %s.\n"
         msg += "    - It is possible to generate stub pages using " \
                "'./moosedocs.py check --generate'."
-        LOG.error(msg, node.fullpath, filename)
+        LOG.log(log_type, msg, node.fullpath, filename)
 
     elif not_exist and generate and (app_name in node.groups):
         if not os.path.exists(os.path.dirname(filename)):
@@ -143,20 +149,21 @@ def _check_object_node(node, app_name, generate, update, prefix):
             fid.write(content)
 
     elif not not_exist:
-        _check_page_for_stub(node, app_name, filename, update)
+        _check_page_for_stub(node, app_name, filename, update, log_type)
+        _check_page_for_description(node, app_name, filename, log_type)
 
-def _check_syntax_node(node, app_name, generate, update, prefix):
+def _check_syntax_node(node, app_name, generate, update, prefix, log_type):
     """
     Check that required pages for syntax exists (e.g., Adaptivity/index.md).
     """
 
     # Tuple for storing filename and existence
-    FileInfo = collections.namedtuple('FileInfo', 'name exists') #pylint: disable=invalid-name
+    FileInfo = collections.namedtuple('FileInfo', 'name exists')
 
     # Build a set if information tuples to consider
     filenames = set()
     func = lambda n: isinstance(n, syntax.ActionNode) and not n.removed
-    actions = anytree.search.PreOrderIter(node, filter_=func)
+    actions = moosetree.iterate(node, func)
     for action in actions:
         idx = action.source().find('/src/')
         name = os.path.join(action.source()[:idx], prefix,
@@ -176,7 +183,7 @@ def _check_syntax_node(node, app_name, generate, update, prefix):
             for info in filenames:
                 msg += "      {}\n".format(info.name)
 
-        LOG.error(msg)
+        LOG.log(log_type, msg)
 
     # Case when when no file exists but --generate was provided
     elif not_exist and generate:
@@ -194,21 +201,22 @@ def _check_syntax_node(node, app_name, generate, update, prefix):
                   "following locations.\n".format(node.fullpath)
             for info in filenames:
                 msg += "      {}\n".format(info.name)
-            LOG.error(msg)
+            LOG.log(log_type, msg)
 
     else:
         for info in filenames:
             if info.exists:
-                _check_page_for_stub(node, app_name, info.name, update)
+                _check_page_for_stub(node, app_name, info.name, update, log_type)
 
-def _check_page_for_stub(node, app_name, filename, update):
+def _check_page_for_stub(node, app_name, filename, update, log_type):
     """
     Helper method to check if a page is a stub.
     """
     with open(filename, 'r') as fid:
-        lines = fid.readlines()
+        content = fid.read()
 
-    if lines and STUB_HEADER in lines[0]:
+    if content and re.search(r'(stubs\/moose_(object|action|system).md.template)', content) or \
+       ('MOOSE Documentation Stub' in content):
         if update and (app_name in node.groups):
             LOG.info("Updating stub page for %s in file %s.", node.fullpath, filename)
             with open(filename, 'w') as fid:
@@ -217,42 +225,29 @@ def _check_page_for_stub(node, app_name, filename, update):
         elif not node.hidden:
             msg = "A MOOSE generated stub page for %s exists, but no content was " \
                   "added. Add documentation content to %s."
-            LOG.error(msg, node.fullpath, filename)
+            LOG.log(log_type, msg, node.fullpath, filename)
+
+    elif content and node.hidden:
+        msg = "A page for %s exists, but it is still listed as hidden."
+        LOG.log(log_type, msg, node.fullpath)
+
+def _check_page_for_description(node, app_name, filename, log_type):
+    """
+    Helper for addClassDescription.
+    """
+    if (node.description is None) and (not node.hidden):
+        msg = "The class description is missing for %s, it can be added using the " \
+            "'addClassDescription' method from within the objects validParams function."
+        LOG.log(log_type, msg, node.fullpath)
 
 def _default_content(node):
     """
     Markdown stub content.
     """
-    stub = STUB_HEADER + '\n\n'
     if isinstance(node, syntax.SyntaxNode):
-        stub += '# {} System\n\n'.format(node.name)
-        stub += '!syntax list {} objects=True actions=False subsystems=False\n\n' \
-                .format(node.fullpath)
-        stub += '!syntax list {} objects=False actions=False subsystems=True\n\n' \
-                .format(node.fullpath)
-        stub += '!syntax list {} objects=False actions=True subsystems=False\n\n' \
-                .format(node.fullpath)
-
+        tname = 'moose_system.md.template'
     elif isinstance(node, syntax.MooseObjectNode):
-        template_filename = os.path.join(MooseDocs.MOOSE_DIR, 'framework', 'doc', 'templates',
-                                         'moose_object.md.template')
-        with open(template_filename, 'r') as fid:
-            template_content = fid.read()
-
-        template_content = template_content.replace('FullPathCodeClassName',
-                                                    '{}'.format(node.fullpath))
-        template_content = template_content.replace('CodeClassName', '{}'.format(node.name))
-        stub += template_content
-
+        tname = 'moose_object.md.template'
     elif isinstance(node, syntax.ActionNode):
-        template_filename = os.path.join(MooseDocs.MOOSE_DIR, 'framework', 'doc', 'templates',
-                                         'action_object.md.template')
-        with open(template_filename, 'r') as fid:
-            template_content = fid.read()
-
-        template_content = template_content.replace('FullPathCodeActionName',
-                                                    '{}'.format(node.fullpath))
-        template_content = template_content.replace('CodeActionName', '{}'.format(node.name))
-        stub += template_content
-
-    return stub
+        tname = 'moose_action.md.template'
+    return '!template load file=stubs/{} name={} syntax={}'.format(tname, node.name, node.fullpath)

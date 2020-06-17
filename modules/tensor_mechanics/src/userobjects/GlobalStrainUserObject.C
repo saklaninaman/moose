@@ -13,11 +13,10 @@
 
 registerMooseObject("TensorMechanicsApp", GlobalStrainUserObject);
 
-template <>
 InputParameters
-validParams<GlobalStrainUserObject>()
+GlobalStrainUserObject::validParams()
 {
-  InputParameters params = validParams<ElementUserObject>();
+  InputParameters params = ElementUserObject::validParams();
   params.addClassDescription(
       "Global Strain UserObject to provide Residual and diagonal Jacobian entry");
   params.addParam<std::vector<Real>>("applied_stress_tensor",

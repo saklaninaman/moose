@@ -11,11 +11,10 @@
 
 registerMooseObject("TensorMechanicsApp", ComputeEigenstrainBeamFromVariable);
 
-template <>
 InputParameters
-validParams<ComputeEigenstrainBeamFromVariable>()
+ComputeEigenstrainBeamFromVariable::validParams()
 {
-  InputParameters params = validParams<ComputeEigenstrainBeamBase>();
+  InputParameters params = ComputeEigenstrainBeamBase::validParams();
   params.addClassDescription("Computes an eigenstrain from a set of variables");
   params.addCoupledVar("displacement_eigenstrain_variables",
                        "A list of variable names describing the "

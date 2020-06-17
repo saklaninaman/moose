@@ -12,10 +12,6 @@
 #include "SmoothSuperellipsoidBaseIC.h"
 
 // Forward Declarations
-class SmoothSuperellipsoidIC;
-
-template <>
-InputParameters validParams<SmoothSuperellipsoidIC>();
 
 /**
  * SmoothSuperellipsoidIC creates a Superellipsoid of given semiaxes a,b,c and exponent n
@@ -26,6 +22,8 @@ InputParameters validParams<SmoothSuperellipsoidIC>();
 class SmoothSuperellipsoidIC : public SmoothSuperellipsoidBaseIC
 {
 public:
+  static InputParameters validParams();
+
   SmoothSuperellipsoidIC(const InputParameters & parameters);
 
 protected:
@@ -42,4 +40,3 @@ protected:
   const Real _n;
   const Point _center;
 };
-

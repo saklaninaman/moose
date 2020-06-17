@@ -11,11 +11,6 @@
 
 #include "ComputeFiniteStrain.h"
 
-class Compute1DFiniteStrain;
-
-template <>
-InputParameters validParams<Compute1DFiniteStrain>();
-
 /**
  * Compute1DFiniteStrain defines a strain increment for finite strains in 1D problems,
  * handling strains in other two directions. It contains virtual methods to define
@@ -24,6 +19,8 @@ InputParameters validParams<Compute1DFiniteStrain>();
 class Compute1DFiniteStrain : public ComputeFiniteStrain
 {
 public:
+  static InputParameters validParams();
+
   Compute1DFiniteStrain(const InputParameters & parameters);
 
   void computeProperties() override;
@@ -45,4 +42,3 @@ protected:
   /// overwritten for the specific geometries defined by inheriting classes
   virtual Real computeGradDispZZOld() = 0;
 };
-

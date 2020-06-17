@@ -12,11 +12,10 @@
 
 registerMooseObject("TensorMechanicsApp", TensorMechanicsPlasticSimpleTester);
 
-template <>
 InputParameters
-validParams<TensorMechanicsPlasticSimpleTester>()
+TensorMechanicsPlasticSimpleTester::validParams()
 {
-  InputParameters params = validParams<TensorMechanicsPlasticModel>();
+  InputParameters params = TensorMechanicsPlasticModel::validParams();
   params.addRequiredParam<Real>("a",
                                 "Yield function = a*stress_yy + b*stress_zz + c*stress_xx + "
                                 "d*(stress_xy + stress_yx)/2 + e*(stress_xz + stress_zx)/2 + "

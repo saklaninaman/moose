@@ -12,10 +12,6 @@
 #include "InternalSideFluxBase.h"
 
 // Forward Declarations
-class AEFVUpwindInternalSideFlux;
-
-template <>
-InputParameters validParams<AEFVUpwindInternalSideFlux>();
 
 /**
  * Upwind numerical flux scheme
@@ -25,6 +21,8 @@ InputParameters validParams<AEFVUpwindInternalSideFlux>();
 class AEFVUpwindInternalSideFlux : public InternalSideFluxBase
 {
 public:
+  static InputParameters validParams();
+
   AEFVUpwindInternalSideFlux(const InputParameters & parameters);
   virtual ~AEFVUpwindInternalSideFlux();
 
@@ -49,4 +47,3 @@ protected:
   /// advective velocity
   const Real _velocity;
 };
-

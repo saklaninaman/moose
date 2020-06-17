@@ -12,10 +12,7 @@
 #include "Kernel.h"
 
 // Forward Declaration
-class SoretDiffusion;
 
-template <>
-InputParameters validParams<SoretDiffusion>();
 /**
  * SoretDiffusion adds the soret effect in the split form of the Cahn-Hilliard
  * equation.
@@ -23,6 +20,8 @@ InputParameters validParams<SoretDiffusion>();
 class SoretDiffusion : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   SoretDiffusion(const InputParameters & parameters);
 
 protected:
@@ -58,4 +57,3 @@ protected:
   /// Boltzmann constant
   const Real _kB;
 };
-

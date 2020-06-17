@@ -12,12 +12,18 @@
 #include "AppFactory.h"
 #include "MooseSyntax.h"
 
-template <>
 InputParameters
-validParams<TensorMechanicsApp>()
+TensorMechanicsApp::validParams()
 {
-  InputParameters params = validParams<MooseApp>();
+  InputParameters params = MooseApp::validParams();
+
   params.set<bool>("automatic_automatic_scaling") = false;
+
+  // Do not use legacy DirichletBC, that is, set DirichletBC default for preset = true
+  params.set<bool>("use_legacy_dirichlet_bc") = false;
+
+  params.set<bool>("use_legacy_material_output") = false;
+
   return params;
 }
 
@@ -64,6 +70,8 @@ associateSyntaxInner(Syntax & syntax, ActionFactory & /*action_factory*/)
   registerSyntaxTask("DomainIntegralAction", "DomainIntegral", "add_postprocessor");
   registerSyntaxTask("DomainIntegralAction", "DomainIntegral", "add_vector_postprocessor");
   registerSyntaxTask("DomainIntegralAction", "DomainIntegral", "add_material");
+
+  registerSyntax("CohesiveZoneMasterAction", "Modules/TensorMechanics/CohesiveZoneMaster/*");
 
   registerTask("validate_coordinate_systems", /*is_required=*/false);
   addTaskDependency("validate_coordinate_systems", "create_problem_complete");

@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", SplitCHWResAniso);
 
-template <>
 InputParameters
-validParams<SplitCHWResAniso>()
+SplitCHWResAniso::validParams()
 {
-  InputParameters params = validParams<SplitCHWResBase<>>();
+  InputParameters params = SplitCHWResBase<RealTensorValue>::validParams();
   params.addClassDescription("Split formulation Cahn-Hilliard Kernel for the chemical potential "
                              "variable with a tensor (anisotropic) mobility");
   return params;

@@ -11,11 +11,10 @@
 
 registerMooseObject("NavierStokesApp", NSMomentumConvectiveWeakStagnationBC);
 
-template <>
 InputParameters
-validParams<NSMomentumConvectiveWeakStagnationBC>()
+NSMomentumConvectiveWeakStagnationBC::validParams()
 {
-  InputParameters params = validParams<NSWeakStagnationBaseBC>();
+  InputParameters params = NSWeakStagnationBaseBC::validParams();
   params.addClassDescription("The convective part (sans pressure term) of the momentum equation "
                              "boundary integral evaluated at specified stagnation temperature, "
                              "stagnation pressure, and flow direction values.");

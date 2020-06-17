@@ -10,11 +10,12 @@
 #include "RelationshipManager.h"
 #include "MooseApp.h"
 
-template <>
+defineLegacyParams(RelationshipManager);
+
 InputParameters
-validParams<RelationshipManager>()
+RelationshipManager::validParams()
 {
-  InputParameters params = validParams<MooseObject>();
+  InputParameters params = MooseObject::validParams();
 
   /**
    * Param to indicate whether all necessary GeometricRelationshipManagers can be attached during
@@ -43,6 +44,14 @@ validParams<RelationshipManager>()
   params.addPrivateParam<Moose::RelationshipManagerType>("rm_type");
 
   /**
+   * This parameter is used to indicate which system and subsequent DofMap this relationship manager
+   * should be applied to. This parameter is not meaningful when the RM is of geometric type only.
+   * If this parameter is equal to ANY, then this RM can be applied to both non-linear and aux
+   * systems.
+   */
+  params.addPrivateParam<Moose::RMSystemType>("system_type", Moose::RMSystemType::NONE);
+
+  /**
    * The name of the object (or Action) requesting this RM
    */
   params.addRequiredParam<std::string>("for_whom", "What object is requesting this RM?");
@@ -67,9 +76,67 @@ RelationshipManager::RelationshipManager(const InputParameters & parameters)
         "mesh",
         "Mesh is null in RelationshipManager constructor. This could well be because No mesh file "
         "was supplied and no generation block was provided")),
+    _dof_map(nullptr),
     _attach_geometric_early(getParam<bool>("attach_geometric_early")),
     _rm_type(getParam<Moose::RelationshipManagerType>("rm_type")),
-    _use_displaced_mesh(getParam<bool>("use_displaced_mesh"))
+    _use_displaced_mesh(getParam<bool>("use_displaced_mesh")),
+    _system_type(getParam<Moose::RMSystemType>("system_type"))
 {
   _for_whom.push_back(getParam<std::string>("for_whom"));
+}
+
+bool
+RelationshipManager::isGeometric(Moose::RelationshipManagerType input_rm)
+{
+  return (input_rm & Moose::RelationshipManagerType::GEOMETRIC) ==
+         Moose::RelationshipManagerType::GEOMETRIC;
+}
+
+bool
+RelationshipManager::isAlgebraic(Moose::RelationshipManagerType input_rm)
+{
+  return (input_rm & Moose::RelationshipManagerType::ALGEBRAIC) ==
+         Moose::RelationshipManagerType::ALGEBRAIC;
+}
+
+bool
+RelationshipManager::isCoupling(Moose::RelationshipManagerType input_rm)
+{
+  return (input_rm & Moose::RelationshipManagerType::COUPLING) ==
+         Moose::RelationshipManagerType::COUPLING;
+}
+
+Moose::RelationshipManagerType RelationshipManager::geo_and_alg =
+    Moose::RelationshipManagerType::GEOMETRIC | Moose::RelationshipManagerType::ALGEBRAIC;
+
+Moose::RelationshipManagerType RelationshipManager::geo_alg_and_coupl =
+    Moose::RelationshipManagerType::GEOMETRIC | Moose::RelationshipManagerType::ALGEBRAIC |
+    Moose::RelationshipManagerType::COUPLING;
+
+InputParameters
+dummyParams()
+{
+  auto params = emptyInputParameters();
+  params.set<std::string>("_moose_base") = "dummy";
+  return params;
+}
+
+InputParameters
+RelationshipManager::zeroLayerGhosting()
+{
+  auto params = dummyParams();
+  params.addRelationshipManager("ElementSideNeighborLayers",
+                                Moose::RelationshipManagerType::COUPLING,
+                                [](const InputParameters &, InputParameters & rm_params) {
+                                  rm_params.set<unsigned short>("layers") = 0;
+                                });
+  return params;
+}
+
+InputParameters
+RelationshipManager::oneLayerGhosting(Moose::RelationshipManagerType rm_type)
+{
+  auto params = dummyParams();
+  params.addRelationshipManager("ElementSideNeighborLayers", rm_type);
+  return params;
 }

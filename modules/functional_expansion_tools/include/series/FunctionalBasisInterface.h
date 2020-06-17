@@ -14,7 +14,6 @@
 #include "MooseTypes.h"
 
 // Shortened typename
-class FunctionalBasisInterface;
 
 /**
  * This class provides the basis for any custom functional basis, and is the parent class of both
@@ -153,4 +152,3 @@ private:
   /// Indicates whether the current evaluation is expansion or generation
   bool _is_generation;
 };
-

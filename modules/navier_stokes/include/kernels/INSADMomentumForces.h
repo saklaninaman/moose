@@ -11,29 +11,21 @@
 
 #include "ADKernelValue.h"
 
-// Forward Declarations
-template <ComputeStage>
-class INSADMomentumForces;
-
-declareADValidParams(INSADMomentumForces);
-
 /**
  * This class computes the momentum equation residual and Jacobian
  * contributions for force terms in the incompressible Navier-Stokes momentum
  * equation.
  */
-template <ComputeStage compute_stage>
-class INSADMomentumForces : public ADVectorKernelValue<compute_stage>
+class INSADMomentumForces : public ADVectorKernelValue
 {
 public:
+  static InputParameters validParams();
+
   INSADMomentumForces(const InputParameters & parameters);
 
 protected:
-  virtual ADVectorResidual precomputeQpResidual() override;
+  virtual ADRealVectorValue precomputeQpResidual() override;
 
-  const ADMaterialProperty(RealVectorValue) & _gravity_strong_residual;
-  const ADMaterialProperty(RealVectorValue) & _mms_function_strong_residual;
-
-  usingVectorKernelValueMembers;
+  const ADMaterialProperty<RealVectorValue> & _gravity_strong_residual;
+  const ADMaterialProperty<RealVectorValue> & _mms_function_strong_residual;
 };
-

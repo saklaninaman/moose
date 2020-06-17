@@ -1,4 +1,3 @@
-#pylint: disable=missing-docstring
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -9,15 +8,15 @@
 #* https://www.gnu.org/licenses/lgpl-2.1.html
 
 import os
-
+import pyhit
+import moosetree
 import mooseutils
-
 import MooseDocs
-from MooseDocs.base import LatexRenderer
-from MooseDocs import common
-from MooseDocs.common import exceptions
-from MooseDocs.extensions import core, command, floats
-from MooseDocs.tree import tokens, latex
+from .. import common
+from ..common import exceptions
+from ..base import LatexRenderer
+from ..tree import tokens, latex
+from . import core, command, floats
 
 Listing = tokens.newToken('Listing', floats.Float)
 ListingCode = tokens.newToken('ListingCode', core.Code)
@@ -34,7 +33,7 @@ class ListingExtension(command.CommandExtension):
     @staticmethod
     def defaultConfig():
         config = command.CommandExtension.defaultConfig()
-        config['prefix'] = (u'Listing', "The caption prefix (e.g., Fig.).")
+        config['prefix'] = ('Listing', "The caption prefix (e.g., Fig.).")
         config['modal-link'] = (True, "Insert modal links with complete files.")
         return config
 
@@ -52,14 +51,14 @@ class ListingExtension(command.CommandExtension):
             renderer.addPackage('listings')
             renderer.addPackage('xcolor')
 
-            renderer.addPreamble(u"\\lstset{"
-                                 u"basicstyle=\\ttfamily,"
-                                 u"columns=fullflexible,"
-                                 u"frame=single,"
-                                 u"breaklines=true,"
-                                 u"showstringspaces=false,"
-                                 u"showspaces=false,"
-                                 u"postbreak=\\mbox{\\textcolor{red}{$\\hookrightarrow$}\\space},}")
+            renderer.addPreamble("\\lstset{"
+                                 "basicstyle=\\ttfamily,"
+                                 "columns=fullflexible,"
+                                 "frame=single,"
+                                 "breaklines=true,"
+                                 "showstringspaces=false,"
+                                 "showspaces=false,"
+                                 "postbreak=\\mbox{\\textcolor{red}{$\\hookrightarrow$}\\space},}")
 
 class LocalListingCommand(command.CommandComponent):
     COMMAND = 'listing'
@@ -70,7 +69,7 @@ class LocalListingCommand(command.CommandComponent):
         settings = command.CommandComponent.defaultSettings()
         settings.update(floats.caption_settings())
         settings.update(common.extractContentSettings())
-        settings['max-height'] = (u'350px', "The default height for listing content.")
+        settings['max-height'] = ('350px', "The default height for listing content.")
         settings['language'] = (None, "The language to use for highlighting, if not supplied it " \
                                       "will be inferred from the extension (if possible).")
         return settings
@@ -86,7 +85,7 @@ class LocalListingCommand(command.CommandComponent):
             code.attributes.update(**self.attributes)
 
         if flt is not parent:
-            code.name = 'ListingCode'
+            code.name = 'ListingCode' #TODO: Find a better way
 
         return parent
 
@@ -120,7 +119,7 @@ class FileListingCommand(LocalListingCommand):
             code.attributes.update(**self.attributes)
 
         if flt is not parent:
-            code.name = 'ListingCode'
+            code.name = 'ListingCode' #TODO: Find a better way
 
         # Add bottom modal
         link = self.settings['link']
@@ -137,12 +136,12 @@ class FileListingCommand(LocalListingCommand):
             # Create modal for display the files a popup
             code = core.Code(None, language=lang, content=content)
             link = floats.create_modal_link(flt,
-                                            url=unicode(rel_filename),
+                                            url=str(rel_filename),
                                             content=code,
-                                            title=unicode(filename),
-                                            string=u'({})'.format(rel_filename))
+                                            title=str(filename),
+                                            string='({})'.format(rel_filename))
             link.name = 'ListingLink'
-            link['data-tooltip'] = unicode(rel_filename)
+            link['data-tooltip'] = str(rel_filename)
 
         return parent
 
@@ -171,9 +170,10 @@ class InputListingCommand(FileListingCommand):
 
     def extractContent(self, filename):
         """Extract the file contents for display."""
-        content = common.read(filename)
         if self.settings['block']:
-            content = self.extractInputBlocks(content, self.settings['block'])
+            content = self.extractInputBlocks(filename, self.settings['block'])
+        else:
+            content = common.read(filename)
 
         content, _ = common.extractContent(content, self.settings)
         return content
@@ -181,14 +181,14 @@ class InputListingCommand(FileListingCommand):
     @staticmethod
     def extractInputBlocks(filename, blocks):
         """Remove input file block(s)"""
-        hit = mooseutils.hit_load(filename)
+        hit = pyhit.load(filename)
         out = []
         for block in blocks.split(' '):
-            node = hit.find(block)
+            node = moosetree.find(hit, lambda n: n.fullpath.endswith(block))
             if node is None:
                 msg = "Unable to find block '{}' in {}."
                 raise exceptions.MooseDocsException(msg, block, filename)
-            out.append(unicode(node.render()))
+            out.append(str(node.render()))
         return '\n'.join(out)
 
 def get_listing_options(token):
@@ -201,7 +201,7 @@ def get_listing_options(token):
         lang = None
 
     if lang:
-        latex.String(opts, content=u"language={},".format(lang))
+        latex.String(opts, content="language={},".format(lang))
 
     return [opts]
 
@@ -215,17 +215,17 @@ class RenderListing(floats.RenderFloat):
         cap = token(0)
         key = cap['key']
         if key:
-            latex.String(opts[0], content=u"label={},".format(key))
+            latex.String(opts[0], content="label={},".format(key))
 
         tok = tokens.Token()
         cap.copyToToken(tok)
         if key:
-            latex.String(opts[0], content=u"caption=")
+            latex.String(opts[0], content="caption=")
         else:
-            latex.String(opts[0], content=u"title=")
+            latex.String(opts[0], content="title=")
 
         if not cap.children:
-            latex.String(opts[0], content=u"\\mbox{}", escape=False)
+            latex.String(opts[0], content="\\mbox{}", escape=False)
         else:
             self.translator.renderer.render(latex.Brace(opts[0]), tok, page)
 
@@ -237,7 +237,7 @@ class RenderListing(floats.RenderFloat):
                           args=opts,
                           info=token.info)
 
-        token.children = tuple()
+        token.children = list()
         return parent
 
 class RenderListingCode(core.RenderCode):

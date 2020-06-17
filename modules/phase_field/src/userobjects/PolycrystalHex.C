@@ -14,11 +14,10 @@
 
 registerMooseObject("PhaseFieldApp", PolycrystalHex);
 
-template <>
 InputParameters
-validParams<PolycrystalHex>()
+PolycrystalHex::validParams()
 {
-  InputParameters params = validParams<PolycrystalVoronoi>();
+  InputParameters params = PolycrystalVoronoi::validParams();
   params.addClassDescription("Perturbed hexagonal polycrystal");
   params.addParam<Real>("x_offset", 0.5, "Specifies offset of hexagon grid in x-direction");
   params.addRangeCheckedParam<Real>(

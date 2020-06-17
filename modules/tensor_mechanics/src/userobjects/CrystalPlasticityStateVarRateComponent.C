@@ -9,11 +9,10 @@
 
 #include "CrystalPlasticityStateVarRateComponent.h"
 
-template <>
 InputParameters
-validParams<CrystalPlasticityStateVarRateComponent>()
+CrystalPlasticityStateVarRateComponent::validParams()
 {
-  InputParameters params = validParams<CrystalPlasticityUOBase>();
+  InputParameters params = CrystalPlasticityUOBase::validParams();
   params.addClassDescription("Crystal plasticity state variable evolution rate component base "
                              "class.  Override the virtual functions in your class");
   return params;

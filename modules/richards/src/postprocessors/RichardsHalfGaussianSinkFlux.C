@@ -15,11 +15,10 @@
 
 registerMooseObject("RichardsApp", RichardsHalfGaussianSinkFlux);
 
-template <>
 InputParameters
-validParams<RichardsHalfGaussianSinkFlux>()
+RichardsHalfGaussianSinkFlux::validParams()
 {
-  InputParameters params = validParams<SideIntegralVariablePostprocessor>();
+  InputParameters params = SideIntegralVariablePostprocessor::validParams();
   params.addRequiredParam<Real>("max",
                                 "Maximum of the flux (measured in kg.m^-2.s^-1).  Flux out "
                                 "= max*exp((-0.5*(p - centre)/sd)^2) for p<centre, and Flux "

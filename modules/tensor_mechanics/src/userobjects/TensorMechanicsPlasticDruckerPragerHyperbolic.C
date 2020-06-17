@@ -13,11 +13,10 @@
 
 registerMooseObject("TensorMechanicsApp", TensorMechanicsPlasticDruckerPragerHyperbolic);
 
-template <>
 InputParameters
-validParams<TensorMechanicsPlasticDruckerPragerHyperbolic>()
+TensorMechanicsPlasticDruckerPragerHyperbolic::validParams()
 {
-  InputParameters params = validParams<TensorMechanicsPlasticDruckerPrager>();
+  InputParameters params = TensorMechanicsPlasticDruckerPrager::validParams();
   params.addParam<bool>("use_custom_returnMap",
                         true,
                         "Whether to use the custom returnMap "

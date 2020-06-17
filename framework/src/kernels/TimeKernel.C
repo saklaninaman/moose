@@ -16,11 +16,12 @@
 
 #include "libmesh/quadrature.h"
 
-template <>
+defineLegacyParams(TimeKernel);
+
 InputParameters
-validParams<TimeKernel>()
+TimeKernel::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
 
   params.set<MultiMooseEnum>("vector_tags") = "time";
   params.set<MultiMooseEnum>("matrix_tags") = "system time";
@@ -42,6 +43,8 @@ TimeKernel::computeResidual()
   for (_i = 0; _i < _test.size(); _i++)
     for (_qp = 0; _qp < _qrule->n_points(); _qp++)
       _local_re(_i) += _JxW[_qp] * _coord[_qp] * computeQpResidual();
+
+  computeResidualAdditional();
 
   accumulateTaggedLocalResidual();
 

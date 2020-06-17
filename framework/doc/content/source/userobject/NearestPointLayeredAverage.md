@@ -1,11 +1,11 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # NearestPointLayeredAverage
 
-!alert construction title=Undocumented Class
-The NearestPointLayeredAverage has not been documented. The content contained on this page includes the
-typical automatic documentation associated with a MooseObject; however, what is contained is
-ultimately determined by what is necessary to make the documentation clear for users.
+The domain is virtually divided into a number of subdomains according to the
+nearest points provided by users. And then the variable average
+is taken over each individual subdomain separately with the ability to decompose
+each subdomain in layers along a particular direction. If the number of layers is
+larger than one, it is recommended that the interface between two layers align
+with the mesh.
 
 !syntax description /UserObjects/NearestPointLayeredAverage
 

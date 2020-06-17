@@ -11,17 +11,14 @@
 
 #include "ReturnMappingModel.h"
 
-class CLSHPlasticModel;
-
-template <>
-InputParameters validParams<CLSHPlasticModel>();
-
 /**
  * Plastic material
  */
 class CLSHPlasticModel : public ReturnMappingModel
 {
 public:
+  static InputParameters validParams();
+
   CLSHPlasticModel(const InputParameters & parameters);
 
 protected:
@@ -50,4 +47,3 @@ protected:
   MaterialProperty<SymmTensor> & _plastic_strain;
   const MaterialProperty<SymmTensor> & _plastic_strain_old;
 };
-

@@ -17,6 +17,8 @@ class Function;
 class XFEMPressure : public DiracKernel
 {
 public:
+  static InputParameters validParams();
+
   XFEMPressure(const InputParameters & parameters);
 
   virtual void addPoints();
@@ -31,6 +33,3 @@ protected:
   std::map<const Elem *, std::map<unsigned int, Point>> _elem_qp_normal;
   std::map<const Elem *, std::map<unsigned int, Real>> _elem_qp_JxW;
 };
-
-template <>
-InputParameters validParams<XFEMPressure>();

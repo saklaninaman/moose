@@ -18,6 +18,8 @@
 class BicrystalCircleGrainICAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   BicrystalCircleGrainICAction(const InputParameters & params);
 
   virtual void act();
@@ -32,7 +34,3 @@ private:
 
   const bool _3D_sphere;
 };
-
-template <>
-InputParameters validParams<BicrystalCircleGrainICAction>();
-

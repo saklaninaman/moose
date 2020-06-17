@@ -14,11 +14,12 @@ registerMooseAction("MooseApp", AddKernelAction, "add_kernel");
 
 registerMooseAction("MooseApp", AddKernelAction, "add_aux_kernel");
 
-template <>
+defineLegacyParams(AddKernelAction);
+
 InputParameters
-validParams<AddKernelAction>()
+AddKernelAction::validParams()
 {
-  return validParams<MooseObjectAction>();
+  return MooseObjectAction::validParams();
 }
 
 AddKernelAction::AddKernelAction(InputParameters params) : MooseObjectAction(params) {}
@@ -27,16 +28,7 @@ void
 AddKernelAction::act()
 {
   if (_current_task == "add_kernel")
-  {
-    if (Registry::isADObj(_type + "<RESIDUAL>"))
-    {
-      _problem->addKernel(_type + "<RESIDUAL>", _name + "_residual", _moose_object_pars);
-      _problem->addKernel(_type + "<JACOBIAN>", _name + "_jacobian", _moose_object_pars);
-      _problem->haveADObjects(true);
-    }
-    else
-      _problem->addKernel(_type, _name, _moose_object_pars);
-  }
+    _problem->addKernel(_type, _name, _moose_object_pars);
   else
   {
     if (getAllTasks().find("add_aux_bc") != getAllTasks().end())

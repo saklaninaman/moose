@@ -1,4 +1,3 @@
-#pylint: disable=missing-docstring
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -7,42 +6,38 @@
 #*
 #* Licensed under LGPL 2.1, please see LICENSE for details
 #* https://www.gnu.org/licenses/lgpl-2.1.html
-import anytree
-from MooseDocs.base import components
-from MooseDocs.extensions import core
+import moosetree
+from ..base import Extension
+from . import core
 
 def make_extension(**kwargs):
     return HeadingExtension(**kwargs)
 
-def find_heading(translator, node, bookmark=u''):
+def find_heading(page, bookmark=''):
     """Helper for returning a copy of the heading tokens."""
-
-    data = translator.getMetaData(node, 'heading')
-    h = data.get(bookmark, None)
+    data = page.get('heading', dict())
+    h = data.get(bookmark, None) if data else None
     if h is not None:
         return h.copy()
 
-class HeadingExtension(components.Extension):
+class HeadingExtension(Extension):
     """
     Extracts the heading from AST after tokenization.
     """
     @staticmethod
     def defaultConfig():
-        config = components.Extension.defaultConfig()
+        config = Extension.defaultConfig()
         return config
 
-    def initMetaData(self, page, meta):
-        meta.initData('heading', dict())
+    def preTokenize(self, page, ast):
+        page['heading'] = dict()
 
-    def postTokenize(self, ast, page, meta, reader):
-        data = dict()
+    def postTokenize(self, page, ast):
         func = lambda n: (n.name == 'Heading')
-        for node in anytree.PreOrderIter(ast.root, filter_=func):
-            id_ = node.get('id', u'')
-            if id_ not in data:
-                data[id_] = node.copy()
-
-        meta.setData('heading', data)
+        for node in moosetree.iterate(ast.root, func):
+            id_ = node.get('id', '')
+            if id_ not in page['heading']:
+                page['heading'][id_] = node.copy()
 
     def extend(self, reader, renderer):
         self.requires(core)

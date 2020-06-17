@@ -12,11 +12,10 @@
 
 registerMooseObject("RichardsApp", RichardsSUPGstandard);
 
-template <>
 InputParameters
-validParams<RichardsSUPGstandard>()
+RichardsSUPGstandard::validParams()
 {
-  InputParameters params = validParams<RichardsSUPG>();
+  InputParameters params = RichardsSUPG::validParams();
   params.addRequiredRangeCheckedParam<Real>(
       "p_SUPG",
       "p_SUPG > 0",

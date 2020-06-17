@@ -13,14 +13,12 @@
 #include "NSPressureDerivs.h"
 
 // ForwardDeclarations
-class NSMomentumInviscidFluxWithGradP;
-
-template <>
-InputParameters validParams<NSMomentumInviscidFluxWithGradP>();
 
 class NSMomentumInviscidFluxWithGradP : public NSKernel
 {
 public:
+  static InputParameters validParams();
+
   NSMomentumInviscidFluxWithGradP(const InputParameters & parameters);
 
 protected:
@@ -52,4 +50,3 @@ private:
   template <class U>
   friend class NSPressureDerivs;
 };
-

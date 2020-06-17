@@ -1,4 +1,3 @@
-#pylint: disable=missing-docstring,no-member
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -7,7 +6,6 @@
 #*
 #* Licensed under LGPL 2.1, please see LICENSE for details
 #* https://www.gnu.org/licenses/lgpl-2.1.html
-#pylint: enable=missing-docstring
 import os
 import uuid
 import logging
@@ -26,7 +24,7 @@ class Page(mooseutils.AutoPropertyMixin):
     def __init__(self, fullname, **kwargs):
         super(Page, self).__init__(**kwargs)
         self._fullname = fullname            # local path of the node
-        self._name = fullname.split('/')[-1] # file/folder name
+        self._name = fullname.split('/')[-1] # folder/file name
         self.__unique_id = uuid.uuid4()      # a unique identifier
 
     @property
@@ -68,21 +66,16 @@ class Page(mooseutils.AutoPropertyMixin):
         return os.path.relpath(self.destination, os.path.dirname(other.destination))
 
     def __str__(self):
-        """Define the anytree screen output."""
+        """Define the screen output."""
         return '{}: {}, {}'.format(mooseutils.colorText(self.__class__.__name__, self.COLOR),
                                    self.local, self.source)
 
+@mooseutils.addProperty('content', ptype=str, default='')
 class Text(Page):
     """Text only Page node for unit testing."""
     COLOR = 'GREEN'
-    def __init__(self, content, **kwargs):
-        super(Text, self).__init__('text', source='text')
-        self.__content = content
-
-    @property
-    def content(self):
-        """Return the supplied string."""
-        return self.__content
+    def __init__(self, **kwargs):
+        super(Text, self).__init__('_text_', source='_text_', **kwargs)
 
 class Directory(Page):
     """

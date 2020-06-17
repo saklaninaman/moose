@@ -12,11 +12,6 @@
 #include "TensorMechanicsPlasticModel.h"
 #include "TensorMechanicsHardeningModel.h"
 
-class TensorMechanicsPlasticMeanCap;
-
-template <>
-InputParameters validParams<TensorMechanicsPlasticMeanCap>();
-
 /**
  * Class that limits the mean stress
  * Yield function = a*mean_stress - strength
@@ -27,6 +22,8 @@ InputParameters validParams<TensorMechanicsPlasticMeanCap>();
 class TensorMechanicsPlasticMeanCap : public TensorMechanicsPlasticModel
 {
 public:
+  static InputParameters validParams();
+
   TensorMechanicsPlasticMeanCap(const InputParameters & parameters);
 
   virtual std::string modelName() const override;
@@ -50,4 +47,3 @@ protected:
   /// strength
   const TensorMechanicsHardeningModel & _strength;
 };
-

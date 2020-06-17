@@ -9,30 +9,21 @@
 
 #pragma once
 
-// MOOSE includes
 #include "ADKernelGrad.h"
-#include "LevelSetVelocityInterface.h"
-
-// Forward declarations
-template <ComputeStage>
-class LevelSetAdvectionSUPG;
-
-declareADValidParams(LevelSetAdvectionSUPG);
 
 /**
  * SUPG stabilization for the advection portion of the level set equation.
  */
-template <ComputeStage compute_stage>
-class LevelSetAdvectionSUPG : public LevelSetVelocityInterface<ADKernelGrad<compute_stage>>
+class LevelSetAdvectionSUPG : public ADKernelGrad
 {
 public:
+  static InputParameters validParams();
+
   LevelSetAdvectionSUPG(const InputParameters & parameters);
 
 protected:
-  virtual ADVectorResidual precomputeQpResidual() override;
+  virtual ADRealVectorValue precomputeQpResidual() override;
 
-  usingKernelGradMembers;
-  using LevelSetVelocityInterface<ADKernelGrad<compute_stage>>::computeQpVelocity;
-  using LevelSetVelocityInterface<ADKernelGrad<compute_stage>>::_velocity;
+  /// Velocity vector variable
+  const ADVectorVariableValue & _velocity;
 };
-

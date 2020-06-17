@@ -12,10 +12,6 @@
 #include "ElementLoopUserObject.h"
 
 // Forward Declarations
-class SlopeLimitingBase;
-
-template <>
-InputParameters validParams<SlopeLimitingBase>();
 
 /**
  * Base class for slope limiting to limit
@@ -24,6 +20,8 @@ InputParameters validParams<SlopeLimitingBase>();
 class SlopeLimitingBase : public ElementLoopUserObject
 {
 public:
+  static InputParameters validParams();
+
   SlopeLimitingBase(const InputParameters & parameters);
 
   virtual void initialize();

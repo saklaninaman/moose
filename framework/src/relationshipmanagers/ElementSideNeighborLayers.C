@@ -20,11 +20,12 @@
 
 registerMooseObject("MooseApp", ElementSideNeighborLayers);
 
-template <>
+defineLegacyParams(ElementSideNeighborLayers);
+
 InputParameters
-validParams<ElementSideNeighborLayers>()
+ElementSideNeighborLayers::validParams()
 {
-  InputParameters params = validParams<FunctorRelationshipManager>();
+  InputParameters params = FunctorRelationshipManager::validParams();
 
   params.addRangeCheckedParam<unsigned short>(
       "layers",
@@ -52,6 +53,8 @@ ElementSideNeighborLayers::getInfo() const
   return oss.str();
 }
 
+// the LHS ("this" object) in MooseApp::addRelationshipManager is the existing RelationshipManager
+// object to which we are comparing the rhs to determine whether it should get added
 bool
 ElementSideNeighborLayers::operator==(const RelationshipManager & rhs) const
 {
@@ -59,7 +62,9 @@ ElementSideNeighborLayers::operator==(const RelationshipManager & rhs) const
   if (!rm)
     return false;
   else
-    return _layers == rm->_layers && isType(rm->_rm_type);
+    // We use a >= comparison instead of == for _layers because if we already have more ghosting
+    // than the new RM provides, then that's an indication that we should *not* add the new one
+    return _layers >= rm->_layers && isType(rm->_rm_type) && _system_type == rm->_system_type;
 }
 
 void
@@ -74,7 +79,7 @@ ElementSideNeighborLayers::internalInit()
   if (executioner_ptr)
   {
     auto & fe_problem = executioner_ptr->feProblem();
-    auto & nl_sys = fe_problem.getNonlinearSystem();
+    auto & nl_sys = fe_problem.getNonlinearSystemBase();
     auto & dof_map = nl_sys.dofMap();
     auto periodic_boundaries_ptr = dof_map.get_periodic_boundaries();
 
@@ -85,4 +90,11 @@ ElementSideNeighborLayers::internalInit()
   }
 
   _functor = std::move(functor);
+}
+
+void
+ElementSideNeighborLayers::dofmap_reinit()
+{
+  if (_dof_map)
+    static_cast<DefaultCoupling *>(_functor.get())->set_dof_coupling(_dof_map->_dof_coupling);
 }

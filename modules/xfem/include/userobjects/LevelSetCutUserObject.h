@@ -12,14 +12,12 @@
 #include "GeometricCutUserObject.h"
 
 // Forward declarations
-class LevelSetCutUserObject;
-
-template <>
-InputParameters validParams<LevelSetCutUserObject>();
 
 class LevelSetCutUserObject : public GeometricCutUserObject
 {
 public:
+  static InputParameters validParams();
+
   LevelSetCutUserObject(const InputParameters & parameters);
 
   virtual bool cutElementByGeometry(const Elem * elem,
@@ -50,4 +48,3 @@ protected:
   /// the subproblem solution vector
   const NumericVector<Number> * _solution;
 };
-

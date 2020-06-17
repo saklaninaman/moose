@@ -11,18 +11,14 @@
 
 #include "ScalarDamageBase.h"
 
-// Forward declaration
-class CombinedScalarDamage;
-
-template <>
-InputParameters validParams<CombinedScalarDamage>();
-
 /**
  * Scalar damage model computed as the combination of multiple damage models
  */
 class CombinedScalarDamage : public ScalarDamageBase
 {
 public:
+  static InputParameters validParams();
+
   CombinedScalarDamage(const InputParameters & parameters);
 
   void initialSetup() override;
@@ -43,4 +39,3 @@ protected:
 
   std::vector<ScalarDamageBase *> _damage_models;
 };
-

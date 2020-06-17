@@ -11,14 +11,11 @@
 
 #include "Kernel.h"
 
-class GradientComponent;
-
-template <>
-InputParameters validParams<GradientComponent>();
-
 class GradientComponent : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   GradientComponent(const InputParameters & parameters);
 
 protected:
@@ -35,4 +32,3 @@ protected:
   /// Component of the gradient vector to match
   const unsigned int _component;
 };
-

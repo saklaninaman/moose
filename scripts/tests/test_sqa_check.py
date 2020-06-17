@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.join(ROOT_DIR, 'scripts'))
 from mooseutils import check_requirement
 
 class Test(unittest.TestCase):
+
     def testScript(self):
         """Test the SQA checker."""
         check_requirement('[Tests][foo][][]')

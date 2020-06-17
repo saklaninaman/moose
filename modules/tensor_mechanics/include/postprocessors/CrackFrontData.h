@@ -17,14 +17,12 @@
 class MooseMesh;
 
 // Forward Declarations
-class CrackFrontData;
-
-template <>
-InputParameters validParams<CrackFrontData>();
 
 class CrackFrontData : public GeneralPostprocessor
 {
 public:
+  static InputParameters validParams();
+
   CrackFrontData(const InputParameters & parameters);
 
   virtual void initialize();
@@ -42,6 +40,5 @@ protected:
   MooseMesh & _mesh;
   std::string _var_name;
   const Real _scale_factor;
-  MooseVariableFEBase & _field_var;
+  MooseVariable & _field_var;
 };
-

@@ -1,11 +1,5 @@
-# Acronym Extension
+## Acronym Extension
 
-!acronym list
+[!ac](MTU)
 
-!!acro INL!!
-
-!!acro MTU!!
-
-Some text !!acro INL!!
-
-!!acro MTU!!
+[!ac](MTU)

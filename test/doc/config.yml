@@ -3,9 +3,6 @@ Content:
     - test/doc/content
 Renderer:
     type: MooseDocs.base.MaterializeRenderer
-    name: MooseTestApp
-    repo: https://github.com/idaholab/moose
-    home: /
 
 Extensions:
     MooseDocs.extensions.navigation:
@@ -23,3 +20,18 @@ Extensions:
         shortcuts: !include framework/doc/globals.yml
     MooseDocs.extensions.acronym:
         acronyms: !include framework/doc/acronyms.yml
+    MooseDocs.extensions.civet:
+        test_results_cache: '/tmp/civet/jobs'
+        remotes:
+            moose:
+                url: https://civet.inl.gov
+                repo: idaholab/moose
+    MooseDocs.extensions.template:
+        active: True
+    MooseDocs.extensions.sqa:
+        active: True
+        categories:
+            framework: !include framework/doc/sqa_framework.yml
+        requirement-groups:
+            dgkernels: DGKernel Objects
+            interfacekernels: InterfaceKernel Objects

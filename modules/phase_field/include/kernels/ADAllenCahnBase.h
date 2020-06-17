@@ -12,17 +12,6 @@
 #include "ADKernelValue.h"
 #include "DerivativeMaterialPropertyNameInterface.h"
 
-#define usingAllenCahnBaseMembers(T)                                                               \
-  usingKernelValueMembers;                                                                         \
-  using ADAllenCahnBase<compute_stage, T>::_prop_L;                                                \
-  using ADAllenCahnBase<compute_stage, T>::computeDFDOP
-
-// Forward declarations
-template <ComputeStage compute_stage, typename T = void>
-class ADAllenCahnBase;
-
-declareADValidParams(ADAllenCahnBase);
-
 /**
  * This is the Allen-Cahn equation base class that implements the bulk or
  * local energy term of the equation. It is templated on the type of the mobility,
@@ -30,9 +19,8 @@ declareADValidParams(ADAllenCahnBase);
  * Note that the function computeDFDOP MUST be overridden in any kernel that inherits from
  * ADAllenCahnBase. This is the AD equivalent of ACBulk<>.
  */
-template <ComputeStage compute_stage, typename T>
-class ADAllenCahnBase : public ADKernelValue<compute_stage>,
-                        public DerivativeMaterialPropertyNameInterface
+template <typename T>
+class ADAllenCahnBase : public ADKernelValue, public DerivativeMaterialPropertyNameInterface
 {
 public:
   ADAllenCahnBase(const InputParameters & parameters);
@@ -46,22 +34,31 @@ protected:
   virtual ADReal computeDFDOP() = 0;
 
   /// Mobility
-  const ADMaterialProperty(T) & _prop_L;
-
-  usingKernelValueMembers;
+  const ADMaterialProperty<T> & _prop_L;
 };
 
-template <ComputeStage compute_stage, typename T>
-ADAllenCahnBase<compute_stage, T>::ADAllenCahnBase(const InputParameters & parameters)
-  : ADKernelValue<compute_stage>(parameters),
+template <typename T>
+InputParameters
+ADAllenCahnBase<T>::validParams()
+{
+  InputParameters params = ADKernelValue::validParams();
+  params.addClassDescription(
+      "Allen-Cahn bulk contribution Kernel with forward mode automatic differentiation");
+  params.addParam<MaterialPropertyName>("mob_name", "L", "The mobility used with the kernel");
+  return params;
+}
+
+template <typename T>
+ADAllenCahnBase<T>::ADAllenCahnBase(const InputParameters & parameters)
+  : ADKernelValue(parameters),
     DerivativeMaterialPropertyNameInterface(),
     _prop_L(getADMaterialProperty<T>("mob_name"))
 {
 }
 
-template <ComputeStage compute_stage, typename T>
+template <typename T>
 ADReal
-ADAllenCahnBase<compute_stage, T>::precomputeQpResidual()
+ADAllenCahnBase<T>::precomputeQpResidual()
 {
   return _prop_L[_qp] * computeDFDOP();
 }

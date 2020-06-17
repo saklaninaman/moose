@@ -13,11 +13,10 @@
 
 registerMooseObject("RichardsApp", RichardsDensityIdeal);
 
-template <>
 InputParameters
-validParams<RichardsDensityIdeal>()
+RichardsDensityIdeal::validParams()
 {
-  InputParameters params = validParams<RichardsDensity>();
+  InputParameters params = RichardsDensity::validParams();
   params.addRequiredParam<Real>("slope", "Density = slope*(p - p0)");
   params.addRequiredParam<Real>("p0", "Density = slope*(p - p0)");
   params.addClassDescription("Fluid density of ideal gas.  Density = slope*(p - p0)");

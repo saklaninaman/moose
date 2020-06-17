@@ -12,18 +12,15 @@
 #include "SplitCHCRes.h"
 
 // Forward Declarations
-class SplitCHMath;
-
-template <>
-InputParameters validParams<SplitCHMath>();
 
 /// The couple, SplitCHMath and SplitCHWRes, splits the CH equation by replacing chemical potential with 'w'.
 class SplitCHMath : public SplitCHCRes
 {
 public:
+  static InputParameters validParams();
+
   SplitCHMath(const InputParameters & parameters);
 
 protected:
   virtual Real computeDFDC(PFFunctionType type);
 };
-

@@ -8,15 +8,3 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "SplitCHWResBase.h"
-
-template <>
-InputParameters
-validParams<SplitCHWResBase<>>()
-{
-  InputParameters params = validParams<Kernel>();
-  params.addClassDescription(
-      "Split formulation Cahn-Hilliard Kernel for the chemical potential variable");
-  params.addParam<MaterialPropertyName>("mob_name", "mobtemp", "The mobility used with the kernel");
-  params.addCoupledVar("args", "Vector of arguments of the mobility");
-  return params;
-}

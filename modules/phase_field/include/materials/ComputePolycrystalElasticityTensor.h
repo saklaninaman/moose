@@ -13,11 +13,7 @@
 #include "GrainDataTracker.h"
 
 // Forward Declarations
-class ComputePolycrystalElasticityTensor;
 class EulerAngleProvider;
-
-template <>
-InputParameters validParams<ComputePolycrystalElasticityTensor>();
 
 /**
  * Compute an evolving elasticity tensor coupled to a grain growth phase field model.
@@ -25,6 +21,8 @@ InputParameters validParams<ComputePolycrystalElasticityTensor>();
 class ComputePolycrystalElasticityTensor : public ComputeElasticityTensorBase
 {
 public:
+  static InputParameters validParams();
+
   ComputePolycrystalElasticityTensor(const InputParameters & parameters);
 
 protected:
@@ -48,4 +46,3 @@ protected:
   /// Conversion factor from J to eV
   const Real _JtoeV;
 };
-

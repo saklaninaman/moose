@@ -17,15 +17,16 @@
 
 registerMooseObject("MooseApp", NodalValueSampler);
 
-template <>
+defineLegacyParams(NodalValueSampler);
+
 InputParameters
-validParams<NodalValueSampler>()
+NodalValueSampler::validParams()
 {
-  InputParameters params = validParams<NodalVariableVectorPostprocessor>();
+  InputParameters params = NodalVariableVectorPostprocessor::validParams();
 
   params.addClassDescription("Samples values of nodal variable(s).");
 
-  params += validParams<SamplerBase>();
+  params += SamplerBase::validParams();
 
   return params;
 }
@@ -68,9 +69,9 @@ NodalValueSampler::execute()
   //
   // If you have two different discretizations, you'll have to use two
   // separate NodalValueSampler objects to get their values.
-  for (unsigned int i = 0; i < _coupled_moose_vars.size(); i++)
+  for (unsigned int i = 0; i < _coupled_standard_moose_vars.size(); i++)
   {
-    const VariableValue & nodal_solution = _coupled_moose_vars[i]->dofValues();
+    const VariableValue & nodal_solution = _coupled_standard_moose_vars[i]->dofValues();
 
     if (nodal_solution.size() > 0)
     {

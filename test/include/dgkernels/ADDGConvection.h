@@ -11,15 +11,11 @@
 
 #include "ADDGKernel.h"
 
-template <ComputeStage>
-class ADDGConvection;
-
-declareADValidParams(ADDGConvection);
-
-template <ComputeStage compute_stage>
-class ADDGConvection : public ADDGKernel<compute_stage>
+class ADDGConvection : public ADDGKernel
 {
 public:
+  static InputParameters validParams();
+
   ADDGConvection(const InputParameters & parameters);
 
 protected:
@@ -27,5 +23,4 @@ protected:
 
   RealVectorValue _velocity;
 
-  usingDGKernelMembers;
 };

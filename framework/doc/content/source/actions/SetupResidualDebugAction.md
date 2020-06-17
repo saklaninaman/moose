@@ -1,14 +1,13 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # SetupResidualDebugAction
-
-!alert construction title=Undocumented Class
-The SetupResidualDebugAction has not been documented. The content contained on this page includes the
-typical automatic documentation associated with an Action; however, what is contained is ultimately
-determined by what is necessary to make the documentation clear for users.
 
 !syntax description /Debug/SetupResidualDebugAction
 
-!syntax parameters /Debug/SetupResidualDebugAction
+## Overview
 
-!bibtex bibliography
+This [Action](Action.md) object acts whenever the `[Debug]` block exists in the input file and provides
+parameters, as listed below, for creating the necessary object for computing the residual
+for the variables listed in the the [!param](/Debug/SetupResidualDebugAction/show_var_residual)
+parameter. Please refer to the [Debug/index.md] for more details.
+
+
+!syntax parameters /Debug/SetupResidualDebugAction heading=None

@@ -1,4 +1,3 @@
-#pylint: disable=missing-docstring
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -12,32 +11,34 @@ import os
 import uuid
 import logging
 import json
-import anytree
-from MooseDocs import common
-from MooseDocs.extensions import core, heading
-from MooseDocs.base import components, renderers
-from MooseDocs.common import exceptions
-from MooseDocs.tree import html, pages
+import moosetree
+from . import common
+from ..base import components, renderers, Extension
+from ..common import exceptions, write
+from ..tree import html, pages, tokens
+from . import core, heading
 
 LOG = logging.getLogger(__name__)
 
 def make_extension(**kwargs):
     return NavigationExtension(**kwargs)
 
-class NavigationExtension(components.Extension):
+class NavigationExtension(Extension):
     """
     Extension for navigation items.
     """
 
     @staticmethod
     def defaultConfig():
-        config = components.Extension.defaultConfig()
+        config = Extension.defaultConfig()
         config['menu'] = (dict(), "Navigation items, this can either be a *.menu.md file or dict. "\
-                          "The former creates a 'mega menu' and the later uses dropdowns.")
+                          "The former creates a 'mega men' and the later uses dropdowns.")
+        config['google-cse'] = (None, "Enable Google search by supplying the Google 'search engine ID'.")
         config['search'] = (True, "Enable/disable the search bar.")
         config['home'] = ('', "The homepage for the website.")
         config['repo'] = (None, "The source code repository.")
         config['name'] = (None, "The name of the website (e.g., MOOSE)")
+        config['long-name'] = (None, "A long version of the page name that is used in the title, 'name' by default.")
         config['breadcrumbs'] = (True, "Toggle for the breadcrumb links at the top of page.")
         config['sections'] = (True, "Group heading content into <section> tags.")
         config['scrollspy'] = (True, "Enable/disable the scrolling table of contents.")
@@ -49,6 +50,10 @@ class NavigationExtension(components.Extension):
                                           "closed initially. The 'sections' setting must be " \
                                           "True for this to operate.")
         return config
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__menu_cache = dict()
 
     def extend(self, reader, renderer):
         self.requires(core, heading)
@@ -64,62 +69,31 @@ class NavigationExtension(components.Extension):
         if isinstance(renderer, renderers.MaterializeRenderer):
             renderer.addJavaScript('nav', 'js/navigation.js')
 
-            if self.get('search', False):
+            cx = self.get('google-cse', None)
+            if cx is not None:
+                renderer.addJavaScript("google_cse", "https://cse.google.com/cse.js?cx={}".format(cx))
+
+            elif self.get('search', False):
                 renderer.addJavaScript('fuse', "contrib/fuse/fuse.min.js")
                 renderer.addJavaScript('fuse_index', "js/search_index.js")
 
-    def initMetaData(self, page, meta):
-        """Initialize the meta data to hold search index data."""
-        meta.initData('search', list())
+    def initPage(self, page):
+        """Initialize page with Extension settings."""
+        self.initConfig(page, 'breadcrumbs', 'name', 'sections', 'scrollspy', 'google-cse', 'search')
+        if page.local.endswith('.menu.md'):
+            self.setConfig(page, 'breadcrumbs', False)
+        page['search'] = list()
 
-    def postTokenize(self, ast, page, meta, reader):
-        """Capture the search results."""
-
-        if not self.get('search', False):
-            return
-
-        index = []
-        title = None
-        for head in anytree.search.findall_by_attr(ast, 'Heading'):
-            if (head['level'] == 1) and (title is None):
-                title = head.text()
-
-            id_ = head.get('id')
-            if id_ == u'':
-                id_ = head.text('-').lower()
-            index.append(dict(title=title, text=head.text(), bookmark=id_))
-        meta.getData('search').extend(index)
-
-    def postExecute(self, content):
-        """Build the JSON file containing the index data."""
-        dest = self.translator.get('destination') #pylint: disable=no-member
-        home = self.get('home')
-        iname = os.path.join(dest, 'js', 'search_index.js')
-        items = []
-
-        for page in content:
-            meta = self.translator.getMetaData(page, 'search')
-            if meta is None:
-                continue
-            location = page.destination.replace(dest, home)
-            for data in meta:
-                url = '{}#{}'.format(location, data['bookmark'])
-                items.append(dict(title=data['title'], text=data['text'], location=url))
-
-        if not os.path.isdir(os.path.dirname(iname)):
-            os.makedirs(os.path.dirname(iname))
-        common.write(iname, 'var index_data = {};'.format(json.dumps(items)))
-
-    def postRender(self, result, page, meta, renderer):
+    def postRender(self, page, result):
         """Called after rendering is complete."""
 
-        if not isinstance(renderer, renderers.MaterializeRenderer):
+        if not isinstance(self.translator.renderer, renderers.MaterializeRenderer):
             return
 
         root = result.root
-        header = anytree.search.find_by_attr(root, 'header')
+        header = moosetree.find(root, lambda n: n.name == 'header')
         nav = html.Tag(html.Tag(header, 'nav'), 'div', class_='nav-wrapper container')
-        container = anytree.search.find_by_attr(root, 'main').children[0]
+        container = moosetree.find(root, lambda n: n.name == 'main').children[0]
 
         row = container(0)
         col = container(0)(0)
@@ -127,13 +101,13 @@ class NavigationExtension(components.Extension):
         self._addTopNavigation(nav, page)
         self._addSideNavigation(nav, page)
 
-        if self.get('breadcrumbs'):
+        if self.getConfig(page, 'breadcrumbs'):
             self._addBreadcrumbs(container, page)
 
-        if self.get('sections'):
+        if self.getConfig(page, 'sections'):
             self._addSections(col, page)
 
-        if self.get('scrollspy'):
+        if self.getConfig(page, 'scrollspy'):
             col.addClass('col', 's12', 'm12', 'l10')
             toc = html.Tag(row, 'div', class_="col hide-on-med-and-down l2")
             self._addContents(toc, col, page)
@@ -141,18 +115,53 @@ class NavigationExtension(components.Extension):
         else:
             col.addClass('col', 's12', 'm12', 'l12')
 
-        if self.get('search'):
+        if (self.getConfig(page, 'google-cse') is not None) or self.getConfig(page, 'search'):
             self._addSearch(nav, page)
 
         repo = self.get('repo', None)
         if repo is not None:
             self._addRepo(nav, page)
 
-        head = anytree.search.find_by_attr(root, 'head')
+        head = moosetree.find(root, lambda n: n.name == 'head')
         self._addTitle(head, root, page)
         self._addName(nav, page)
 
-    def _addName(self, nav, page): #pylint: disable=unused-argument
+    def postTokenize(self, page, ast):
+
+        index = []
+        title = None
+        for head in moosetree.findall(ast, lambda n: n.name == 'Heading'):
+            if (head['level'] == 1) and (title is None):
+                title = head.text()
+
+            id_ = head.get('id')
+            if id_ == '':
+                id_ = head.text('-').lower()
+            index.append(dict(title=title, text=head.text(), bookmark=id_))
+        page['search'].extend(index)
+
+
+    def postExecute(self):
+        """Build the JSON file containing the index data for 'search' option.
+
+        The 'search' option is used by internal apps that require a search.
+        """
+        dest = self.translator.get('destination')
+        home = self.get('home')
+        iname = os.path.join(dest, 'js', 'search_index.js')
+        items = []
+
+        for page in self.translator.getPages():
+            location = page.destination.replace(dest, home)
+            for data in page['search']:
+                url = '{}#{}'.format(location, data['bookmark'])
+                items.append(dict(title=data['title'], text=data['text'], location=url))
+
+        if not os.path.isdir(os.path.dirname(iname)):
+            os.makedirs(os.path.dirname(iname))
+        write(iname, 'var index_data = {};'.format(json.dumps(items)))
+
+    def _addName(self, nav, page):
         """
         Add the page name to the left-hand side of the top bar.
 
@@ -160,14 +169,14 @@ class NavigationExtension(components.Extension):
             nav[html.Tag]: The <div> containing the navigation for the page being generated.
             page[page.PageNodeBase]: The current page being converted.
         """
-        name = self.get('name', None)
+        name = self.getConfig(page, 'name')
         if name is not None:
             a = html.Tag(None, 'a', class_='left moose-logo hide-on-med-and-down',
-                         href=unicode(self.get('home', '#!')),
-                         string=unicode(name))
+                         href=str(self.get('home', '#!')),
+                         string=str(name))
             nav.insert(0, a)
 
-    def _addRepo(self, nav, page): #pylint: disable=no-self-use
+    def _addRepo(self, nav, page):
         """
         Add the repository link to the navigation bar.
 
@@ -191,7 +200,7 @@ class NavigationExtension(components.Extension):
 
         nav.insert(0, a)
 
-    def _addTitle(self, head, root, page): #pylint: disable=unused-argument
+    def _addTitle(self, head, root, page):
         """
         Add content to <title> tag.
 
@@ -202,40 +211,48 @@ class NavigationExtension(components.Extension):
         """
 
         # Locate h1 heading, if it is found extract the rendered text
-        h = heading.find_heading(self.translator, page)
-        page_name = h.text() if h else page.name
-        name = self.get('name', None)
-        if name is not None:
-            html.Tag(head, 'title', string=u'{}|{}'.format(page_name, self.get('name')))
+        h = heading.find_heading(page)
+        page_name = page.name#h.text() if h else page.name
+        long_name = self.get('long-name')
+        name = self.get('name')
+        if long_name is not None:
+            html.Tag(head, 'title', string=long_name)
+        elif name is not None:
+            html.Tag(head, 'title', string='{}|{}'.format(page_name, name))
         else:
-            html.Tag(head, 'title', string=unicode(page_name))
+            html.Tag(head, 'title', string=str(page_name))
 
     def _addSearch(self, parent, page):
 
         # Search button
         btn = html.Tag(parent, 'a', class_="modal-trigger", href="#moose-search")
-        html.Tag(btn, 'i', string=u'search', class_="material-icons")
+        html.Tag(btn, 'i', string='search', class_="material-icons")
 
         # Search modal
-        div = html.Tag(anytree.search.find_by_attr(parent.root, 'header'), 'div',
+        div = html.Tag(moosetree.find(parent.root, lambda n: n.name == 'header'), 'div',
                        id_="moose-search",
                        class_="modal modal-fixed-footer moose-search-modal")
         container = html.Tag(div, 'div',
                              class_="modal-content container moose-search-modal-content")
-        row = html.Tag(container, 'div', class_="row")
-        col = html.Tag(row, 'div', class_="col l12")
-        box_div = html.Tag(col, 'div', class_="input-field")
-        html.Tag(box_div, 'input',
-                 type_='text',
-                 id_="moose-search-box",
-                 onkeyup="mooseSearch()",
-                 placeholder=unicode(self.get('home')))
-        result_wrapper = html.Tag(row, 'div')
 
-        html.Tag(result_wrapper, 'div', id_="moose-search-results", class_="col s12")
+        cx = self.get('google-cse', None)
+        if cx is not None:
+            html.Tag(container, 'div', class_='gcse-search')
+
+        elif self.get('search', False):
+            row = html.Tag(container, 'div', class_="row")
+            col = html.Tag(row, 'div', class_="col l12")
+            box_div = html.Tag(col, 'div', class_="input-field")
+            html.Tag(box_div, 'input',
+                     type_='text',
+                     id_="moose-search-box",
+                     onkeyup="mooseSearch()",
+                     placeholder=self.get('home'))
+            result_wrapper = html.Tag(row, 'div')
+            html.Tag(result_wrapper, 'div', id_="moose-search-results", class_="col s12")
+
         footer = html.Tag(div, 'div', class_="modal-footer")
-        html.Tag(footer, 'a', href='#!', class_="modal-action modal-close btn-flat",
-                 string=u'Close')
+        html.Tag(footer, 'a', href='#!', class_="modal-close btn-flat", string=u'Close')
 
     def _addTopNavigation(self, parent, page):
         """Create navigation in the top bar."""
@@ -243,7 +260,7 @@ class NavigationExtension(components.Extension):
         self._createNavigation(ul, page)
 
     def _addSideNavigation(self, parent, page):
-        """Adds the hamburger menu for small screens."""
+        """Adds the hamburgers menu for small screens."""
         id_ = uuid.uuid4()
 
         a = html.Tag(parent, 'a', href='#', class_='sidenav-trigger')
@@ -253,7 +270,7 @@ class NavigationExtension(components.Extension):
         ul = html.Tag(parent, 'ul', class_="sidenav", id_=id_)
         self._createNavigation(ul, page, mega=False)
 
-    def _addBreadcrumbs(self, container, page): #pylint: disable=no-self-use
+    def _addBreadcrumbs(self, container, page):
         """
         Inserts breadcrumb links at the top of the page.
 
@@ -272,31 +289,31 @@ class NavigationExtension(components.Extension):
 
         parts = page.local.split(os.sep)
         for i in range(1, len(parts)):
-            current = self.translator.findPage(lambda p: p.local == os.path.join(*parts[:i])) #pylint: disable=cell-var-from-loop
+            current = self.translator.findPage(lambda p: p.local == os.path.join(*parts[:i]))
 
             if isinstance(current, pages.Directory):
-                idx = self.translator.findPages(os.path.join(current.local, 'index.md'))
+                idx = self.translator.findPages(os.path.join(current.local, 'index.md'), exact=True)
                 if idx:
                     url = os.path.relpath(current.local,
                                           os.path.dirname(page.local)).replace('.md', '.html')
                     a = html.Tag(div, 'a', href=url,
                                  class_="breadcrumb",
-                                 string=unicode(current.name))
+                                 string=current.name)
                 else:
                     span = html.Tag(div, 'span', class_="breadcrumb")
-                    html.String(span, content=unicode(current.name))
+                    html.String(span, content=current.name)
 
             elif isinstance(current, pages.File) and current.name != 'index.md':
                 url = os.path.relpath(current.local,
                                       os.path.dirname(page.local)).replace('.md', '.html')
                 a = html.Tag(div, 'a', href=url, class_="breadcrumb")
-                html.String(a, content=unicode(os.path.splitext(current.name)[0]))
+                html.String(a, content=os.path.splitext(current.name)[0])
 
         if not page.local.endswith('index.md'):
             html.Tag(div, 'a', href='#', class_="breadcrumb",
-                     string=unicode(os.path.splitext(page.name)[0]))
+                     string=os.path.splitext(page.name)[0])
 
-    def _addSections(self, container, page): #pylint: disable=unused-argument
+    def _addSections(self, container, page):
         """
         Group content into <section> tags based on the heading tag.
 
@@ -306,7 +323,7 @@ class NavigationExtension(components.Extension):
                                collapsible.
         """
         collapsible = self.get('collapsible-sections')
-        if isinstance(collapsible, unicode):
+        if isinstance(collapsible, str):
             collapsible = eval(collapsible)
 
         section = container
@@ -330,7 +347,7 @@ class NavigationExtension(components.Extension):
 
             child.parent = section
 
-        for node in anytree.PreOrderIter(container, filter_=lambda n: n.name == 'section'):
+        for node in moosetree.iterate(container, lambda n: n.name == 'section'):
 
             if 'data-details-open' in node:
                 status = node['data-details-open']
@@ -351,7 +368,7 @@ class NavigationExtension(components.Extension):
                 icon = html.Tag(None, 'span', class_='moose-section-icon')
                 summary(0).children = [icon] + list(summary(0).children)
 
-    def _addContents(self, toc, content, page): #pylint: disable=unused-argument,no-self-use
+    def _addContents(self, toc, content, page):
         """
         Add the table of contents right-side bar that used scrollspy.
 
@@ -363,7 +380,7 @@ class NavigationExtension(components.Extension):
 
         div = html.Tag(toc, 'div', class_='toc-wrapper pin-top')
         ul = html.Tag(div, 'ul', class_='section table-of-contents')
-        for node in anytree.PreOrderIter(content):
+        for node in moosetree.iterate(content):
             if node.get('data-section-level', None) == 2:
                 node.addClass('scrollspy')
                 li = html.Tag(ul, 'li')
@@ -377,25 +394,25 @@ class NavigationExtension(components.Extension):
     def _createNavigation(self, ul, page, mega=True):
         """Helper for creating navigation lists."""
 
-        for key, value in self.get('menu', dict()).iteritems(): #pylint: disable=no-member
+        for key, value in self.get('menu', dict()).items():
 
             li = html.Tag(ul, 'li')
             if isinstance(value, str) and value.endswith('menu.md') and mega:
                 li['class'] = 'moose-mega-menu-trigger'
-                a = html.Tag(li, 'a', string=unicode(key))
-                html.Tag(a, 'i', class_='material-icons right', string=u'arrow_drop_down')
+                a = html.Tag(li, 'a', string=key)
+                html.Tag(a, 'i', class_='material-icons right', string='arrow_drop_down')
                 self._addMegaMenu(li, value, page)
 
             elif isinstance(value, str):
                 href = value if value.startswith('http') else self._findPath(page, value)
-                html.Tag(li, 'a', href=href, string=unicode(key))
+                html.Tag(li, 'a', href=href, string=key)
 
             elif isinstance(value, dict):
                 id_ = uuid.uuid4()
-                a = html.Tag(li, 'a', class_='dropdown-trigger', href='#!', string=unicode(key))
+                a = html.Tag(li, 'a', class_='dropdown-trigger', href='#!', string=str(key))
                 a['data-target'] = id_
                 a['data-constrainWidth'] = 'false'
-                html.Tag(a, 'i', class_='material-icons right', string=u'arrow_drop_down')
+                html.Tag(a, 'i', class_='material-icons right', string='arrow_drop_down')
                 self._buildDropdown(ul.parent.parent, page, id_, value)
 
             else:
@@ -407,27 +424,39 @@ class NavigationExtension(components.Extension):
         """Create a "mega menu" by parsing the *.menu.md file."""
 
         id_ = uuid.uuid4()
-        header = anytree.search.find_by_attr(parent.root, 'header')
+        header = moosetree.find(parent.root, lambda n: n.name == 'header')
         div = html.Tag(header, 'div', id_=id_)
         div.addClass('moose-mega-menu-content')
         parent['data-target'] = id_
 
-        wrap = html.Tag(div, 'div', class_='moose-mega-menu-wrapper')
         node = self.translator.findPage(filename)
-        ast = self.translator.getSyntaxTree(node) #pylint: disable=no-member
-        self.translator.renderer.render(wrap, ast, page) #pylint: disable=no-member
+
+        # The "mega" menus appear on every page so the results of the rendered the mega menu
+        # page(s) and cache the results. When the CIVET/SQA extensions are
+        # enabled 7000+ pages are generated, thus this cache becomes very important.
+        key = (os.path.dirname(page.local), node.local) # cache on current directory and menu name
+        if key not in self.__menu_cache:
+            wrap = html.Tag(div, 'div', class_='moose-mega-menu-wrapper')
+            ast = tokens.Token(None)
+            content = self.translator.reader.read(node)
+            self.translator.reader.tokenize(ast, content, page)
+            self.translator.renderer.render(wrap, ast, page)
+            self.__menu_cache[key] = wrap.copy()
+        else:
+            wrap = self.__menu_cache[key].copy()
+            wrap.parent = div
 
     def _buildDropdown(self, parent, page, tag_id, items):
         """Creates sublist for dropdown navigation."""
         ul = html.Tag(parent, 'ul', id_=tag_id, class_='dropdown-content')
-        for key, value in items.iteritems():
+        for key, value in items.items():
             li = html.Tag(ul, 'li')
             href = value if value.startswith('http') else self._findPath(page, value)
-            html.Tag(li, 'a', href=href, string=unicode(key))
+            html.Tag(li, 'a', href=href, string=str(key))
 
     def _findPath(self, page, path):
         """Locates page based on supplied path."""
-        node = self.translator.findPage(path)
+        node = self.translator.findPage(path.lstrip('/'), exact=path.startswith('/'))
         if node is None:
             msg = 'Failed to locate navigation item: {}.'.format(path)
             LOG.error(msg)

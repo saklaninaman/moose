@@ -19,11 +19,10 @@ registerMooseAction("PhaseFieldApp", DisplacementGradientsAction, "add_material"
 
 registerMooseAction("PhaseFieldApp", DisplacementGradientsAction, "add_variable");
 
-template <>
 InputParameters
-validParams<DisplacementGradientsAction>()
+DisplacementGradientsAction::validParams()
 {
-  InputParameters params = validParams<Action>();
+  InputParameters params = Action::validParams();
   params.addClassDescription("Set up variables, kernels, and materials for a the displacement "
                              "gradients and their elastic free energy derivatives for non-split "
                              "Cahn-Hilliard problems.");
@@ -54,11 +53,13 @@ DisplacementGradientsAction::act()
     Real scaling = getParam<Real>("scaling");
     for (unsigned int i = 0; i < ngrad; ++i)
     {
+      auto var_params = _factory.getValidParams("MooseVariable");
+      var_params.set<MooseEnum>("family") = "LAGRANGE";
+      var_params.set<MooseEnum>("order") = "FIRST";
+      var_params.set<std::vector<Real>>("scaling") = {scaling};
+
       // Create displacement gradient variables
-      _problem->addVariable(_displacement_gradients[i],
-                            FEType(Utility::string_to_enum<Order>("FIRST"),
-                                   Utility::string_to_enum<FEFamily>("LAGRANGE")),
-                            scaling);
+      _problem->addVariable("MooseVariable", _displacement_gradients[i], var_params);
     }
   }
   else if (_current_task == "add_material")

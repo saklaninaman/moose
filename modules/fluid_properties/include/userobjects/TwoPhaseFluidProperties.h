@@ -11,11 +11,10 @@
 
 #include "FluidProperties.h"
 
-class TwoPhaseFluidProperties;
 class SinglePhaseFluidProperties;
 
-template <>
-InputParameters validParams<TwoPhaseFluidProperties>();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
 
 /**
  * Base class for fluid properties used with two-phase flow
@@ -23,6 +22,8 @@ InputParameters validParams<TwoPhaseFluidProperties>();
 class TwoPhaseFluidProperties : public FluidProperties
 {
 public:
+  static InputParameters validParams();
+
   TwoPhaseFluidProperties(const InputParameters & parameters);
 
   /**
@@ -41,11 +42,17 @@ public:
   virtual Real p_critical() const = 0;
 
   /**
+   * Returns the triple-point temperature
+   */
+  virtual Real T_triple() const;
+
+  /**
    * Computes the saturation temperature at a pressure
    *
    * @param[in] p  pressure
    */
   virtual Real T_sat(Real p) const = 0;
+  virtual DualReal T_sat(const DualReal & p) const;
 
   /**
    * Computes the saturation pressure at a temperature
@@ -53,6 +60,7 @@ public:
    * @param[in] T  temperature
    */
   virtual Real p_sat(Real T) const = 0;
+  virtual DualReal p_sat(const DualReal & T) const;
 
   /**
    * Computes dT/dp along the saturation line
@@ -68,6 +76,7 @@ public:
    * @param T  temperature
    */
   virtual Real h_lat(Real p, Real T) const;
+  virtual DualReal h_lat(const DualReal & p, const DualReal & T) const;
 
   /**
    * Computes surface tension sigma of
@@ -76,6 +85,7 @@ public:
    * @param T  temperature
    */
   virtual Real sigma_from_T(Real T) const;
+  virtual DualReal sigma_from_T(const DualReal & T) const;
 
   /**
    * Computes dsigma/dT along the saturation line
@@ -101,3 +111,4 @@ protected:
   const SinglePhaseFluidProperties * _fp_vapor;
 };
 
+#pragma GCC diagnostic pop

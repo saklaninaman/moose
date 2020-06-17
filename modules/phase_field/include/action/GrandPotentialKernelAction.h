@@ -31,17 +31,14 @@
  *  -ACGrGrMulti
  **/
 
-
 #include "Action.h"
 
 class GrandPotentialKernelAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   GrandPotentialKernelAction(const InputParameters & parameters);
 
   virtual void act();
 };
-
-template <>
-InputParameters validParams<GrandPotentialKernelAction>();
-

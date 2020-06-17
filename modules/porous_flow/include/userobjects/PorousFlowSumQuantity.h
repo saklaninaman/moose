@@ -11,11 +11,6 @@
 
 #include "GeneralUserObject.h"
 
-class PorousFlowSumQuantity;
-
-template <>
-InputParameters validParams<PorousFlowSumQuantity>();
-
 /**
  * Sums into _total
  * This is used, for instance, to record the total mass
@@ -26,6 +21,8 @@ InputParameters validParams<PorousFlowSumQuantity>();
 class PorousFlowSumQuantity : public GeneralUserObject
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowSumQuantity(const InputParameters & parameters);
   virtual ~PorousFlowSumQuantity();
 
@@ -54,4 +51,3 @@ protected:
   /// This holds the sum
   Real _total;
 };
-

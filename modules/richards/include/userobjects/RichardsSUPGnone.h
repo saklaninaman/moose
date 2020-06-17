@@ -11,11 +11,6 @@
 
 #include "RichardsSUPG.h"
 
-class RichardsSUPGnone;
-
-template <>
-InputParameters validParams<RichardsSUPGnone>();
-
 /**
  * no Richards SUPG.
  * Use this class if you don't want any SUPG for the Richards equations in your simulation
@@ -23,6 +18,8 @@ InputParameters validParams<RichardsSUPGnone>();
 class RichardsSUPGnone : public RichardsSUPG
 {
 public:
+  static InputParameters validParams();
+
   RichardsSUPGnone(const InputParameters & parameters);
 
   /// SUPG velocity = zero
@@ -79,4 +76,3 @@ public:
 
   bool SUPG_trivial() const;
 };
-

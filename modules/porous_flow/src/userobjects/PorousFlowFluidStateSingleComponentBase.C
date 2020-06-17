@@ -9,11 +9,10 @@
 
 #include "PorousFlowFluidStateSingleComponentBase.h"
 
-template <>
 InputParameters
-validParams<PorousFlowFluidStateSingleComponentBase>()
+PorousFlowFluidStateSingleComponentBase::validParams()
 {
-  InputParameters params = validParams<PorousFlowFluidStateBase>();
+  InputParameters params = PorousFlowFluidStateBase::validParams();
   params.addClassDescription("Base class for single component fluid state classes");
   return params;
 }

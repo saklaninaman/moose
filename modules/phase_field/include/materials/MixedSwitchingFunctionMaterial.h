@@ -12,10 +12,6 @@
 #include "OrderParameterFunctionMaterial.h"
 
 // Forward Declarations
-class MixedSwitchingFunctionMaterial;
-
-template <>
-InputParameters validParams<MixedSwitchingFunctionMaterial>();
 
 /**
  * Material class to provide the switching function \f$ h(\eta) \f$ for
@@ -27,6 +23,8 @@ InputParameters validParams<MixedSwitchingFunctionMaterial>();
 class MixedSwitchingFunctionMaterial : public OrderParameterFunctionMaterial
 {
 public:
+  static InputParameters validParams();
+
   MixedSwitchingFunctionMaterial(const InputParameters & parameters);
 
 protected:
@@ -38,4 +36,3 @@ protected:
   /// Weight parameter of mixed-type h(eta)
   Real _weight;
 };
-

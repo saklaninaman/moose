@@ -9,11 +9,10 @@
 
 #include "CrossTermBarrierFunctionBase.h"
 
-template <>
 InputParameters
-validParams<CrossTermBarrierFunctionBase>()
+CrossTermBarrierFunctionBase::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   params.addParam<std::string>("function_name", "g", "actual name for g(eta_i)");
   MooseEnum g_order("SIMPLE=0 LOW", "SIMPLE");
   params.addParam<MooseEnum>("g_order", g_order, "Polynomial order of the barrier function g(eta)");

@@ -11,11 +11,6 @@
 
 #include "CappedWeakPlaneStressUpdate.h"
 
-class CappedWeakInclinedPlaneStressUpdate;
-
-template <>
-InputParameters validParams<CappedWeakInclinedPlaneStressUpdate>();
-
 /**
  * CappedWeakInclinedPlaneStressUpdate performs the return-map
  * algorithm and associated stress updates for plastic
@@ -30,6 +25,8 @@ InputParameters validParams<CappedWeakInclinedPlaneStressUpdate>();
 class CappedWeakInclinedPlaneStressUpdate : public CappedWeakPlaneStressUpdate
 {
 public:
+  static InputParameters validParams();
+
   CappedWeakInclinedPlaneStressUpdate(const InputParameters & parameters);
 
   /**
@@ -102,4 +99,3 @@ protected:
 
   virtual RankFourTensor d2qdstress2(const RankTwoTensor & stress) const override;
 };
-

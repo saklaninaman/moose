@@ -15,10 +15,6 @@
 #include "DerivativeMaterialInterface.h"
 
 // Forward Declarations
-class HeatCapacityConductionTimeDerivative;
-
-template <>
-InputParameters validParams<HeatCapacityConductionTimeDerivative>();
 
 /**
  * A class for defining the time derivative of the heat equation.
@@ -28,9 +24,11 @@ InputParameters validParams<HeatCapacityConductionTimeDerivative>();
  * where \f$ C_p \f$ is material property for the "heat_capacity".
  */
 class HeatCapacityConductionTimeDerivative
-    : public DerivativeMaterialInterface<JvarMapKernelInterface<TimeDerivative>>
+  : public DerivativeMaterialInterface<JvarMapKernelInterface<TimeDerivative>>
 {
 public:
+  static InputParameters validParams();
+
   HeatCapacityConductionTimeDerivative(const InputParameters & parameters);
 
 protected:
@@ -44,4 +42,3 @@ protected:
   std::vector<const MaterialProperty<Real> *> _d_heat_capacity_dargs;
   ///@}
 };
-

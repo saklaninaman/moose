@@ -12,11 +12,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowCapillaryPressureVG);
 
-template <>
 InputParameters
-validParams<PorousFlowCapillaryPressureVG>()
+PorousFlowCapillaryPressureVG::validParams()
 {
-  InputParameters params = validParams<PorousFlowCapillaryPressure>();
+  InputParameters params = PorousFlowCapillaryPressure::validParams();
   params.addRequiredRangeCheckedParam<Real>(
       "m",
       "m >= 0 & m <= 1",

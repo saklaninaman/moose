@@ -11,11 +11,6 @@
 
 #include "DiracKernel.h"
 
-class PorousFlowSquarePulsePointSource;
-
-template <>
-InputParameters validParams<PorousFlowSquarePulsePointSource>();
-
 /**
  * Point source (or sink) that adds (removes) fluid at a constant mass flux rate for times
  * between the specified start and end times. If no start and end times are specified,
@@ -24,6 +19,8 @@ InputParameters validParams<PorousFlowSquarePulsePointSource>();
 class PorousFlowSquarePulsePointSource : public DiracKernel
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowSquarePulsePointSource(const InputParameters & parameters);
 
   virtual void addPoints() override;
@@ -42,4 +39,3 @@ protected:
   /// The time at which the point source (sink) stops operating
   const Real _end_time;
 };
-

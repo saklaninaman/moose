@@ -17,11 +17,12 @@
 
 registerMooseObject("MooseApp", RinglebMeshGenerator);
 
-template <>
+defineLegacyParams(RinglebMeshGenerator);
+
 InputParameters
-validParams<RinglebMeshGenerator>()
+RinglebMeshGenerator::validParams()
 {
-  InputParameters params = validParams<MeshGenerator>();
+  InputParameters params = MeshGenerator::validParams();
 
   params.addRequiredParam<Real>("gamma", "Gamma parameter");
   params.addRequiredParam<Real>("kmax", "Value of k on the inner wall.");
@@ -205,7 +206,7 @@ RinglebMeshGenerator::generate()
   }
 
   /// Find neighbors, etc.
-  mesh->prepare_for_use();
+  mesh->prepare_for_use(false, false);
 
   /// Create the triangular elements if required by the user
   if (_triangles)

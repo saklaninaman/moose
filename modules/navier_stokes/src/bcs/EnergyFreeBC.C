@@ -11,11 +11,10 @@
 
 registerMooseObject("NavierStokesApp", EnergyFreeBC);
 
-template <>
 InputParameters
-validParams<EnergyFreeBC>()
+EnergyFreeBC::validParams()
 {
-  InputParameters params = validParams<IntegratedBC>();
+  InputParameters params = IntegratedBC::validParams();
   params.addRequiredCoupledVar("rho_u", "x-component of momentum");
   params.addCoupledVar("rho_v", "y-component of momentum");
   params.addCoupledVar("rho_w", "z-component of momentum");

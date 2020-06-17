@@ -12,10 +12,6 @@
 #include "NSWeakStagnationBaseBC.h"
 
 // Forward Declarations
-class NSMomentumPressureWeakStagnationBC;
-
-template <>
-InputParameters validParams<NSMomentumPressureWeakStagnationBC>();
 
 /**
  * This class implements the pressure term of the momentum
@@ -25,6 +21,8 @@ InputParameters validParams<NSMomentumPressureWeakStagnationBC>();
 class NSMomentumPressureWeakStagnationBC : public NSWeakStagnationBaseBC
 {
 public:
+  static InputParameters validParams();
+
   NSMomentumPressureWeakStagnationBC(const InputParameters & parameters);
 
 protected:
@@ -35,4 +33,3 @@ protected:
   // Required parameters
   const unsigned int _component;
 };
-

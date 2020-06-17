@@ -11,11 +11,6 @@
 
 #include "SinglePhaseFluidProperties.h"
 
-class IdealGasFluidProperties;
-
-template <>
-InputParameters validParams<IdealGasFluidProperties>();
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Woverloaded-virtual"
 
@@ -26,13 +21,25 @@ InputParameters validParams<IdealGasFluidProperties>();
 class IdealGasFluidProperties : public SinglePhaseFluidProperties
 {
 public:
+  static InputParameters validParams();
+
   IdealGasFluidProperties(const InputParameters & parameters);
   virtual ~IdealGasFluidProperties();
 
   virtual Real p_from_v_e(Real v, Real e) const override;
   virtual void p_from_v_e(Real v, Real e, Real & p, Real & dp_dv, Real & dp_de) const override;
+  virtual void p_from_v_e(const DualReal & v,
+                          const DualReal & e,
+                          DualReal & p,
+                          DualReal & dp_dv,
+                          DualReal & dp_de) const override;
   virtual Real T_from_v_e(Real v, Real e) const override;
   virtual void T_from_v_e(Real v, Real e, Real & T, Real & dT_dv, Real & dT_de) const override;
+  virtual void T_from_v_e(const DualReal & v,
+                          const DualReal & e,
+                          DualReal & T,
+                          DualReal & dT_dv,
+                          DualReal & dT_de) const override;
   virtual Real c_from_v_e(Real v, Real e) const override;
   virtual void c_from_v_e(Real v, Real e, Real & c, Real & dc_dv, Real & dc_de) const override;
   virtual Real cp_from_v_e(Real v, Real e) const override;
@@ -40,6 +47,7 @@ public:
   virtual Real cv_from_v_e(Real v, Real e) const override;
   virtual void cv_from_v_e(Real v, Real e, Real & cv, Real & dcv_dv, Real & dcv_de) const override;
   virtual Real mu_from_v_e(Real v, Real e) const override;
+  virtual void mu_from_v_e(Real v, Real e, Real & mu, Real & dmu_dv, Real & dmu_de) const override;
   virtual Real k_from_v_e(Real v, Real e) const override;
   virtual Real s_from_v_e(Real v, Real e) const override;
   virtual void s_from_v_e(Real v, Real e, Real & s, Real & ds_dv, Real & ds_de) const override;
@@ -55,6 +63,11 @@ public:
   virtual Real rho_from_p_T(Real p, Real T) const override;
   virtual void
   rho_from_p_T(Real p, Real T, Real & rho, Real & drho_dp, Real & drho_dT) const override;
+  virtual void rho_from_p_T(const DualReal & p,
+                            const DualReal & T,
+                            DualReal & rho,
+                            DualReal & drho_dp,
+                            DualReal & drho_dT) const override;
   virtual Real e_from_p_rho(Real p, Real rho) const override;
   virtual void
   e_from_p_rho(Real p, Real rho, Real & e, Real & de_dp, Real & de_drho) const override;
@@ -77,6 +90,7 @@ public:
   virtual void p_from_h_s(Real h, Real s, Real & p, Real & dp_dh, Real & dp_ds) const override;
   virtual Real g_from_v_e(Real v, Real e) const override;
   virtual Real T_from_p_h(Real p, Real h) const override;
+  virtual void T_from_p_h(Real p, Real h, Real & T, Real & dT_dp, Real & dT_dh) const override;
   virtual Real cv_from_p_T(Real p, Real T) const override;
   virtual void cv_from_p_T(Real p, Real T, Real & cv, Real & dcv_dp, Real & dcv_dT) const override;
   virtual Real cp_from_p_T(Real p, Real T) const override;
@@ -97,9 +111,6 @@ public:
 
   virtual Real pp_sat_from_p_T(Real /*p*/, Real /*T*/) const override;
 
-  virtual Real henryConstant(Real temperature) const override;
-  virtual void henryConstant(Real temperature, Real & Kh, Real & dKh_dT) const override;
-
   // Methods used by Navier-Stokes module
   virtual Real gamma() const { return _gamma; };
   virtual Real cv() const { return _cv; };
@@ -107,25 +118,26 @@ public:
 
 protected:
   /// Adiabatic index (ratio of specific heats cp/cv)
-  Real _gamma;
+  const Real & _gamma;
+  /// molar mass
+  const Real & _molar_mass;
+
   /// Specific gas constant (R / molar mass)
-  Real _R_specific;
-  /// Specific heat at constant volume
-  Real _cv;
+  const Real _R_specific;
   /// Specific heat at constant pressure
-  Real _cp;
+  const Real _cp;
+  /// Specific heat at constant volume
+  const Real _cv;
+
   /// Dynamic viscosity
   const Real _mu;
   /// Thermal conductivity
   const Real _k;
-  /// molar mass
-  Real _molar_mass;
+
   // properties at critical point (used by IdealRealGasMixtureFluidProperties (primary component))
   Real _T_c;
   Real _rho_c;
   Real _e_c;
-  /// Henry constant
-  const Real _henry_constant;
 };
 
 #pragma GCC diagnostic pop

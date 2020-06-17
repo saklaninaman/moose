@@ -10,16 +10,13 @@
 #pragma once
 #include "ACBulk.h"
 
-
 // Forward Declarations
-class ACGBPoly;
-
-template <>
-InputParameters validParams<ACGBPoly>();
 
 class ACGBPoly : public ACBulk<Real>
 {
 public:
+  static InputParameters validParams();
+
   ACGBPoly(const InputParameters & parameters);
 
 protected:
@@ -34,4 +31,3 @@ protected:
 
   Real _en_ratio;
 };
-

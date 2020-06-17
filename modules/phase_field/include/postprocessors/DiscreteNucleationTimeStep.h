@@ -12,11 +12,6 @@
 #include "GeneralPostprocessor.h"
 #include "DiscreteNucleationInserterBase.h"
 
-class DiscreteNucleationTimeStep;
-
-template <>
-InputParameters validParams<DiscreteNucleationTimeStep>();
-
 /**
  * Returns a user defined timestep limit for the simulation step right after the
  * introduction of a new nucleus and between nucleation events to control the probability
@@ -25,6 +20,8 @@ InputParameters validParams<DiscreteNucleationTimeStep>();
 class DiscreteNucleationTimeStep : public GeneralPostprocessor
 {
 public:
+  static InputParameters validParams();
+
   DiscreteNucleationTimeStep(const InputParameters & parameters);
 
   virtual void initialize() override {}
@@ -42,7 +39,7 @@ protected:
   /// nucleus count changes performed by the inserter
   const DiscreteNucleationInserterBase::NucleusChanges & _changes_made;
 
-  /// total nucleation rate integrated over teh entire domain
+  /// total nucleation rate integrated over the entire domain
   const Real & _rate;
 
   /**
@@ -52,4 +49,3 @@ protected:
    */
   Real _max_lambda;
 };
-

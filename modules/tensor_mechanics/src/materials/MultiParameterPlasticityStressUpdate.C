@@ -9,6 +9,7 @@
 
 #include "MultiParameterPlasticityStressUpdate.h"
 #include "Conversion.h" // for stringify
+#include "MooseEnum.h"  // for enum
 
 // libMesh includes
 #include "libmesh/utility.h" // for Utility::pow
@@ -16,11 +17,10 @@
 // PETSc includes
 #include <petscblaslapack.h> // LAPACKgesv_
 
-template <>
 InputParameters
-validParams<MultiParameterPlasticityStressUpdate>()
+MultiParameterPlasticityStressUpdate::validParams()
 {
-  InputParameters params = validParams<StressUpdateBase>();
+  InputParameters params = StressUpdateBase::validParams();
   params.addClassDescription("Return-map and Jacobian algorithms for plastic models where the "
                              "yield function and flow directions depend on multiple functions of "
                              "stress");
@@ -68,6 +68,12 @@ validParams<MultiParameterPlasticityStressUpdate>()
                                      "to initialize the return-mapping algorithm during the first "
                                      "nonlinear iteration.  If not given then it is assumed that "
                                      "stress parameters = 0 is admissible.");
+  MooseEnum smoother_fcn_enum("cos poly1 poly2 poly3", "cos");
+  params.addParam<MooseEnum>("smoother_function_type",
+                             smoother_fcn_enum,
+                             "Type of smoother function to use.  'cos' means (-a/pi)cos(pi x/2/a), "
+                             "'polyN' means a polynomial of degree 2N+2");
+  params.addParamNamesToGroup("smoother_function_type", "Advanced");
   return params;
 }
 
@@ -86,6 +92,7 @@ MultiParameterPlasticityStressUpdate::MultiParameterPlasticityStressUpdate(
     _max_nr_its(getParam<unsigned>("max_NR_iterations")),
     _perform_finite_strain_rotations(getParam<bool>("perform_finite_strain_rotations")),
     _smoothing_tol(getParam<Real>("smoothing_tol")),
+    _smoothing_tol2(Utility::pow<2>(getParam<Real>("smoothing_tol"))),
     _f_tol(getParam<Real>("yield_function_tol")),
     _f_tol2(Utility::pow<2>(getParam<Real>("yield_function_tol"))),
     _min_step_size(getParam<Real>("min_step_size")),
@@ -101,6 +108,10 @@ MultiParameterPlasticityStressUpdate::MultiParameterPlasticityStressUpdate(
     _iter(declareProperty<Real>(_base_name +
                                 "plastic_NR_iterations")), // this is really an unsigned int, but
                                                            // for visualisation i convert it to Real
+    _max_iter_used(declareProperty<Real>(
+        _base_name + "max_plastic_NR_iterations")), // this is really an unsigned int, but
+                                                    // for visualisation i convert it to Real
+    _max_iter_used_old(getMaterialPropertyOld<Real>(_base_name + "max_plastic_NR_iterations")),
     _linesearch_needed(
         declareProperty<Real>(_base_name + "plastic_linesearch_needed")), // this is really a
                                                                           // boolean, but for
@@ -114,7 +125,9 @@ MultiParameterPlasticityStressUpdate::MultiParameterPlasticityStressUpdate(
     _ok_intnl(num_intnl),
     _del_stress_params(num_sp),
     _current_sp(num_sp),
-    _current_intnl(num_intnl)
+    _current_intnl(num_intnl),
+    _smoother_function_type(
+        parameters.get<MooseEnum>("smoother_function_type").getEnum<SmootherFunctionType>())
 {
   if (_definitely_ok_sp.size() != _num_sp)
     mooseError("MultiParameterPlasticityStressUpdate: admissible_stress parameter must consist of ",
@@ -129,6 +142,7 @@ MultiParameterPlasticityStressUpdate::initQpStatefulProperties()
   _intnl[_qp].assign(_num_intnl, 0);
   _yf[_qp].assign(_num_yf, 0);
   _iter[_qp] = 0.0;
+  _max_iter_used[_qp] = 0.0;
   _linesearch_needed[_qp] = 0.0;
 }
 
@@ -137,6 +151,7 @@ MultiParameterPlasticityStressUpdate::propagateQpStatefulProperties()
 {
   _plastic_strain[_qp] = _plastic_strain_old[_qp];
   std::copy(_intnl_old[_qp].begin(), _intnl_old[_qp].end(), _intnl[_qp].begin());
+  _max_iter_used[_qp] = _max_iter_used_old[_qp];
 }
 
 void
@@ -165,7 +180,9 @@ MultiParameterPlasticityStressUpdate::updateState(RankTwoTensor & strain_increme
 
   // initially assume an elastic deformation
   std::copy(_intnl_old[_qp].begin(), _intnl_old[_qp].end(), _intnl[_qp].begin());
+
   _iter[_qp] = 0.0;
+  _max_iter_used[_qp] = std::max(_max_iter_used[_qp], _max_iter_used_old[_qp]);
   _linesearch_needed[_qp] = 0.0;
 
   computeStressParams(stress_new, _trial_sp);
@@ -308,7 +325,6 @@ MultiParameterPlasticityStressUpdate::updateState(RankTwoTensor & strain_increme
         step_iter++;
       }
     }
-
     if (res2 <= _f_tol2 && step_iter < _max_nr_its && nr_failure == 0 && ls_failure == 0 &&
         gaE >= 0.0)
     {
@@ -330,6 +346,8 @@ MultiParameterPlasticityStressUpdate::updateState(RankTwoTensor & strain_increme
                  _dvar_dtrial);
       if (static_cast<Real>(step_iter) > _iter[_qp])
         _iter[_qp] = static_cast<Real>(step_iter);
+      if (static_cast<Real>(step_iter) > _max_iter_used[_qp])
+        _max_iter_used[_qp] = static_cast<Real>(step_iter);
       step_size *= 1.1;
     }
     else
@@ -465,7 +483,25 @@ MultiParameterPlasticityStressUpdate::ismoother(Real f_diff) const
 {
   if (std::abs(f_diff) >= _smoothing_tol)
     return 0.0;
-  return -_smoothing_tol / M_PI * std::cos(0.5 * M_PI * f_diff / _smoothing_tol);
+  switch (_smoother_function_type)
+  {
+    case SmootherFunctionType::cos:
+      return -_smoothing_tol / M_PI * std::cos(0.5 * M_PI * f_diff / _smoothing_tol);
+    case SmootherFunctionType::poly1:
+      return 0.75 / _smoothing_tol *
+             (0.5 * (Utility::pow<2>(f_diff) - _smoothing_tol2) -
+              (_smoothing_tol2 / 12.0) * (Utility::pow<4>(f_diff / _smoothing_tol) - 1.0));
+    case SmootherFunctionType::poly2:
+      return 0.625 / _smoothing_tol *
+             (0.5 * (Utility::pow<2>(f_diff) - _smoothing_tol2) -
+              (_smoothing_tol2 / 30.0) * (Utility::pow<6>(f_diff / _smoothing_tol) - 1.0));
+    case SmootherFunctionType::poly3:
+      return (7.0 / 12.0 / _smoothing_tol) *
+             (0.5 * (Utility::pow<2>(f_diff) - _smoothing_tol2) -
+              (_smoothing_tol2 / 56.0) * (Utility::pow<8>(f_diff / _smoothing_tol) - 1.0));
+    default:
+      return 0.0;
+  }
 }
 
 Real
@@ -473,7 +509,22 @@ MultiParameterPlasticityStressUpdate::smoother(Real f_diff) const
 {
   if (std::abs(f_diff) >= _smoothing_tol)
     return 0.0;
-  return 0.5 * std::sin(f_diff * M_PI * 0.5 / _smoothing_tol);
+  switch (_smoother_function_type)
+  {
+    case SmootherFunctionType::cos:
+      return 0.5 * std::sin(f_diff * M_PI * 0.5 / _smoothing_tol);
+    case SmootherFunctionType::poly1:
+      return 0.75 / _smoothing_tol *
+             (f_diff - (_smoothing_tol / 3.0) * Utility::pow<3>(f_diff / _smoothing_tol));
+    case SmootherFunctionType::poly2:
+      return 0.625 / _smoothing_tol *
+             (f_diff - (_smoothing_tol / 5.0) * Utility::pow<5>(f_diff / _smoothing_tol));
+    case SmootherFunctionType::poly3:
+      return (7.0 / 12.0 / _smoothing_tol) *
+             (f_diff - (_smoothing_tol / 7.0) * Utility::pow<7>(f_diff / _smoothing_tol));
+    default:
+      return 0.0;
+  }
 }
 
 Real
@@ -481,7 +532,19 @@ MultiParameterPlasticityStressUpdate::dsmoother(Real f_diff) const
 {
   if (std::abs(f_diff) >= _smoothing_tol)
     return 0.0;
-  return 0.25 * M_PI / _smoothing_tol * std::cos(f_diff * M_PI * 0.5 / _smoothing_tol);
+  switch (_smoother_function_type)
+  {
+    case SmootherFunctionType::cos:
+      return 0.25 * M_PI / _smoothing_tol * std::cos(f_diff * M_PI * 0.5 / _smoothing_tol);
+    case SmootherFunctionType::poly1:
+      return 0.75 / _smoothing_tol * (1.0 - Utility::pow<2>(f_diff / _smoothing_tol));
+    case SmootherFunctionType::poly2:
+      return 0.625 / _smoothing_tol * (1.0 - Utility::pow<4>(f_diff / _smoothing_tol));
+    case SmootherFunctionType::poly3:
+      return (7.0 / 12.0 / _smoothing_tol) * (1.0 - Utility::pow<6>(f_diff / _smoothing_tol));
+    default:
+      return 0.0;
+  }
 }
 
 int
@@ -583,10 +646,10 @@ MultiParameterPlasticityStressUpdate::nrStep(const yieldAndFlow & smoothed_q,
   dnRHSdVar(smoothed_q, dintnl, stress_params, gaE, jac);
 
   // use LAPACK to solve the linear system
-  const int nrhs = 1;
-  std::vector<int> ipiv(_num_sp + 1);
-  int info;
-  const int gesv_num_rhs = _num_sp + 1;
+  const PetscBLASInt nrhs = 1;
+  std::vector<PetscBLASInt> ipiv(_num_sp + 1);
+  PetscBLASInt info;
+  const PetscBLASInt gesv_num_rhs = _num_sp + 1;
   LAPACKgesv_(
       &gesv_num_rhs, &nrhs, &jac[0], &gesv_num_rhs, &ipiv[0], &rhs[0], &gesv_num_rhs, &info);
   return info;
@@ -862,10 +925,10 @@ MultiParameterPlasticityStressUpdate::dVardTrial(bool elastic_only,
   std::vector<double> jac((_num_sp + 1) * (_num_sp + 1));
   dnRHSdVar(smoothed_q, dintnl, stress_params, gaE, jac);
 
-  std::vector<int> ipiv(_num_sp + 1);
-  int info;
-  const int gesv_num_rhs = _num_sp + 1;
-  const int gesv_num_pq = _num_sp;
+  std::vector<PetscBLASInt> ipiv(_num_sp + 1);
+  PetscBLASInt info;
+  const PetscBLASInt gesv_num_rhs = _num_sp + 1;
+  const PetscBLASInt gesv_num_pq = _num_sp;
   LAPACKgesv_(&gesv_num_rhs,
               &gesv_num_pq,
               &jac[0],

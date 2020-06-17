@@ -13,10 +13,6 @@
 #include "RankTwoTensor.h"
 
 // Forward Declarations
-class PlasticHeatEnergy;
-
-template <>
-InputParameters validParams<PlasticHeatEnergy>();
 
 /**
  * Provides a heat source from plastic deformation:
@@ -25,6 +21,8 @@ InputParameters validParams<PlasticHeatEnergy>();
 class PlasticHeatEnergy : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   PlasticHeatEnergy(const InputParameters & parameters);
 
 protected:
@@ -50,4 +48,3 @@ protected:
   /// MOOSE variable number for the displacement variables
   std::vector<unsigned int> _disp_var;
 };
-

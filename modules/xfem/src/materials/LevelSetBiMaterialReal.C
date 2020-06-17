@@ -11,11 +11,10 @@
 
 registerMooseObject("XFEMApp", LevelSetBiMaterialReal);
 
-template <>
 InputParameters
-validParams<LevelSetBiMaterialReal>()
+LevelSetBiMaterialReal::validParams()
 {
-  InputParameters params = validParams<LevelSetBiMaterialBase>();
+  InputParameters params = LevelSetBiMaterialBase::validParams();
   params.addClassDescription(
       "Compute a Real material property for bi-materials problem (consisting of two "
       "different materials) defined by a level set function.");

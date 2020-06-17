@@ -9,11 +9,12 @@
 
 #include "FluidProperties.h"
 
-template <>
+const Real FluidProperties::_R = 8.3144598;
+
 InputParameters
-validParams<FluidProperties>()
+FluidProperties::validParams()
 {
-  InputParameters params = validParams<GeneralUserObject>();
+  InputParameters params = GeneralUserObject::validParams();
   params.addParam<bool>(
       "allow_imperfect_jacobians",
       false,

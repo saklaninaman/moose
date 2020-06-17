@@ -13,10 +13,6 @@
 #include "RichardsVarNames.h"
 
 // Forward Declarations
-class RichardsHalfGaussianSink;
-
-template <>
-InputParameters validParams<RichardsHalfGaussianSink>();
 
 /**
  * Applies a fluid sink to the boundary.
@@ -29,6 +25,8 @@ InputParameters validParams<RichardsHalfGaussianSink>();
 class RichardsHalfGaussianSink : public IntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   RichardsHalfGaussianSink(const InputParameters & parameters);
 
 protected:

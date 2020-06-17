@@ -19,9 +19,7 @@
 class MatAnisoDiffusion : public MatDiffusionBase<RealTensorValue>
 {
 public:
+  static InputParameters validParams();
+
   MatAnisoDiffusion(const InputParameters & parameters);
 };
-
-template <>
-InputParameters validParams<MatAnisoDiffusion>();
-

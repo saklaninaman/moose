@@ -24,11 +24,19 @@ typedef VectorValue<Real> RealVectorValue;
 }
 
 class MooseVariableBase;
-class MooseVariableFEBase;
+class MooseVariableFieldBase;
 template <typename>
 class MooseVariableFE;
+template <typename>
+class MooseVariableField;
 typedef MooseVariableFE<Real> MooseVariable;
 typedef MooseVariableFE<RealVectorValue> VectorMooseVariable;
+typedef MooseVariableFE<RealEigenVector> ArrayMooseVariable;
+
+template <typename>
+class MooseVariableFV;
+typedef MooseVariableFV<Real> MooseVariableFVReal;
+
 class MooseVariableScalar;
 
 /**
@@ -38,36 +46,36 @@ class VariableWarehouse
 {
 public:
   VariableWarehouse();
-  virtual ~VariableWarehouse();
 
   /**
    * Add a variable
    * @param var_name The name of the variable
    * @param var Variable
    */
-  void add(const std::string & var_name, MooseVariableBase * var);
+  void add(const std::string & var_name, std::shared_ptr<MooseVariableBase> var);
 
   /**
    * Add a boundary variable
    * @param bnd The boundary id where this variable is defined
    * @param var The variable
    */
-  void addBoundaryVar(BoundaryID bnd, MooseVariableFEBase * var);
+  void addBoundaryVar(BoundaryID bnd, MooseVariableFieldBase * var);
 
   /**
    * Add a variable to a set of boundaries
    * @param boundary_ids The boundary ids where this variable is defined
    * @param var The variable
    */
-  void addBoundaryVar(const std::set<BoundaryID> & boundary_ids, MooseVariableFEBase * var);
+  void addBoundaryVar(const std::set<BoundaryID> & boundary_ids, MooseVariableFieldBase * var);
 
   /**
    * Add a map of variables to a set of boundaries
    * @param boundary_ids The boundary ids where this variable is defined
    * @param vars A map of variables
    */
-  void addBoundaryVars(const std::set<BoundaryID> & boundary_ids,
-                       const std::map<std::string, std::vector<MooseVariableFEBase *>> & vars);
+  void addBoundaryVars(
+      const std::set<BoundaryID> & boundary_ids,
+      const std::unordered_map<std::string, std::vector<MooseVariableFieldBase *>> & vars);
 
   /**
    * Get a variable from the warehouse
@@ -88,6 +96,9 @@ public:
    * of either Real or RealVectorValue type
    * @param var_name The name of the variable to retrieve
    * @return The retrieved variable
+   *
+   * Note this should actually be named getFieldFEVariable, but that would
+   * require fixing a lot of code in a lot of apps
    */
   template <typename T>
   MooseVariableFE<T> * getFieldVariable(const std::string & var_name);
@@ -97,9 +108,26 @@ public:
    * of either Real or RealVectorValue type
    * @param var_number The number of the variable to retrieve
    * @return The retrieved variable
+   *
+   * Note this should actually be named getFieldFEVariable, but that would
+   * require fixing a lot of code in a lot of apps
    */
   template <typename T>
   MooseVariableFE<T> * getFieldVariable(unsigned int var_number);
+
+  /**
+   * This should be called getFieldVariable, but that name is already taken
+   * by a legacy function.
+   */
+  template <typename T>
+  MooseVariableField<T> * getActualFieldVariable(const std::string & var_name);
+
+  /**
+   * This should be called getFieldVariable, but that name is already taken
+   * by a legacy function.
+   */
+  template <typename T>
+  MooseVariableField<T> * getActualFieldVariable(unsigned int var_number);
 
   /**
    * Get the list of all variable names
@@ -111,33 +139,39 @@ public:
    * Get the list of variables
    * @return The list of variables
    */
-  const std::vector<MooseVariableFEBase *> & fieldVariables();
+  const std::vector<MooseVariableFieldBase *> & fieldVariables() const;
 
   /**
    * Get the list of variables that needs to be reinitialized on a given boundary
    * @param bnd The boundary ID
    * @return The list of variables
    */
-  const std::set<MooseVariableFEBase *> & boundaryVars(BoundaryID bnd);
+  const std::set<MooseVariableFieldBase *> & boundaryVars(BoundaryID bnd) const;
 
   /**
    * Get the list of scalar variables
    * @return The list of scalar variables
    */
-  const std::vector<MooseVariableScalar *> & scalars();
+  const std::vector<MooseVariableScalar *> & scalars() const;
 
 protected:
   /// list of variable names
   std::vector<VariableName> _names;
 
   /// list of finite element variables
-  std::vector<MooseVariableFEBase *> _vars;
+  std::vector<MooseVariableFieldBase *> _vars;
+
+  /// map of non-vector finite element variables with unsigned keys
+  HashMap<unsigned, MooseVariable *> _regular_vars_by_number;
+
+  /// map of non-vector finite element variables with name keys
+  HashMap<std::string, MooseVariableFVReal *> _fv_vars_by_name;
 
   /// map of non-vector finite element variables with name keys
   HashMap<std::string, MooseVariable *> _regular_vars_by_name;
 
   /// map of non-vector finite element variables with unsigned keys
-  HashMap<unsigned, MooseVariable *> _regular_vars_by_number;
+  HashMap<unsigned, MooseVariableFVReal *> _fv_vars_by_number;
 
   /// map of vector finite element variables with name keys
   HashMap<std::string, VectorMooseVariable *> _vector_vars_by_name;
@@ -145,17 +179,23 @@ protected:
   /// map of vector finite element variables with unsigned keys
   HashMap<unsigned, VectorMooseVariable *> _vector_vars_by_number;
 
+  /// map of vector finite element variables with name keys
+  HashMap<std::string, ArrayMooseVariable *> _array_vars_by_name;
+
+  /// map of vector finite element variables with unsigned keys
+  HashMap<unsigned, ArrayMooseVariable *> _array_vars_by_number;
+
   /// Name to variable mapping
   std::map<std::string, MooseVariableBase *> _var_name;
 
   /// Map to variables that need to be evaluated on a boundary
-  std::map<BoundaryID, std::set<MooseVariableFEBase *>> _boundary_vars;
+  std::map<BoundaryID, std::set<MooseVariableFieldBase *>> _boundary_vars;
 
   /// list of all scalar, non-finite element variables
   std::vector<MooseVariableScalar *> _scalar_vars;
 
   /// All instances of objects (raw pointers)
-  std::vector<MooseVariableBase *> _all_objects;
+  std::map<unsigned int, std::shared_ptr<MooseVariableBase>> _all_objects;
 };
 
 template <>
@@ -166,3 +206,26 @@ template <>
 MooseVariableFE<RealVectorValue> *
 VariableWarehouse::getFieldVariable<RealVectorValue>(unsigned int var_number);
 
+template <>
+MooseVariableFE<RealEigenVector> *
+VariableWarehouse::getFieldVariable<RealEigenVector>(const std::string & var_name);
+
+template <>
+MooseVariableFE<RealEigenVector> *
+VariableWarehouse::getFieldVariable<RealEigenVector>(unsigned int var_number);
+
+template <>
+MooseVariableField<RealVectorValue> *
+VariableWarehouse::getActualFieldVariable<RealVectorValue>(const std::string & var_name);
+
+template <>
+MooseVariableField<RealVectorValue> *
+VariableWarehouse::getActualFieldVariable<RealVectorValue>(unsigned int var_number);
+
+template <>
+MooseVariableField<RealEigenVector> *
+VariableWarehouse::getActualFieldVariable<RealEigenVector>(const std::string & var_name);
+
+template <>
+MooseVariableField<RealEigenVector> *
+VariableWarehouse::getActualFieldVariable<RealEigenVector>(unsigned int var_number);

@@ -1,13 +1,10 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # ACGBPoly
 
-!alert construction title=Undocumented Class
-The ACGBPoly has not been documented. The content contained on this page
-includes the basic documentation associated with a MooseObject; however, what is contained is
-ultimately determined by what is necessary to make the documentation clear for users.
-
 !syntax description /Kernels/ACGBPoly
+
+This Kernel implements the a coupling term between the non conserved polycrystalline
+grain model and a conserved concentration variable that could represent precipitates.
+It can be added through the [GrainGrowthAction](/GrainGrowthAction.md).
 
 !syntax parameters /Kernels/ACGBPoly
 

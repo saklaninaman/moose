@@ -1,17 +1,17 @@
 [Mesh]
-  type = AnnularMesh
-  nr = 40
-  nt = 16
-  rmin = 0.1
-  rmax = 1
-  tmin = 0.0
-  tmax = 1.570796326795
-  growth_r = 1.1
-[]
-
-[MeshModifiers]
+  [annular]
+    type = AnnularMeshGenerator
+    nr = 40
+    nt = 16
+    rmin = 0.1
+    rmax = 1
+    dmin = 0.0
+    dmax = 90
+    growth_r = 1.1
+  []
   [./make3D]
-    type = MeshExtruder
+    input = annular
+    type = MeshExtruderGenerator
     bottom_sideset = bottom
     top_sideset = top
     extrusion_vector = '0 0 1'
@@ -44,22 +44,22 @@
   # sideset 3 = ymin
   # sideset 4 = xmin
   [./plane_strain]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_z
     value = 0
     boundary = 'top bottom'
   [../]
   [./ymin]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_y
     value = 0
-    boundary = tmin
+    boundary = dmin
   [../]
   [./xmin]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_x
     value = 0
-    boundary = tmax
+    boundary = dmax
   [../]
 
   [./cavity_temperature]
@@ -92,13 +92,13 @@
   [../]
 
   [./outer_temperature]
-    type = PresetBC
+    type = DirichletBC
     variable = temperature
     value = 0
     boundary = rmax
   [../]
   [./outer_pressure]
-    type = PresetBC
+    type = DirichletBC
     variable = porepressure
     value = 0
     boundary = rmax
@@ -156,7 +156,7 @@
   add_stress_aux = true
   porepressure = porepressure
   temperature = temperature
-  thermal_eigenstrain_name = thermal_contribution
+  eigenstrain_names = thermal_contribution
   gravity = '0 0 0'
   fp = the_simple_fluid
 []

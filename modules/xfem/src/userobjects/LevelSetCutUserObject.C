@@ -14,11 +14,10 @@
 
 registerMooseObject("XFEMApp", LevelSetCutUserObject);
 
-template <>
 InputParameters
-validParams<LevelSetCutUserObject>()
+LevelSetCutUserObject::validParams()
 {
-  InputParameters params = validParams<GeometricCutUserObject>();
+  InputParameters params = GeometricCutUserObject::validParams();
   params.addRequiredParam<VariableName>(
       "level_set_var", "The name of level set variable used to represent the interface");
   params.addClassDescription("XFEM mesh cut by level set function");

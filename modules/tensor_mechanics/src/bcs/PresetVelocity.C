@@ -12,19 +12,24 @@
 
 registerMooseObject("TensorMechanicsApp", PresetVelocity);
 
-template <>
 InputParameters
-validParams<PresetVelocity>()
+PresetVelocity::validParams()
 {
-  InputParameters p = validParams<NodalBC>();
-  p.addParam<Real>(
+  InputParameters params = DirichletBCBase::validParams();
+
+  params.addParam<Real>(
       "velocity", 1, "Value of the velocity.  Used as scale factor if function is given.");
-  p.addParam<FunctionName>("function", "1", "Function describing the velocity.");
-  return p;
+  params.addParam<FunctionName>("function", "1", "Function describing the velocity.");
+
+  // Forcefully preset the BC
+  params.set<bool>("preset") = true;
+  params.suppressParameter<bool>("preset");
+
+  return params;
 }
 
 PresetVelocity::PresetVelocity(const InputParameters & parameters)
-  : PresetNodalBC(parameters),
+  : DirichletBCBase(parameters),
     _u_old(valueOld()),
     _velocity(parameters.get<Real>("velocity")),
     _function(getFunction("function"))

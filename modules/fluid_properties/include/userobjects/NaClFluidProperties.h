@@ -11,11 +11,6 @@
 
 #include "SinglePhaseFluidProperties.h"
 
-class NaClFluidProperties;
-
-template <>
-InputParameters validParams<NaClFluidProperties>();
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Woverloaded-virtual"
 
@@ -43,6 +38,8 @@ InputParameters validParams<NaClFluidProperties>();
 class NaClFluidProperties : public SinglePhaseFluidProperties
 {
 public:
+  static InputParameters validParams();
+
   NaClFluidProperties(const InputParameters & parameters);
   virtual ~NaClFluidProperties();
 
@@ -102,4 +99,3 @@ protected:
 };
 
 #pragma GCC diagnostic pop
-

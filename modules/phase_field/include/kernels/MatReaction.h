@@ -14,10 +14,6 @@
 #include "DerivativeMaterialInterface.h"
 
 // Forward Declaration
-class MatReaction;
-
-template <>
-InputParameters validParams<MatReaction>();
 
 /**
  * This kernel adds to the residual a contribution of \f$ -L*v \f$ where \f$ L \f$ is a material
@@ -26,6 +22,8 @@ InputParameters validParams<MatReaction>();
 class MatReaction : public DerivativeMaterialInterface<JvarMapKernelInterface<Kernel>>
 {
 public:
+  static InputParameters validParams();
+
   MatReaction(const InputParameters & parameters);
   virtual void initialSetup();
 
@@ -59,10 +57,6 @@ protected:
   ///  Reaction rate derivative w.r.t. the variable being added by this kernel
   const MaterialProperty<Real> & _dLdv;
 
-  /// number of coupled variables
-  const unsigned int _nvar;
-
   ///  Reaction rate derivatives w.r.t. other coupled variables
   std::vector<const MaterialProperty<Real> *> _dLdarg;
 };
-

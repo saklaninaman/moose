@@ -12,11 +12,6 @@
 #include "MultiParameterPlasticityStressUpdate.h"
 #include "TensorMechanicsHardeningModel.h"
 
-class CappedMohrCoulombStressUpdate;
-
-template <>
-InputParameters validParams<CappedMohrCoulombStressUpdate>();
-
 /**
  * CappedMohrCoulombStressUpdate implements rate-independent nonassociative
  * Mohr-Coulomb plus tensile plus compressive plasticity with hardening/softening.
@@ -24,12 +19,16 @@ InputParameters validParams<CappedMohrCoulombStressUpdate>();
 class CappedMohrCoulombStressUpdate : public MultiParameterPlasticityStressUpdate
 {
 public:
+  static InputParameters validParams();
+
   CappedMohrCoulombStressUpdate(const InputParameters & parameters);
 
   /**
    * Does the model require the elasticity tensor to be isotropic?
    */
   bool requiresIsotropicTensor() override { return true; }
+
+  bool isIsotropic() override { return true; };
 
 protected:
   /// Hardening model for tensile strength
@@ -121,4 +120,3 @@ protected:
                                           const std::vector<std::vector<Real>> & dvar_dtrial,
                                           RankFourTensor & cto) override;
 };
-

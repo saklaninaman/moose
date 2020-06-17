@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", ConservedLangevinNoise);
 
-template <>
 InputParameters
-validParams<ConservedLangevinNoise>()
+ConservedLangevinNoise::validParams()
 {
-  InputParameters params = validParams<LangevinNoise>();
+  InputParameters params = LangevinNoise::validParams();
   params.addClassDescription("Source term for noise from a ConservedNoise userobject");
   params.addRequiredParam<UserObjectName>(
       "noise", "ConservedNoise userobject that produces the random numbers");
@@ -24,6 +23,11 @@ validParams<ConservedLangevinNoise>()
 ConservedLangevinNoise::ConservedLangevinNoise(const InputParameters & parameters)
   : LangevinNoise(parameters), _noise(getUserObject<ConservedNoiseInterface>("noise"))
 {
+  if (parameters.isParamSetByUser("seed"))
+    paramError(
+        "seed",
+        "This parameter has no effect in this kernel. The noise is generated in the user object "
+        "specified in the 'noise' parameter. Specify a seed in that user object instead.");
 }
 
 Real

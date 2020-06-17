@@ -9,19 +9,19 @@
 
 #include "ADRobinBC.h"
 
-registerADMooseObject("MooseTestApp", ADRobinBC);
+registerMooseObject("MooseTestApp", ADRobinBC);
 
-defineADValidParams(ADRobinBC, ADIntegratedBC, );
-
-template <ComputeStage compute_stage>
-ADRobinBC<compute_stage>::ADRobinBC(const InputParameters & parameters)
-  : ADIntegratedBC<compute_stage>(parameters)
+InputParameters
+ADRobinBC::validParams()
 {
+  InputParameters params = ADIntegratedBC::validParams();
+  return params;
 }
 
-template <ComputeStage compute_stage>
-ADResidual
-ADRobinBC<compute_stage>::computeQpResidual()
+ADRobinBC::ADRobinBC(const InputParameters & parameters) : ADIntegratedBC(parameters) {}
+
+ADReal
+ADRobinBC::computeQpResidual()
 {
   return _test[_i][_qp] * 2. * _u[_qp];
 }

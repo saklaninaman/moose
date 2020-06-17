@@ -18,7 +18,7 @@
 #include "SubProblem.h"
 
 // Forward declarations
-class MooseVariableFEBase;
+class MooseVariableFieldBase;
 
 /**
  * A base storage container for MooseObjects.
@@ -48,7 +48,7 @@ public:
   /**
    * Return how many kernels we store in the current warehouse
    */
-  unsigned int size(THREAD_ID tid = 0);
+  unsigned int size(THREAD_ID tid = 0) const;
 
   ///@{
   /**
@@ -136,6 +136,17 @@ public:
 
   ///@{
   /**
+   * Update FE variable coupleable vector tag vector
+   */
+  void updateBlockFEVariableCoupledVectorTagDependency(SubdomainID id,
+                                                       std::set<TagID> & needed_fe_var_vector_tags,
+                                                       THREAD_ID tid = 0) const;
+  void updateBoundaryFEVariableCoupledVectorTagDependency(
+      BoundaryID id, std::set<TagID> & needed_fe_var_vector_tags, THREAD_ID tid = 0) const;
+  ///@}
+
+  ///@{
+  /**
    * Update material property dependency vector.
    */
   void updateMatPropDependency(std::set<unsigned int> & needed_mat_props, THREAD_ID tid = 0) const;
@@ -201,6 +212,13 @@ protected:
                                              const std::vector<std::shared_ptr<T>> & objects);
 
   /**
+   * Helper method for updating FE variable coupleable vector tag vector
+   */
+  static void
+  updateFEVariableCoupledVectorTagDependencyHelper(std::set<TagID> & needed_fe_var_vector_tags,
+                                                   const std::vector<std::shared_ptr<T>> & objects);
+
+  /**
    * Helper method for updating material property dependency vector
    */
   static void updateMatPropDependencyHelper(std::set<unsigned int> & needed_mat_props,
@@ -231,7 +249,7 @@ MooseObjectWarehouseBase<T>::~MooseObjectWarehouseBase()
 
 template <typename T>
 unsigned int
-MooseObjectWarehouseBase<T>::size(THREAD_ID tid /* =0 */)
+MooseObjectWarehouseBase<T>::size(THREAD_ID tid /* =0 */) const
 {
   checkThreadID(tid);
   return _all_objects[tid].size();
@@ -607,6 +625,38 @@ MooseObjectWarehouseBase<T>::updateVariableDependencyHelper(
 
 template <typename T>
 void
+MooseObjectWarehouseBase<T>::updateBlockFEVariableCoupledVectorTagDependency(
+    SubdomainID id, std::set<TagID> & needed_fe_var_vector_tags, THREAD_ID tid /* = 0*/) const
+{
+  if (hasActiveBlockObjects(id, tid))
+    updateFEVariableCoupledVectorTagDependencyHelper(needed_fe_var_vector_tags,
+                                                     getActiveBlockObjects(id, tid));
+}
+
+template <typename T>
+void
+MooseObjectWarehouseBase<T>::updateBoundaryFEVariableCoupledVectorTagDependency(
+    BoundaryID id, std::set<TagID> & needed_fe_var_vector_tags, THREAD_ID tid /* = 0*/) const
+{
+  if (hasActiveBoundaryObjects(id, tid))
+    updateFEVariableCoupledVectorTagDependencyHelper(needed_fe_var_vector_tags,
+                                                     getActiveBoundaryObjects(id, tid));
+}
+
+template <typename T>
+void
+MooseObjectWarehouseBase<T>::updateFEVariableCoupledVectorTagDependencyHelper(
+    std::set<TagID> & needed_fe_var_vector_tags, const std::vector<std::shared_ptr<T>> & objects)
+{
+  for (const auto & object : objects)
+  {
+    const auto & tag_deps = object->getFEVariableCoupleableVectorTags();
+    needed_fe_var_vector_tags.insert(tag_deps.begin(), tag_deps.end());
+  }
+}
+
+template <typename T>
+void
 MooseObjectWarehouseBase<T>::updateMatPropDependency(std::set<unsigned int> & needed_mat_props,
                                                      THREAD_ID tid /* = 0*/) const
 {
@@ -697,4 +747,3 @@ MooseObjectWarehouseBase<T>::checkThreadID(THREAD_ID libmesh_dbg_var(tid)) const
                   << tid << ") greater than the number allowed by the storage item ("
                   << _num_threads << ")");
 }
-

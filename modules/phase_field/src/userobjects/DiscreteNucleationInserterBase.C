@@ -9,11 +9,10 @@
 
 #include "DiscreteNucleationInserterBase.h"
 
-template <>
 InputParameters
-validParams<DiscreteNucleationInserterBase>()
+DiscreteNucleationInserterBase::validParams()
 {
-  InputParameters params = validParams<ElementUserObject>();
+  InputParameters params = ElementUserObject::validParams();
   params.set<ExecFlagEnum>("execute_on") = EXEC_TIMESTEP_END;
   return params;
 }

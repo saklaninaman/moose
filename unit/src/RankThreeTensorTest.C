@@ -15,6 +15,10 @@
 #include "RankThreeTensor.h"
 #include "RankFourTensor.h"
 #include "MooseEnum.h"
+#include "MooseTypes.h"
+#include "ADReal.h"
+
+#include "metaphysicl/raw_type.h"
 
 TEST(RankThreeTensor, constructors)
 {
@@ -101,7 +105,7 @@ TEST(RankThreeTensor, zero)
   RankThreeTensor r2(std::vector<Real>(27, 1980));
 
   r1.zero();
-  mooseSetToZero(r2);
+  MathUtils::mooseSetToZero(r2);
 
   for (unsigned int i = 0; i < 3; ++i)
     for (unsigned int j = 0; j < 3; ++j)
@@ -395,4 +399,19 @@ TEST(RankThreeTensor, doubleContraction)
 
     EXPECT_EQ(c(i), value);
   }
+}
+
+TEST(RankThreeTensor, ADConversion)
+{
+  RankThreeTensor reg;
+  ADRankThreeTensor ad;
+
+  ad = reg;
+  reg = MetaPhysicL::raw_value(ad);
+
+  GenericRankThreeTensor<false> generic_reg;
+  GenericRankThreeTensor<true> generic_ad;
+
+  generic_ad = generic_reg;
+  generic_reg = MetaPhysicL::raw_value(generic_ad);
 }

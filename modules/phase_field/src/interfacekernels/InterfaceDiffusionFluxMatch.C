@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", InterfaceDiffusionFluxMatch);
 
-template <>
 InputParameters
-validParams<InterfaceDiffusionFluxMatch>()
+InterfaceDiffusionFluxMatch::validParams()
 {
-  InputParameters params = validParams<InterfaceDiffusionBase>();
+  InputParameters params = InterfaceDiffusionBase::validParams();
   params.addClassDescription(
       "Enforce flux continuity between two different variables across a subdomain boundary");
   return params;

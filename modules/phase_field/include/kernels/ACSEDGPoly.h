@@ -22,15 +22,13 @@
  */
 
 // Forward Declarations
-class ACSEDGPoly;
 class GrainTrackerInterface;
-
-template <>
-InputParameters validParams<ACSEDGPoly>();
 
 class ACSEDGPoly : public ACBulk<Real>
 {
 public:
+  static InputParameters validParams();
+
   ACSEDGPoly(const InputParameters & parameters);
 
 protected:
@@ -59,4 +57,3 @@ protected:
   /// index of the OP the kernel is currently acting on
   unsigned int _op_index;
 };
-

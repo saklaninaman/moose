@@ -11,21 +11,15 @@
 
 #include "Function.h"
 
-// Forward declarations
-class LevelSetOlssonVortex;
-
-template <>
-InputParameters validParams<LevelSetOlssonVortex>();
-
 /**
  * Defines a vortex velocity field in the x-y plane.
  */
 class LevelSetOlssonVortex : public Function
 {
 public:
-  LevelSetOlssonVortex(const InputParameters & parameters);
+  static InputParameters validParams();
 
-  Real value(Real t, const Point & p) const override;
+  LevelSetOlssonVortex(const InputParameters & parameters);
 
   RealVectorValue vectorValue(Real t, const Point & p) const override;
 
@@ -35,9 +29,6 @@ protected:
 
   /// Type of reverse (instantaneous or smooth)
   const MooseEnum & _reverse_type;
-
-  /// The vector component to return
-  const MooseEnum & _component;
 
   // Convenience for libMesh::pi
   const Real _pi;

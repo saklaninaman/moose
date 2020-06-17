@@ -13,11 +13,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowHeatMassTransfer);
 
-template <>
 InputParameters
-validParams<PorousFlowHeatMassTransfer>()
+PorousFlowHeatMassTransfer::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
 
   params.addClassDescription(
       "Calculate heat or mass transfer from a coupled variable v to the variable u. "

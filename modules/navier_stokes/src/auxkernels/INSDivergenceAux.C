@@ -12,11 +12,10 @@
 
 registerMooseObject("NavierStokesApp", INSDivergenceAux);
 
-template <>
 InputParameters
-validParams<INSDivergenceAux>()
+INSDivergenceAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
 
   params.addClassDescription("Computes h_min / |u|.");
   // Coupled variables

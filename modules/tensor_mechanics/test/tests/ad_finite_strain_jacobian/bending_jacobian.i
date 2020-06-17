@@ -1,35 +1,37 @@
 [Mesh]
-  type = GeneratedMesh
-  dim = 2
-  xmin = 0
-  xmax = 10
-  ymin = 0
-  ymax = 2
-  nx = 10
-  ny = 2
-  elem_type = QUAD4
+  [generated_mesh]
+    type = GeneratedMeshGenerator
+    dim = 2
+    xmin = 0
+    xmax = 10
+    ymin = 0
+    ymax = 2
+    nx = 10
+    ny = 2
+    elem_type = QUAD4
+  []
+  [corner]
+    type = ExtraNodesetGenerator
+    new_boundary = 101
+    coord = '0 0'
+    input = generated_mesh
+  []
+  [side]
+    type = ExtraNodesetGenerator
+    new_boundary = 102
+    coord = '10 0'
+    input = corner
+  []
+  [mid]
+    type = ExtraNodesetGenerator
+    new_boundary = 103
+    coord = '5 2'
+    input = side
+  []
 []
 
 [GlobalParams]
   displacements = 'disp_x disp_y'
-[]
-
-[MeshModifiers]
-  [./corner]
-    type = AddExtraNodeset
-    new_boundary = 101
-    coord = '0 0'
-  [../]
-  [./side]
-    type = AddExtraNodeset
-    new_boundary = 102
-    coord = '10 0'
-  [../]
-  [./mid]
-    type = AddExtraNodeset
-    new_boundary = 103
-    coord = '5 2'
-  [../]
 []
 
 [Modules/TensorMechanics/Master]
@@ -47,7 +49,7 @@
     type = ADComputeFiniteStrainElasticStress
   [../]
   [./elasticity_tensor]
-    type = ComputeElasticityTensor
+    type = ADComputeElasticityTensor
     fill_method = symmetric9
     C_ijkl = '1.684e5 0.176e5 0.176e5 1.684e5 0.176e5 1.684e5 0.754e5 0.754e5 0.754e5'
   [../]
@@ -55,25 +57,25 @@
 
 [BCs]
  [./fix_corner_x]
-   type = ADPresetBC
+   type = ADDirichletBC
    variable = disp_x
    boundary = 101
    value = 0
  [../]
  [./fix_corner_y]
-   type = ADPresetBC
+   type = ADDirichletBC
    variable = disp_y
    boundary = 101
    value = 0
  [../]
  [./fix_y]
-   type = ADPresetBC
+   type = ADDirichletBC
    variable = disp_y
    boundary = 102
    value = 0
  [../]
  [./move_y]
-   type = ADFunctionPresetBC
+   type = ADFunctionDirichletBC
    variable = disp_y
    boundary = 103
    function = '-t'

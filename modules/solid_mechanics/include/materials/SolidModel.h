@@ -15,7 +15,6 @@
 
 // Forward declarations
 class ConstitutiveModel;
-class SolidModel;
 class SymmElasticityTensor;
 class PiecewiseLinear;
 class VolumetricModel;
@@ -24,15 +23,14 @@ namespace SolidMechanics
 class Element;
 }
 
-template <>
-InputParameters validParams<SolidModel>();
-
 /**
  * SolidModel is the base class for all this module's solid mechanics material models.
  */
 class SolidModel : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   SolidModel(const InputParameters & parameters);
   virtual ~SolidModel();
 

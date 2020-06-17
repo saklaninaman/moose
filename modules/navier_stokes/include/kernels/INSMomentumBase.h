@@ -12,10 +12,6 @@
 #include "INSBase.h"
 
 // Forward Declarations
-class INSMomentumBase;
-
-template <>
-InputParameters validParams<INSMomentumBase>();
 
 /**
  * This class computes the momentum equation residual and Jacobian
@@ -25,6 +21,8 @@ InputParameters validParams<INSMomentumBase>();
 class INSMomentumBase : public INSBase
 {
 public:
+  static InputParameters validParams();
+
   INSMomentumBase(const InputParameters & parameters);
 
   virtual ~INSMomentumBase() {}

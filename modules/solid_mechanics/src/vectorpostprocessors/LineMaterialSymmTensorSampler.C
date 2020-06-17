@@ -11,12 +11,11 @@
 
 registerMooseObject("SolidMechanicsApp", LineMaterialSymmTensorSampler);
 
-template <>
 InputParameters
-validParams<LineMaterialSymmTensorSampler>()
+LineMaterialSymmTensorSampler::validParams()
 {
-  InputParameters params = validParams<LineMaterialSamplerBase<Real>>();
-  params += validParams<MaterialTensorCalculator>();
+  InputParameters params = LineMaterialSamplerBase<Real>::validParams();
+  params += MaterialTensorCalculator::validParams();
   return params;
 }
 

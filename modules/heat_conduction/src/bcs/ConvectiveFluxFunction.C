@@ -13,14 +13,18 @@
 
 registerMooseObject("HeatConductionApp", ConvectiveFluxFunction);
 
-template <>
 InputParameters
-validParams<ConvectiveFluxFunction>()
+ConvectiveFluxFunction::validParams()
 {
-  InputParameters params = validParams<IntegratedBC>();
+  InputParameters params = IntegratedBC::validParams();
   params.addRequiredParam<FunctionName>("T_infinity", "Function describing far-field temperature");
-  params.addRequiredParam<Real>("coefficient", "Heat transfer coefficient");
-  params.addParam<FunctionName>("coefficient_function", "Heat transfer coefficient function");
+  params.addRequiredParam<FunctionName>("coefficient",
+                                        "Function describing heat transfer coefficient");
+  MooseEnum coef_func_type("TIME_AND_POSITION TEMPERATURE", "TIME_AND_POSITION");
+  params.addParam<MooseEnum>(
+      "coefficient_function_type",
+      coef_func_type,
+      "Type of function for heat transfer coefficient provided in 'coefficient' parameter");
   params.addClassDescription(
       "Determines boundary value by fluid heat transfer coefficient and far-field temperature");
 
@@ -30,21 +34,36 @@ validParams<ConvectiveFluxFunction>()
 ConvectiveFluxFunction::ConvectiveFluxFunction(const InputParameters & parameters)
   : IntegratedBC(parameters),
     _T_infinity(getFunction("T_infinity")),
-    _coefficient(getParam<Real>("coefficient")),
-    _coef_func(isParamValid("coefficient_function") ? &getFunction("coefficient_function") : NULL)
+    _coefficient(getFunction("coefficient")),
+    _coef_func_type(getParam<MooseEnum>("coefficient_function_type").getEnum<CoefFuncType>())
 {
 }
 
 Real
 ConvectiveFluxFunction::computeQpResidual()
 {
-  const Real coef(_coefficient * (_coef_func ? _coef_func->value(_t, _q_point[_qp]) : 1));
+  Real coef;
+  if (_coef_func_type == CoefFuncType::TIME_AND_POSITION)
+    coef = _coefficient.value(_t, _q_point[_qp]);
+  else
+    coef = _coefficient.value(_u[_qp], Point());
+
   return _test[_i][_qp] * coef * (_u[_qp] - _T_infinity.value(_t, _q_point[_qp]));
 }
 
 Real
 ConvectiveFluxFunction::computeQpJacobian()
 {
-  const Real coef(_coefficient * (_coef_func ? _coef_func->value(_t, _q_point[_qp]) : 1));
-  return _test[_i][_qp] * coef * _phi[_j][_qp];
+  if (_coef_func_type == CoefFuncType::TIME_AND_POSITION)
+  {
+    Real coef = _coefficient.value(_t, _q_point[_qp]);
+    return _test[_i][_qp] * coef * _phi[_j][_qp];
+  }
+  else
+  {
+    const Real coef = _coefficient.value(_u[_qp], Point());
+    const Real dcoef_dT = _coefficient.timeDerivative(_u[_qp], Point());
+    return _test[_i][_qp] * (coef + (_u[_qp] - _T_infinity.value(_t, _q_point[_qp])) * dcoef_dT) *
+           _phi[_j][_qp];
+  }
 }

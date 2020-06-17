@@ -11,28 +11,22 @@
 
 #include "ADMaterial.h"
 
-template <ComputeStage>
-class ADCoupledMaterial;
-
-declareADValidParams(ADCoupledMaterial);
-
 /**
  * A material that couples a material property
  */
-template <ComputeStage compute_stage>
-class ADCoupledMaterial : public ADMaterial<compute_stage>
+class ADCoupledMaterial : public ADMaterial
 {
 public:
+  static InputParameters validParams();
+
   ADCoupledMaterial(const InputParameters & parameters);
 
 protected:
   virtual void computeQpProperties();
 
-  ADMaterialProperty(Real) & _ad_mat_prop;
+  ADMaterialProperty<Real> & _ad_mat_prop;
   MaterialProperty<Real> & _regular_mat_prop;
 
   const ADVariableValue & _coupled_var;
 
-  usingMaterialMembers;
 };
-

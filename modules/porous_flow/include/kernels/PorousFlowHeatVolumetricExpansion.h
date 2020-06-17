@@ -12,11 +12,6 @@
 #include "TimeDerivative.h"
 #include "PorousFlowDictator.h"
 
-class PorousFlowHeatVolumetricExpansion;
-
-template <>
-InputParameters validParams<PorousFlowHeatVolumetricExpansion>();
-
 /**
  * Kernel = energy_density * d(volumetric_strain)/dt
  * which is lumped to the nodes
@@ -24,6 +19,8 @@ InputParameters validParams<PorousFlowHeatVolumetricExpansion>();
 class PorousFlowHeatVolumetricExpansion : public TimeKernel
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowHeatVolumetricExpansion(const InputParameters & parameters);
 
 protected:
@@ -105,4 +102,3 @@ protected:
    */
   Real computedVolQpJac(unsigned int jvar);
 };
-

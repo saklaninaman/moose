@@ -13,6 +13,7 @@
 #include "DiracKernelInfo.h"
 #include "GeometricSearchData.h"
 #include "MooseTypes.h"
+#include "VectorTag.h"
 
 #include "libmesh/coupling_matrix.h"
 
@@ -21,20 +22,24 @@ namespace libMesh
 template <typename>
 class VectorValue;
 typedef VectorValue<Real> RealVectorValue;
+class GhostingFunctor;
 }
 
 class MooseMesh;
 class SubProblem;
 class Factory;
 class Assembly;
-class MooseVariableFEBase;
+class MooseVariableFieldBase;
 class MooseVariableScalar;
 template <typename>
 class MooseVariableFE;
 typedef MooseVariableFE<Real> MooseVariable;
 typedef MooseVariableFE<RealVectorValue> VectorMooseVariable;
+typedef MooseVariableFE<RealEigenVector> ArrayMooseVariable;
 class RestartableDataValue;
 class SystemBase;
+class LineSearch;
+class FaceInfo;
 
 // libMesh forward declarations
 namespace libMesh
@@ -59,6 +64,8 @@ InputParameters validParams<SubProblem>();
 class SubProblem : public Problem
 {
 public:
+  static InputParameters validParams();
+
   SubProblem(const InputParameters & parameters);
   virtual ~SubProblem();
 
@@ -76,6 +83,12 @@ public:
 
   virtual bool isTransient() const = 0;
 
+  /// marks this problem as including/needing finite volume functionality.
+  void needFV() { _have_fv = true; }
+
+  /// returns true if this problem includes/needs finite volume functionality.
+  bool haveFV() const { return _have_fv; }
+
   /**
    * Whether or not the user has requested default ghosting ot be on.
    */
@@ -85,41 +98,53 @@ public:
    * Create a Tag.  Tags can be associated with Vectors and Matrices and allow objects
    * (such as Kernels) to arbitrarily contribute values to any set of vectors/matrics
    *
-   * Note: If the tag is already present then this will simply return the TagID of that Tag
+   * Note: If the tag is already present then this will simply return the TagID of that Tag, but the
+   * type must be the same.
    *
    * @param tag_name The name of the tag to create, the TagID will get automatically generated
+   * @param type The type of the tag
    */
-  virtual TagID addVectorTag(TagName tag_name);
+  virtual TagID addVectorTag(const TagName & tag_name,
+                             const Moose::VectorTagType type = Moose::VECTOR_TAG_RESIDUAL);
+
+  /**
+   * Get a VectorTag from a TagID.
+   */
+  virtual const VectorTag & getVectorTag(const TagID tag_id) const;
 
   /**
    * Get a TagID from a TagName.
    */
-  virtual TagID getVectorTagID(const TagName & tag_name);
+  virtual TagID getVectorTagID(const TagName & tag_name) const;
 
   /**
    * Retrieve the name associated with a TagID
    */
-  virtual TagName vectorTagName(TagID tag);
+  virtual TagName vectorTagName(const TagID tag) const;
 
   /**
-   * Return all vector tags, where a tag is represented by a map from name to ID
+   * Return all vector tags, where a tag is represented by a map from name to ID. Can optionally be
+   * limited to a vector tag type.
    */
-  virtual std::map<TagName, TagID> & getVectorTags() { return _vector_tag_name_to_tag_id; }
+  virtual const std::vector<VectorTag> &
+  getVectorTags(const Moose::VectorTagType type = Moose::VECTOR_TAG_ANY) const;
 
   /**
    * Check to see if a particular Tag exists
    */
-  virtual bool vectorTagExists(TagID tag) { return tag < _vector_tag_name_to_tag_id.size(); }
+  virtual bool vectorTagExists(const TagID tag_id) const { return tag_id < _vector_tags.size(); }
 
   /**
    * Check to see if a particular Tag exists by using Tag name
    */
-  bool vectorTagExists(const TagName & tag_name);
+  bool vectorTagExists(const TagName & tag_name) const;
 
   /**
-   * The total number of tags
+   * The total number of tags, which can be limited to the tag type
    */
-  virtual unsigned int numVectorTags() const { return _vector_tag_name_to_tag_id.size(); }
+  virtual unsigned int numVectorTags(const Moose::VectorTagType type = Moose::VECTOR_TAG_ANY) const;
+
+  virtual Moose::VectorTagType vectorTagType(const TagID tag_id) const;
 
   /**
    * Create a Tag.  Tags can be associated with Vectors and Matrices and allow objects
@@ -161,7 +186,7 @@ public:
    */
   virtual std::map<TagName, TagID> & getMatrixTags() { return _matrix_tag_name_to_tag_id; }
 
-  // Variables /////
+  /// Whether or not this problem has the variable
   virtual bool hasVariable(const std::string & var_name) const = 0;
 
   /**
@@ -173,7 +198,7 @@ public:
    * in question is not in the expected System or of the expected
    * type.
    */
-  virtual MooseVariableFEBase &
+  virtual MooseVariableFieldBase &
   getVariable(THREAD_ID tid,
               const std::string & var_name,
               Moose::VarKindType expected_var_type = Moose::VarKindType::VAR_ANY,
@@ -184,6 +209,15 @@ public:
 
   /// Returns the variable reference for requested VectorMooseVariable which may be in any system
   virtual VectorMooseVariable & getVectorVariable(THREAD_ID tid, const std::string & var_name) = 0;
+
+  /// Returns the variable reference for requested ArrayMooseVariable which may be in any system
+  virtual ArrayMooseVariable & getArrayVariable(THREAD_ID tid, const std::string & var_name) = 0;
+
+  /// Returns the variable name of a component of an array variable
+  static std::string arrayVariableComponent(const std::string & var_name, unsigned int i)
+  {
+    return var_name + "_" + std::to_string(i);
+  }
 
   /// Returns a Boolean indicating whether any system contains a variable with the name provided
   virtual bool hasScalarVariable(const std::string & var_name) const = 0;
@@ -200,15 +234,16 @@ public:
    *
    * @param tid The thread id
    */
-  virtual void setActiveElementalMooseVariables(const std::set<MooseVariableFEBase *> & moose_vars,
-                                                THREAD_ID tid);
+  virtual void
+  setActiveElementalMooseVariables(const std::set<MooseVariableFieldBase *> & moose_vars,
+                                   THREAD_ID tid);
 
   /**
    * Get the MOOSE variables to be reinited on each element.
    *
    * @param tid The thread id
    */
-  virtual const std::set<MooseVariableFEBase *> &
+  virtual const std::set<MooseVariableFieldBase *> &
   getActiveElementalMooseVariables(THREAD_ID tid) const;
 
   /**
@@ -219,9 +254,9 @@ public:
   virtual bool hasActiveElementalMooseVariables(THREAD_ID tid) const;
 
   /**
-   * Clear the active elemental MooseVariableFEBase.  If there are no active variables then they
+   * Clear the active elemental MooseVariableFieldBase.  If there are no active variables then they
    * will all be reinited. Call this after finishing the computation that was using a restricted set
-   * of MooseVariableFEBases
+   * of MooseVariableFieldBase
    *
    * @param tid The thread id
    */
@@ -350,8 +385,17 @@ public:
   virtual void reinitNeighborPhys(const Elem * neighbor,
                                   const std::vector<Point> & physical_points,
                                   THREAD_ID tid) = 0;
-  virtual void reinitScalars(THREAD_ID tid) = 0;
+  /**
+   * fills the VariableValue arrays for scalar variables from the solution vector
+   * @param tid The thread id
+   * @param reinit_for_derivative_reordering A flag indicating whether we are reinitializing for the
+   *        purpose of re-ordering derivative information for ADNodalBCs
+   */
+  virtual void reinitScalars(THREAD_ID tid, bool reinit_for_derivative_reordering = false) = 0;
   virtual void reinitOffDiagScalars(THREAD_ID tid) = 0;
+
+  /// sets the current boundary ID in assembly
+  void setCurrentBoundaryID(BoundaryID bid, THREAD_ID tid);
 
   /**
    * reinitialize FE objects on a given element on a given side at a given set of reference
@@ -359,13 +403,13 @@ public:
    * been called beforehand, e.g. you don't have to call some prepare method before this one. This
    * is an all-in-one reinit
    */
-  void reinitElemFaceRef(const Elem * elem,
-                         unsigned int side,
-                         BoundaryID bnd_id,
-                         Real tolerance,
-                         const std::vector<Point> * const pts,
-                         const std::vector<Real> * const weights = nullptr,
-                         THREAD_ID tid = 0);
+  virtual void reinitElemFaceRef(const Elem * elem,
+                                 unsigned int side,
+                                 BoundaryID bnd_id,
+                                 Real tolerance,
+                                 const std::vector<Point> * const pts,
+                                 const std::vector<Real> * const weights = nullptr,
+                                 THREAD_ID tid = 0);
 
   /**
    * reinitialize FE objects on a given neighbor element on a given side at a given set of reference
@@ -373,13 +417,13 @@ public:
    * been called beforehand, e.g. you don't have to call some prepare method before this one. This
    * is an all-in-one reinit
    */
-  void reinitNeighborFaceRef(const Elem * neighbor_elem,
-                             unsigned int neighbor_side,
-                             BoundaryID bnd_id,
-                             Real tolerance,
-                             const std::vector<Point> * const pts,
-                             const std::vector<Real> * const weights = nullptr,
-                             THREAD_ID tid = 0);
+  virtual void reinitNeighborFaceRef(const Elem * neighbor_elem,
+                                     unsigned int neighbor_side,
+                                     BoundaryID bnd_id,
+                                     Real tolerance,
+                                     const std::vector<Point> * const pts,
+                                     const std::vector<Real> * const weights = nullptr,
+                                     THREAD_ID tid = 0);
 
   /**
    * reinitialize a lower dimensional FE object at a given set of reference points and then compute
@@ -577,7 +621,7 @@ public:
   bool computingNonlinearResid() const { return _computing_nonlinear_residual; }
 
   /// Set whether residual being evaulated is non-linear
-  void computingNonlinearResid(bool computing_nonlinear_residual)
+  virtual void computingNonlinearResid(bool computing_nonlinear_residual)
   {
     _computing_nonlinear_residual = computing_nonlinear_residual;
   }
@@ -621,23 +665,46 @@ public:
    */
   bool haveADObjects() const { return _have_ad_objects; }
 
+  virtual LineSearch * getLineSearch() = 0;
+
+  /**
+   * The coupling matrix defining what blocks exist in the preconditioning matrix
+   */
+  virtual const CouplingMatrix * couplingMatrix() const = 0;
+
+  /**
+   * Add an algebraic ghosting functor to this problem's DofMaps
+   */
+  void addAlgebraicGhostingFunctor(GhostingFunctor & algebraic_gf, bool to_mesh = true);
+
+  /**
+   * Automatic scaling setter
+   * @param automatic_scaling A boolean representing whether we are performing automatic scaling
+   */
+  virtual void automaticScaling(bool automatic_scaling);
+
+  /**
+   * Automatic scaling getter
+   * @return A boolean representing whether we are performing automatic scaling
+   */
+  bool automaticScaling() const;
+
 protected:
   /**
    * Helper function called by getVariable that handles the logic for
    * checking whether Variables of the requested type are available.
    */
-  MooseVariableFEBase & getVariableHelper(THREAD_ID tid,
-                                          const std::string & var_name,
-                                          Moose::VarKindType expected_var_type,
-                                          Moose::VarFieldType expected_var_field_type,
-                                          SystemBase & nl,
-                                          SystemBase & aux);
+  MooseVariableFieldBase & getVariableHelper(THREAD_ID tid,
+                                             const std::string & var_name,
+                                             Moose::VarKindType expected_var_type,
+                                             Moose::VarFieldType expected_var_field_type,
+                                             SystemBase & nl,
+                                             SystemBase & aux);
 
-  /// The currently declared tags
-  std::map<TagName, TagID> _vector_tag_name_to_tag_id;
-
-  /// Reverse map
-  std::map<TagID, TagName> _vector_tag_id_to_tag_name;
+  /**
+   * Verify the integrity of _vector_tags and _typed_vector_tags
+   */
+  bool verifyVectorTags() const;
 
   /// The currently declared tags
   std::map<TagName, TagID> _matrix_tag_name_to_tag_id;
@@ -678,8 +745,8 @@ protected:
   std::map<BoundaryID, std::multimap<std::string, std::string>> _map_boundary_material_props_check;
   ///@}
 
-  /// This is the set of MooseVariableFEBases that will actually get reinited by a call to reinit(elem)
-  std::vector<std::set<MooseVariableFEBase *>> _active_elemental_moose_variables;
+  /// This is the set of MooseVariableFieldBase that will actually get reinited by a call to reinit(elem)
+  std::vector<std::set<MooseVariableFieldBase *>> _active_elemental_moose_variables;
 
   /// Whether or not there is currently a list of active elemental moose variables
   /* This needs to remain <unsigned int> for threading purposes */
@@ -724,6 +791,21 @@ protected:
   bool _have_ad_objects;
 
 private:
+  /// The declared vector tags
+  std::vector<VectorTag> _vector_tags;
+
+  /**
+   * The vector tags assoicated with each VectorTagType
+   * This is kept separate from _vector_tags for quick access into typed vector tags in places where
+   * we don't want to build a new vector every call (like in residual evaluation)
+   */
+  std::vector<std::vector<VectorTag>> _typed_vector_tags;
+
+  /// Map of vector tag TagName to TagID
+  std::map<TagName, TagID> _vector_tags_name_map;
+
+  bool _have_fv = false;
+
   ///@{ Helper functions for checking MaterialProperties
   std::string restrictionSubdomainCheckName(SubdomainID check_id);
   std::string restrictionBoundaryCheckName(BoundaryID check_id);
@@ -738,4 +820,3 @@ namespace Moose
 void initial_condition(EquationSystems & es, const std::string & system_name);
 
 } // namespace Moose
-

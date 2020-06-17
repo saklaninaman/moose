@@ -11,11 +11,7 @@
 
 #include "AuxKernel.h"
 
-class InternalEnergyAux;
 class SinglePhaseFluidProperties;
-
-template <>
-InputParameters validParams<InternalEnergyAux>();
 
 /**
  * Compute internal energy given equation of state pressure and density
@@ -23,6 +19,8 @@ InputParameters validParams<InternalEnergyAux>();
 class InternalEnergyAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   InternalEnergyAux(const InputParameters & parameters);
 
 protected:
@@ -33,4 +31,3 @@ protected:
 
   const SinglePhaseFluidProperties & _fp;
 };
-

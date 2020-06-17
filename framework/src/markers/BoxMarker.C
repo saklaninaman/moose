@@ -8,14 +8,16 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "BoxMarker.h"
+#include "MooseUtils.h"
 
 registerMooseObject("MooseApp", BoxMarker);
 
-template <>
+defineLegacyParams(BoxMarker);
+
 InputParameters
-validParams<BoxMarker>()
+BoxMarker::validParams()
 {
-  InputParameters params = validParams<Marker>();
+  InputParameters params = Marker::validParams();
   params.addRequiredParam<RealVectorValue>(
       "bottom_left", "The bottom left point (in x,y,z with spaces in-between).");
   params.addRequiredParam<RealVectorValue>(
@@ -37,8 +39,8 @@ BoxMarker::BoxMarker(const InputParameters & parameters)
   : Marker(parameters),
     _inside((MarkerValue)(int)parameters.get<MooseEnum>("inside")),
     _outside((MarkerValue)(int)parameters.get<MooseEnum>("outside")),
-    _bounding_box(parameters.get<RealVectorValue>("bottom_left"),
-                  parameters.get<RealVectorValue>("top_right"))
+    _bounding_box(MooseUtils::buildBoundingBox(parameters.get<RealVectorValue>("bottom_left"),
+                                               parameters.get<RealVectorValue>("top_right")))
 {
 }
 

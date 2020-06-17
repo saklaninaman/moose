@@ -13,11 +13,10 @@
 
 registerMooseObject("TensorMechanicsApp", CavityPressurePostprocessor);
 
-template <>
 InputParameters
-validParams<CavityPressurePostprocessor>()
+CavityPressurePostprocessor::validParams()
 {
-  InputParameters params = validParams<GeneralPostprocessor>();
+  InputParameters params = GeneralPostprocessor::validParams();
   params.addClassDescription("Interfaces with the CavityPressureUserObject to store "
                              "the initial number of moles of a gas contained within "
                              "an internal volume.");

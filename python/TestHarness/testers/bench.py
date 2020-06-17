@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -10,15 +10,21 @@
 
 import subprocess
 import time
+import sys
 import os
 import gc
 import shutil
 import csv
 import tempfile
 import threading
-import resource
 
-from Tester import Tester
+# try to import the resource module. We check further down if it failed
+try:
+    import resource
+except:
+    pass
+
+from TestHarness.testers.Tester import Tester
 
 def process_timeout(proc, timeout_sec):
   kill_proc = lambda p: p.kill()
@@ -134,6 +140,10 @@ class SpeedTest(Tester):
 
     # override
     def checkRunnable(self, options):
+        # check if resource is available
+        if 'resource' not in sys.modules:
+            return False
+
         # if user is not explicitly running benchmarks, we only run moose once and just check
         # input - to make sure the benchmark isn't broken.
         if 'speedtests' not in options.runtags:
@@ -389,6 +399,6 @@ def git_revision(dir='.'):
     stdout, stderr = p.communicate()
     if p.returncode != 0:
         raise RuntimeError('failed to retrieve git revision')
-    commit = stdout.strip().split(' ')[0]
-    date = int(stdout.strip().split(' ')[1])
+    commit = str(stdout).strip().split(' ')[0]
+    date = int(str(stdout).strip().split(' ')[1])
     return commit, date

@@ -19,11 +19,6 @@
 extern "C" void FORTRAN_CALL(dgetri)(...); // matrix inversion routine from LAPACK
 #endif
 
-class RateDepSmearCrackModel;
-
-template <>
-InputParameters validParams<RateDepSmearCrackModel>();
-
 /**
  * RateDepSmearCrackModel is the base class for rate dependent continuum damage model.
  * The model is local and hence mesh sensitive.
@@ -32,6 +27,8 @@ InputParameters validParams<RateDepSmearCrackModel>();
 class RateDepSmearCrackModel : public ConstitutiveModel
 {
 public:
+  static InputParameters validParams();
+
   RateDepSmearCrackModel(const InputParameters & parameters);
 
   virtual ~RateDepSmearCrackModel();
@@ -125,4 +122,3 @@ protected:
 
 private:
 };
-

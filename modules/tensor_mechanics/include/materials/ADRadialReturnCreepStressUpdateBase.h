@@ -11,25 +11,15 @@
 
 #include "ADRadialReturnStressUpdate.h"
 
-#define usingRadialReturnCreepStressUpdateBaseMembers                                              \
-  usingRadialReturnStressUpdateMembers;                                                            \
-  using ADRadialReturnCreepStressUpdateBase<compute_stage>::_creep_strain;                         \
-  using ADRadialReturnCreepStressUpdateBase<compute_stage>::_creep_strain_old
-
-// Forward Declarations
-template <ComputeStage>
-class ADRadialReturnCreepStressUpdateBase;
-
-declareADValidParams(ADRadialReturnCreepStressUpdateBase);
-
 /**
  * This class provides baseline functionallity for creep models based on the stress update material
  * in a radial return isotropic creep calculations.
  */
-template <ComputeStage compute_stage>
-class ADRadialReturnCreepStressUpdateBase : public ADRadialReturnStressUpdate<compute_stage>
+class ADRadialReturnCreepStressUpdateBase : public ADRadialReturnStressUpdate
 {
 public:
+  static InputParameters validParams();
+
   ADRadialReturnCreepStressUpdateBase(const InputParameters & parameters);
 
 protected:
@@ -38,9 +28,6 @@ protected:
   virtual void computeStressFinalize(const ADRankTwoTensor & plastic_strain_increment) override;
 
   /// Creep strain material property
-  ADMaterialProperty(RankTwoTensor) & _creep_strain;
+  ADMaterialProperty<RankTwoTensor> & _creep_strain;
   const MaterialProperty<RankTwoTensor> & _creep_strain_old;
-
-  usingRadialReturnStressUpdateMembers;
 };
-

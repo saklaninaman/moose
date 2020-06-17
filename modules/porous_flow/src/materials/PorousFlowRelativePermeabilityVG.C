@@ -12,11 +12,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowRelativePermeabilityVG);
 
-template <>
 InputParameters
-validParams<PorousFlowRelativePermeabilityVG>()
+PorousFlowRelativePermeabilityVG::validParams()
 {
-  InputParameters params = validParams<PorousFlowRelativePermeabilityBase>();
+  InputParameters params = PorousFlowRelativePermeabilityBase::validParams();
   params.addRequiredRangeCheckedParam<Real>(
       "m", "m > 0 & m < 1", "The van Genuchten exponent of the phase");
   params.addRangeCheckedParam<Real>("seff_turnover",

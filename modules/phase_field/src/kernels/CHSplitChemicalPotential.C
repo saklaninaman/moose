@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", CHSplitChemicalPotential);
 
-template <>
 InputParameters
-validParams<CHSplitChemicalPotential>()
+CHSplitChemicalPotential::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addClassDescription("Chemical potential kernel in Split Cahn-Hilliard that solves "
                              "chemical potential in a weak form");
   params.addRequiredParam<MaterialPropertyName>("chemical_potential_prop",

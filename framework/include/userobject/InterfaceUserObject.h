@@ -14,14 +14,7 @@
 #include "TwoMaterialPropertyInterface.h"
 #include "NeighborCoupleable.h"
 #include "MooseVariableDependencyInterface.h"
-#include "UserObjectInterface.h"
 #include "TransientInterface.h"
-#include "PostprocessorInterface.h"
-
-class InterfaceUserObject;
-
-template <>
-InputParameters validParams<InterfaceUserObject>();
 
 /**
  *  Base class for implementing interface user objects
@@ -31,11 +24,11 @@ class InterfaceUserObject : public UserObject,
                             public TwoMaterialPropertyInterface,
                             public NeighborCoupleable,
                             public MooseVariableDependencyInterface,
-                            public UserObjectInterface,
-                            public TransientInterface,
-                            public PostprocessorInterface
+                            public TransientInterface
 {
 public:
+  static InputParameters validParams();
+
   InterfaceUserObject(const InputParameters & parameters);
 
 protected:
@@ -49,6 +42,8 @@ protected:
 
   /// current element
   const Elem * const & _current_elem;
+  /// the volume of the current element
+  const Real & _current_elem_volume;
   /// current side of the current element
   const unsigned int & _current_side;
   /// the side element
@@ -64,4 +59,3 @@ protected:
   /// The volume (or length) of the current neighbor
   const Real & getNeighborElemVolume();
 };
-

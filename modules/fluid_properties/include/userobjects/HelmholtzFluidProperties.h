@@ -11,11 +11,6 @@
 
 #include "SinglePhaseFluidProperties.h"
 
-class HelmholtzFluidProperties;
-
-template <>
-InputParameters validParams<HelmholtzFluidProperties>();
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Woverloaded-virtual"
 
@@ -34,6 +29,8 @@ InputParameters validParams<HelmholtzFluidProperties>();
 class HelmholtzFluidProperties : public SinglePhaseFluidProperties
 {
 public:
+  static InputParameters validParams();
+
   HelmholtzFluidProperties(const InputParameters & parameters);
 
   virtual Real rho_from_p_T(Real pressure, Real temperature) const override;
@@ -124,4 +121,3 @@ protected:
 };
 
 #pragma GCC diagnostic pop
-

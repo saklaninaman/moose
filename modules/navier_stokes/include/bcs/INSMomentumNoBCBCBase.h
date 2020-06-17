@@ -12,10 +12,6 @@
 #include "IntegratedBC.h"
 
 // Forward Declarations
-class INSMomentumNoBCBCBase;
-
-template <>
-InputParameters validParams<INSMomentumNoBCBCBase>();
 
 /**
  * Base class for the "No BC" boundary condition.  Subclasses will
@@ -30,6 +26,8 @@ InputParameters validParams<INSMomentumNoBCBCBase>();
 class INSMomentumNoBCBCBase : public IntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   INSMomentumNoBCBCBase(const InputParameters & parameters);
 
   virtual ~INSMomentumNoBCBCBase() {}
@@ -59,4 +57,3 @@ protected:
   const MaterialProperty<Real> & _mu;
   const MaterialProperty<Real> & _rho;
 };
-

@@ -1,0 +1,8 @@
+directories:
+    - ${MOOSE_DIR}/modules/contact/test/tests
+specs:
+    - tests
+dependencies:
+    - framework
+    - tensor_mechanics
+repo: moose

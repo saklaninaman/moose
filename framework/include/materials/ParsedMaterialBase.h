@@ -11,12 +11,6 @@
 
 #include "InputParameters.h"
 
-// Forward Declarations
-class ParsedMaterialBase;
-
-template <>
-InputParameters validParams<ParsedMaterialBase>();
-
 /**
  * Helper class for ParsedMaterial and DerivativeParsedMaterial
  * to declare and read the input parameters.
@@ -24,6 +18,8 @@ InputParameters validParams<ParsedMaterialBase>();
 class ParsedMaterialBase
 {
 public:
+  static InputParameters validParams();
+
   ParsedMaterialBase(const InputParameters & parameters);
 
 protected:
@@ -38,4 +34,3 @@ protected:
   std::vector<std::string> _tol_names;
   std::vector<Real> _tol_values;
 };
-

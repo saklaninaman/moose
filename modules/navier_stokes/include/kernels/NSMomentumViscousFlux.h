@@ -13,10 +13,6 @@
 #include "NSViscStressTensorDerivs.h"
 
 // ForwardDeclarations
-class NSMomentumViscousFlux;
-
-template <>
-InputParameters validParams<NSMomentumViscousFlux>();
 
 /**
  * Derived instance of the NSViscousFluxBase class
@@ -25,6 +21,8 @@ InputParameters validParams<NSMomentumViscousFlux>();
 class NSMomentumViscousFlux : public NSKernel
 {
 public:
+  static InputParameters validParams();
+
   NSMomentumViscousFlux(const InputParameters & parameters);
 
 protected:
@@ -43,4 +41,3 @@ protected:
   template <class U>
   friend class NSViscStressTensorDerivs;
 };
-

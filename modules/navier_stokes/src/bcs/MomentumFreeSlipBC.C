@@ -10,15 +10,16 @@
 #include "MomentumFreeSlipBC.h"
 #include "MooseMesh.h"
 #include "MooseVariable.h"
+#include "SystemBase.h"
+#include "FEProblemBase.h"
 #include "libmesh/numeric_vector.h"
 
 registerMooseObject("NavierStokesApp", MomentumFreeSlipBC);
 
-template <>
 InputParameters
-validParams<MomentumFreeSlipBC>()
+MomentumFreeSlipBC::validParams()
 {
-  InputParameters params = validParams<NodalNormalBC>();
+  InputParameters params = NodalNormalBC::validParams();
   params.addRequiredCoupledVar("rho_u", "x-component of velocity");
   params.addCoupledVar("rho_v", "y-component of velocity");
   params.addCoupledVar("rho_w", "z-component of velocity");

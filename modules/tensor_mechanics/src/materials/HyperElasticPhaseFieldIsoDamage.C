@@ -12,11 +12,10 @@
 
 registerMooseObject("TensorMechanicsApp", HyperElasticPhaseFieldIsoDamage);
 
-template <>
 InputParameters
-validParams<HyperElasticPhaseFieldIsoDamage>()
+HyperElasticPhaseFieldIsoDamage::validParams()
 {
-  InputParameters params = validParams<FiniteStrainHyperElasticViscoPlastic>();
+  InputParameters params = FiniteStrainHyperElasticViscoPlastic::validParams();
   params.addParam<bool>("numerical_stiffness", false, "Flag for numerical stiffness");
   params.addParam<Real>("damage_stiffness", 1e-8, "Avoid zero after complete damage");
   params.addParam<Real>("zero_tol", 1e-12, "Tolerance for numerical zero");

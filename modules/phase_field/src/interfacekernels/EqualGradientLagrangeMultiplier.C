@@ -14,11 +14,10 @@
 
 registerMooseObject("PhaseFieldApp", EqualGradientLagrangeMultiplier);
 
-template <>
 InputParameters
-validParams<EqualGradientLagrangeMultiplier>()
+EqualGradientLagrangeMultiplier::validParams()
 {
-  InputParameters params = validParams<InterfaceKernel>();
+  InputParameters params = InterfaceKernel::validParams();
   params.addClassDescription("Lagrange multiplier kernel for EqualGradientLagrangeInterface.");
   params.addRequiredParam<unsigned int>("component", "Gradient component to constrain");
   params.addCoupledVar("element_var",

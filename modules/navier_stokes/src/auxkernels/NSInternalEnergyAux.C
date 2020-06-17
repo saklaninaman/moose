@@ -16,11 +16,10 @@
 
 registerMooseObject("NavierStokesApp", NSInternalEnergyAux);
 
-template <>
 InputParameters
-validParams<NSInternalEnergyAux>()
+NSInternalEnergyAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
 
   params.addClassDescription("Auxiliary kernel for computing the internal energy of the fluid.");
   params.addRequiredCoupledVar(NS::density, "density");

@@ -14,11 +14,10 @@
 
 registerMooseObject("NavierStokesApp", NSInflowThermalBC);
 
-template <>
 InputParameters
-validParams<NSInflowThermalBC>()
+NSInflowThermalBC::validParams()
 {
-  InputParameters params = validParams<NodalBC>();
+  InputParameters params = NodalBC::validParams();
 
   params.addClassDescription("This class is used on a boundary where the incoming flow values "
                              "(rho, u, v, T) are all completely specified.");

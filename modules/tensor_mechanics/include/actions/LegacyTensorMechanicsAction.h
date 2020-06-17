@@ -11,16 +11,12 @@
 
 #include "TensorMechanicsAction.h"
 
-class LegacyTensorMechanicsAction;
-
-template <>
-InputParameters validParams<LegacyTensorMechanicsAction>();
-
 class LegacyTensorMechanicsAction : public TensorMechanicsAction
 {
 public:
+  static InputParameters validParams();
+
   LegacyTensorMechanicsAction(const InputParameters & params);
 
   virtual void act();
 };
-

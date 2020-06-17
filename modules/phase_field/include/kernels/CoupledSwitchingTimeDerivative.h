@@ -14,10 +14,6 @@
 #include "DerivativeMaterialInterface.h"
 
 // Forward Declaration
-class CoupledSwitchingTimeDerivative;
-
-template <>
-InputParameters validParams<CoupledSwitchingTimeDerivative>();
 
 /**
  * This kernel adds a contribution
@@ -30,9 +26,11 @@ InputParameters validParams<CoupledSwitchingTimeDerivative>();
  * model susceptibility equation, \f$ F_a \f$ etc. are the phase densities.
  */
 class CoupledSwitchingTimeDerivative
-    : public DerivativeMaterialInterface<JvarMapKernelInterface<CoupledTimeDerivative>>
+  : public DerivativeMaterialInterface<JvarMapKernelInterface<CoupledTimeDerivative>>
 {
 public:
+  static InputParameters validParams();
+
   CoupledSwitchingTimeDerivative(const InputParameters & parameters);
   virtual void initialSetup();
 
@@ -40,9 +38,6 @@ protected:
   virtual Real computeQpResidual();
   virtual Real computeQpJacobian();
   virtual Real computeQpOffDiagJacobian(unsigned int jvar);
-
-  /// Number of coupled variables
-  const unsigned int _nvar;
 
   /// name of order parameter that derivatives are taken wrt (needed to retrieve
   /// the derivative material properties)
@@ -75,4 +70,3 @@ protected:
   /// Second derivatives of the switching functions (needed for off-diagonal Jacobians)
   std::vector<std::vector<const MaterialProperty<Real> *>> _prop_d2hjdetaidarg;
 };
-

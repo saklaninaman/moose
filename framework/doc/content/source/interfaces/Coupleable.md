@@ -8,13 +8,19 @@ The following table summarizes the methods and kinds of values they provide:
 coupledValue | Values of a coupled variable in q-points
 coupledGradient | Gradients of a coupled variable in q-points
 coupledSecond | Second derivatives of a coupled variable in q-points
+adCoupledValue | Values of a coupled variable in q-points with automatic differentiation info
+adCoupledGradient | Gradients of a coupled variable in q-points with automatic differentiation info
+adCoupledSecond | Second derivatives of a coupled variable in q-points with automatic differentiation info
 coupledNodalValue | Values of a coupled variable at nodes.
+adCoupledNodalValue | Values of a coupled (vector) variable at nodes with automatic differentiation info
 coupledVectorValue | Values of a coupled vector variable in q-points
+adCoupledVectorValue | Values of a coupled vector variable in q-points with automatic differentiation info
 coupledCurl | Curl of a coupled vector variable in q-points
 coupledDot | Time derivative of a coupled variable
 coupledDotDu | Derivative of a time derivative of a coupled variable
 coupledNodalDot | Nodal value of the time derivative of a coupled variable
 coupledVectorDot | Time derivative of a coupled vector variable
+coupledVectorDotDu | Derivative of a time derivative of a coupled vector variable
 
 For values, gradients and second derivatives, users can request old and older values in case they are running a transient simulation.
 In case of old and older values, the methods are called `coupledValueOld` and `coupledValueOlder`, respectively.
@@ -120,3 +126,12 @@ v = '1 actual_var 3'
 ```
 
 is not supported.
+
+## Coupled Solution DOFs
+
+It is possible to retrieve the solution DOFs of an element in an elemental loop. This is different than the
+"value" type coupling which holds the interpolated values of the shape functions themselves. Obtaining the raw
+DOFs all the user to perform their own integration or other evaluation without going through the interpolation
+process. These functions can be found here:
+
+!listing moose/framework/include/interfaces/Coupleable.h start=coupled-dof-values-begin end=coupled-dof-values-end include-start=false

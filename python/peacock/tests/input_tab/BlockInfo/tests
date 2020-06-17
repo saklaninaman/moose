@@ -1,7 +1,7 @@
 [Tests]
-  [./BlockInfo]
+  [BlockInfo]
     type = PythonUnitTest
     input = test_BlockInfo.py
-    display_required = True
-  [../]
+    display_required = true
+  []
 []

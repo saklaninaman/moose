@@ -11,11 +11,10 @@
 
 registerMooseObject("TensorMechanicsApp", HEVPEqvPlasticStrain);
 
-template <>
 InputParameters
-validParams<HEVPEqvPlasticStrain>()
+HEVPEqvPlasticStrain::validParams()
 {
-  InputParameters params = validParams<HEVPInternalVarUOBase>();
+  InputParameters params = HEVPInternalVarUOBase::validParams();
   params.addClassDescription("User Object to integrate equivalent plastic strain");
   return params;
 }

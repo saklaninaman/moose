@@ -11,23 +11,17 @@
 
 #include "ADMortarConstraint.h"
 
-template <ComputeStage>
-class EqualValueConstraint;
-
-declareADValidParams(EqualValueConstraint);
-
 /**
  * Constrain the value of a variable to be the same on both sides of an
  * interface.
  */
-template <ComputeStage compute_stage>
-class EqualValueConstraint : public ADMortarConstraint<compute_stage>
+class EqualValueConstraint : public ADMortarConstraint
 {
 public:
+  static InputParameters validParams();
+
   EqualValueConstraint(const InputParameters & parameters);
 
 protected:
   ADReal computeQpResidual(Moose::MortarType mortar_type) final;
-
-  usingMortarConstraintMembers;
 };

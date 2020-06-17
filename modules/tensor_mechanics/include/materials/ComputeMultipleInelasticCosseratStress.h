@@ -11,11 +11,6 @@
 
 #include "ComputeMultipleInelasticStress.h"
 
-class ComputeMultipleInelasticCosseratStress;
-
-template <>
-InputParameters validParams<ComputeMultipleInelasticCosseratStress>();
-
 /**
  * ComputeMultipleInelasticStress computes the stress, the consistent tangent
  * operator (or an approximation to it), and a decomposition of the strain
@@ -38,6 +33,8 @@ InputParameters validParams<ComputeMultipleInelasticCosseratStress>();
 class ComputeMultipleInelasticCosseratStress : public ComputeMultipleInelasticStress
 {
 public:
+  static InputParameters validParams();
+
   ComputeMultipleInelasticCosseratStress(const InputParameters & parameters);
 
 protected:
@@ -74,4 +71,3 @@ protected:
   /// Inverse of the elasticity tensor
   const MaterialProperty<RankFourTensor> & _compliance;
 };
-

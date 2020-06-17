@@ -12,10 +12,6 @@
 #include "NSKernel.h"
 
 // ForwardDeclarations
-class NSMomentumInviscidFlux;
-
-template <>
-InputParameters validParams<NSMomentumInviscidFlux>();
 
 /**
  * The inviscid flux (convective + pressure terms) for the
@@ -24,6 +20,8 @@ InputParameters validParams<NSMomentumInviscidFlux>();
 class NSMomentumInviscidFlux : public NSKernel
 {
 public:
+  static InputParameters validParams();
+
   NSMomentumInviscidFlux(const InputParameters & parameters);
 
 protected:
@@ -44,4 +42,3 @@ private:
   // Moose's numbering.
   Real computeJacobianHelper(unsigned int m);
 };
-

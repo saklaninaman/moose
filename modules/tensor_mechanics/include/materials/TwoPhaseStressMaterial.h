@@ -11,18 +11,8 @@
 
 #include "Material.h"
 #include "DerivativeMaterialInterface.h"
-
-// Forward Declarations
-class TwoPhaseStressMaterial;
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-template <typename>
-class RankFourTensorTempl;
-typedef RankFourTensorTempl<Real> RankFourTensor;
-
-template <>
-InputParameters validParams<TwoPhaseStressMaterial>();
+#include "RankTwoTensorForward.h"
+#include "RankFourTensorForward.h"
 
 /**
  * Construct a global strain from the phase strains in a manner that is consistent
@@ -31,6 +21,8 @@ InputParameters validParams<TwoPhaseStressMaterial>();
 class TwoPhaseStressMaterial : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   TwoPhaseStressMaterial(const InputParameters & parameters);
 
 protected:
@@ -57,4 +49,3 @@ protected:
   /// Global extra stress tensor
   const MaterialProperty<RankTwoTensor> & _global_extra_stress;
 };
-

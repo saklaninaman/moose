@@ -11,11 +11,6 @@
 
 #include "PorousFlowFluidState.h"
 
-class PorousFlowFluidStateBrineCO2;
-
-template <>
-InputParameters validParams<PorousFlowFluidStateBrineCO2>();
-
 /**
  * Fluid state class for brine and CO2. Includes mutual solubility of CO2 and
  * brine using model of Spycher, Pruess and Ennis-King, CO2-H2O mixtures in the
@@ -29,8 +24,9 @@ InputParameters validParams<PorousFlowFluidStateBrineCO2>();
 class PorousFlowFluidStateBrineCO2 : public PorousFlowFluidState
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowFluidStateBrineCO2(const InputParameters & parameters);
 
 protected:
 };
-

@@ -11,9 +11,8 @@
 #include "Conversion.h"
 #include "MooseEnum.h"
 
-template <>
 InputParameters
-validParams<NaNInterface>()
+NaNInterface::validParams()
 {
 #ifdef NDEBUG
   // in opt mode, getNaN() emits neither a warning nor an error by default
@@ -32,7 +31,7 @@ validParams<NaNInterface>()
 
 NaNInterface::NaNInterface(const MooseObject * moose_object)
   : _emit_on_nan(
-        moose_object->getParamTempl<MooseEnum>("emit_on_nan").getEnum<NaNInterface::NaNMessage>())
+        moose_object->getParam<MooseEnum>("emit_on_nan").getEnum<NaNInterface::NaNMessage>())
 {
   _moose_object = moose_object;
 }

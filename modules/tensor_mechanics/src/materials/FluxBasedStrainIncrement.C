@@ -12,11 +12,10 @@
 
 registerMooseObject("TensorMechanicsApp", FluxBasedStrainIncrement);
 
-template <>
 InputParameters
-validParams<FluxBasedStrainIncrement>()
+FluxBasedStrainIncrement::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   params.addClassDescription("Compute strain increment based on flux");
   params.addRequiredCoupledVar("xflux", "x or 0-direction component of flux");
   params.addCoupledVar("yflux", "y or 1-direction component of flux");

@@ -11,11 +11,6 @@
 
 #include "TensorMechanicsPlasticModel.h"
 
-class TensorMechanicsPlasticSimpleTester;
-
-template <>
-InputParameters validParams<TensorMechanicsPlasticSimpleTester>();
-
 /**
  * Class that can be used for testing multi-surface plasticity models.
  * Yield function = a*stress_yy + b*stress_zz + c*stress_xx + d*(stress_xy + stress_yx)/2 +
@@ -25,6 +20,8 @@ InputParameters validParams<TensorMechanicsPlasticSimpleTester>();
 class TensorMechanicsPlasticSimpleTester : public TensorMechanicsPlasticModel
 {
 public:
+  static InputParameters validParams();
+
   TensorMechanicsPlasticSimpleTester(const InputParameters & parameters);
 
   virtual std::string modelName() const override;
@@ -63,4 +60,3 @@ protected:
   /// strength
   Real _strength;
 };
-

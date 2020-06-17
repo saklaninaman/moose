@@ -11,59 +11,59 @@
 #include "ADStressUpdateBase.h"
 #include "MooseException.h"
 
-registerADMooseObject("TensorMechanicsApp", ADComputeMultipleInelasticStress);
+registerMooseObject("TensorMechanicsApp", ADComputeMultipleInelasticStress);
 
-defineADValidParams(
-    ADComputeMultipleInelasticStress,
-    ADComputeFiniteStrainElasticStress,
-    params.addClassDescription("Compute state (stress and internal parameters such as plastic "
-                               "strains and internal parameters) using an iterative process.  "
-                               "Combinations of creep models and plastic models may be used.");
-    params.addParam<unsigned int>("max_iterations",
-                                  30,
-                                  "Maximum number of the stress update "
-                                  "iterations over the stress change after all "
-                                  "update materials are called");
-    params.addParam<Real>("relative_tolerance",
-                          1e-5,
-                          "Relative convergence tolerance for the stress "
-                          "update iterations over the stress change "
-                          "after all update materials are called");
-    params.addParam<Real>("absolute_tolerance",
-                          1e-5,
-                          "Absolute convergence tolerance for the stress "
-                          "update iterations over the stress change "
-                          "after all update materials are called");
-    params.addParam<bool>(
-        "internal_solve_full_iteration_history",
-        false,
-        "Set to true to output stress update iteration information over the stress change");
-    params.addParam<bool>("perform_finite_strain_rotations",
-                          true,
-                          "Tensors are correctly rotated in "
-                          "finite-strain simulations.  For "
-                          "optimal performance you can set "
-                          "this to 'false' if you are only "
-                          "ever using small strains");
-    params.addRequiredParam<std::vector<MaterialName>>(
-        "inelastic_models",
-        "The material objects to use to calculate stress and inelastic strains. "
-        "Note: specify creep models first and plasticity models second.");
-    params.addParam<std::vector<Real>>(
-        "combined_inelastic_strain_weights",
-        "The combined_inelastic_strain Material Property is a "
-        "weighted sum of the model inelastic strains.  This parameter "
-        "is a vector of weights, of the same length as "
-        "inelastic_models.  Default = '1 1 ... 1'.  This "
-        "parameter is set to 1 if the number of models = 1");
-    params.addParam<bool>("cycle_models",
-                          false,
-                          "At time step N use only inelastic model N % num_models."););
+InputParameters
+ADComputeMultipleInelasticStress::validParams()
+{
+  InputParameters params = ADComputeFiniteStrainElasticStress::validParams();
+  params.addClassDescription("Compute state (stress and internal parameters such as plastic "
+                             "strains and internal parameters) using an iterative process.  "
+                             "Combinations of creep models and plastic models may be used.");
+  params.addParam<unsigned int>("max_iterations",
+                                30,
+                                "Maximum number of the stress update "
+                                "iterations over the stress change after all "
+                                "update materials are called");
+  params.addParam<Real>("relative_tolerance",
+                        1e-5,
+                        "Relative convergence tolerance for the stress "
+                        "update iterations over the stress change "
+                        "after all update materials are called");
+  params.addParam<Real>("absolute_tolerance",
+                        1e-5,
+                        "Absolute convergence tolerance for the stress "
+                        "update iterations over the stress change "
+                        "after all update materials are called");
+  params.addParam<bool>(
+      "internal_solve_full_iteration_history",
+      false,
+      "Set to true to output stress update iteration information over the stress change");
+  params.addParam<bool>("perform_finite_strain_rotations",
+                        true,
+                        "Tensors are correctly rotated in "
+                        "finite-strain simulations.  For "
+                        "optimal performance you can set "
+                        "this to 'false' if you are only "
+                        "ever using small strains");
+  params.addRequiredParam<std::vector<MaterialName>>(
+      "inelastic_models",
+      "The material objects to use to calculate stress and inelastic strains. "
+      "Note: specify creep models first and plasticity models second.");
+  params.addParam<std::vector<Real>>("combined_inelastic_strain_weights",
+                                     "The combined_inelastic_strain Material Property is a "
+                                     "weighted sum of the model inelastic strains.  This parameter "
+                                     "is a vector of weights, of the same length as "
+                                     "inelastic_models.  Default = '1 1 ... 1'.  This "
+                                     "parameter is set to 1 if the number of models = 1");
+  params.addParam<bool>(
+      "cycle_models", false, "At time step N use only inelastic model N % num_models.");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADComputeMultipleInelasticStress<compute_stage>::ADComputeMultipleInelasticStress(
+ADComputeMultipleInelasticStress::ADComputeMultipleInelasticStress(
     const InputParameters & parameters)
-  : ADComputeFiniteStrainElasticStress<compute_stage>(parameters),
+  : ADComputeFiniteStrainElasticStress(parameters),
     _max_iterations(parameters.get<unsigned int>("max_iterations")),
     _relative_tolerance(parameters.get<Real>("relative_tolerance")),
     _absolute_tolerance(parameters.get<Real>("absolute_tolerance")),
@@ -87,17 +87,15 @@ ADComputeMultipleInelasticStress<compute_stage>::ADComputeMultipleInelasticStres
                _num_models);
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeMultipleInelasticStress<compute_stage>::initQpStatefulProperties()
+ADComputeMultipleInelasticStress::initQpStatefulProperties()
 {
-  ADComputeStressBase<compute_stage>::initQpStatefulProperties();
+  ADComputeStressBase::initQpStatefulProperties();
   _inelastic_strain[_qp].zero();
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeMultipleInelasticStress<compute_stage>::initialSetup()
+ADComputeMultipleInelasticStress::initialSetup()
 {
   _is_elasticity_tensor_guaranteed_isotropic =
       this->hasGuaranteedMaterialProperty(_elasticity_tensor_name, Guarantee::ISOTROPIC);
@@ -106,8 +104,8 @@ ADComputeMultipleInelasticStress<compute_stage>::initialSetup()
 
   for (unsigned int i = 0; i < _num_models; ++i)
   {
-    ADStressUpdateBase<compute_stage> * rrr = dynamic_cast<ADStressUpdateBase<compute_stage> *>(
-        &this->template getMaterialByName<compute_stage>(models[i]));
+    ADStressUpdateBase * rrr =
+        dynamic_cast<ADStressUpdateBase *>(&this->getMaterialByName(models[i]));
 
     if (rrr)
     {
@@ -122,18 +120,16 @@ ADComputeMultipleInelasticStress<compute_stage>::initialSetup()
   }
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeMultipleInelasticStress<compute_stage>::computeQpStress()
+ADComputeMultipleInelasticStress::computeQpStress()
 {
   computeQpStressIntermediateConfiguration();
   if (_perform_finite_strain_rotations)
     finiteStrainRotation();
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeMultipleInelasticStress<compute_stage>::computeQpStressIntermediateConfiguration()
+ADComputeMultipleInelasticStress::computeQpStressIntermediateConfiguration()
 {
   ADRankTwoTensor elastic_strain_increment;
   ADRankTwoTensor combined_inelastic_strain_increment;
@@ -163,9 +159,8 @@ ADComputeMultipleInelasticStress<compute_stage>::computeQpStressIntermediateConf
   }
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeMultipleInelasticStress<compute_stage>::finiteStrainRotation()
+ADComputeMultipleInelasticStress::finiteStrainRotation()
 {
   _elastic_strain[_qp] =
       _rotation_increment[_qp] * _elastic_strain[_qp] * _rotation_increment[_qp].transpose();
@@ -174,9 +169,8 @@ ADComputeMultipleInelasticStress<compute_stage>::finiteStrainRotation()
       _rotation_increment[_qp] * _inelastic_strain[_qp] * _rotation_increment[_qp].transpose();
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeMultipleInelasticStress<compute_stage>::updateQpState(
+ADComputeMultipleInelasticStress::updateQpState(
     ADRankTwoTensor & elastic_strain_increment,
     ADRankTwoTensor & combined_inelastic_strain_increment)
 {
@@ -270,7 +264,8 @@ ADComputeMultipleInelasticStress<compute_stage>::updateQpState(
 
   if (counter == _max_iterations && l2norm_delta_stress > _absolute_tolerance &&
       (l2norm_delta_stress / first_l2norm_delta_stress) > _relative_tolerance)
-    throw MooseException("Max stress iteration hit during ADComputeMultipleInelasticStress solve!");
+    mooseException(
+        "In ", _name, ": Max stress iteration hit during ADComputeMultipleInelasticStress solve!");
 
   combined_inelastic_strain_increment.zero();
   for (unsigned i_rmm = 0; i_rmm < _num_models; ++i_rmm)
@@ -287,9 +282,8 @@ ADComputeMultipleInelasticStress<compute_stage>::updateQpState(
     _matl_timestep_limit[_qp] = 1.0 / _matl_timestep_limit[_qp];
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeMultipleInelasticStress<compute_stage>::updateQpStateSingleModel(
+ADComputeMultipleInelasticStress::updateQpStateSingleModel(
     unsigned model_number,
     ADRankTwoTensor & elastic_strain_increment,
     ADRankTwoTensor & combined_inelastic_strain_increment)
@@ -318,9 +312,8 @@ ADComputeMultipleInelasticStress<compute_stage>::updateQpStateSingleModel(
       _models[i_rmm]->propagateQpStatefulProperties();
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeMultipleInelasticStress<compute_stage>::computeAdmissibleState(
+ADComputeMultipleInelasticStress::computeAdmissibleState(
     unsigned model_number,
     ADRankTwoTensor & elastic_strain_increment,
     ADRankTwoTensor & inelastic_strain_increment)

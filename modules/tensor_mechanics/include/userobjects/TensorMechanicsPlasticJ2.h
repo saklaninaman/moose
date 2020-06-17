@@ -12,11 +12,6 @@
 #include "TensorMechanicsPlasticModel.h"
 #include "TensorMechanicsHardeningModel.h"
 
-class TensorMechanicsPlasticJ2;
-
-template <>
-InputParameters validParams<TensorMechanicsPlasticJ2>();
-
 /**
  * J2 plasticity, associative, with hardning.
  * Yield_function = sqrt(3*J2) - yield_strength
@@ -24,6 +19,8 @@ InputParameters validParams<TensorMechanicsPlasticJ2>();
 class TensorMechanicsPlasticJ2 : public TensorMechanicsPlasticModel
 {
 public:
+  static InputParameters validParams();
+
   TensorMechanicsPlasticJ2(const InputParameters & parameters);
 
   virtual std::string modelName() const override;
@@ -89,4 +86,3 @@ private:
   /// Whether to use the custom consistent tangent operator calculation
   const bool _use_custom_cto;
 };
-

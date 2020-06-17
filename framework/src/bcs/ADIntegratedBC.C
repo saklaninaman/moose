@@ -15,14 +15,20 @@
 #include "SystemBase.h"
 #include "MooseVariableFE.h"
 #include "MooseVariableScalar.h"
+#include "ADUtils.h"
 
 #include "libmesh/quadrature.h"
 
-defineADBaseValidParams(ADIntegratedBC, IntegratedBCBase, );
-defineADBaseValidParams(ADVectorIntegratedBC, IntegratedBCBase, );
+template <typename T>
+InputParameters
+ADIntegratedBCTempl<T>::validParams()
+{
+  InputParameters params = IntegratedBCBase::validParams();
+  return params;
+}
 
-template <typename T, ComputeStage compute_stage>
-ADIntegratedBCTempl<T, compute_stage>::ADIntegratedBCTempl(const InputParameters & parameters)
+template <typename T>
+ADIntegratedBCTempl<T>::ADIntegratedBCTempl(const InputParameters & parameters)
   : IntegratedBCBase(parameters),
     MooseVariableInterface<T>(this,
                               false,
@@ -31,15 +37,18 @@ ADIntegratedBCTempl<T, compute_stage>::ADIntegratedBCTempl(const InputParameters
                               std::is_same<T, Real>::value ? Moose::VarFieldType::VAR_FIELD_STANDARD
                                                            : Moose::VarFieldType::VAR_FIELD_VECTOR),
     _var(*this->mooseVariable()),
-    _normals(_assembly.adNormals<compute_stage>()),
-    _ad_q_points(_assembly.adQPointsFace<compute_stage>()),
+    _normals(_assembly.adNormals()),
+    _ad_q_points(_assembly.adQPointsFace()),
     _test(_var.phiFace()),
-    _grad_test(_var.template adGradPhiFace<compute_stage>()),
-    _u(_var.template adSln<compute_stage>()),
-    _grad_u(_var.template adGradSln<compute_stage>()),
-    _ad_JxW(_assembly.adJxWFace<compute_stage>()),
-    _ad_coord(_assembly.template adCoordTransformation<compute_stage>())
+    _grad_test(_var.adGradPhiFace()),
+    _u(_var.adSln()),
+    _grad_u(_var.adGradSln()),
+    _ad_JxW(_assembly.adJxWFace()),
+    _ad_coord(_assembly.adCoordTransformation()),
+    _use_displaced_mesh(getParam<bool>("use_displaced_mesh"))
 {
+  _subproblem.haveADObjects(true);
+
   addMooseVariableDependency(this->mooseVariable());
 
   _save_in.resize(_save_in_strings.size());
@@ -79,17 +88,22 @@ ADIntegratedBCTempl<T, compute_stage>::ADIntegratedBCTempl(const InputParameters
   _has_diag_save_in = _diag_save_in.size() > 0;
 }
 
-template <typename T, ComputeStage compute_stage>
+template <typename T>
 void
-ADIntegratedBCTempl<T, compute_stage>::computeResidual()
+ADIntegratedBCTempl<T>::computeResidual()
 {
   DenseVector<Number> & re = _assembly.residualBlock(_var.number());
   _local_re.resize(re.size());
   _local_re.zero();
 
-  for (_qp = 0; _qp < _qrule->n_points(); _qp++)
-    for (_i = 0; _i < _test.size(); _i++)
-      _local_re(_i) += _ad_JxW[_qp] * _ad_coord[_qp] * computeQpResidual();
+  if (_use_displaced_mesh)
+    for (_qp = 0; _qp < _qrule->n_points(); _qp++)
+      for (_i = 0; _i < _test.size(); _i++)
+        _local_re(_i) += raw_value(_ad_JxW[_qp] * _ad_coord[_qp] * computeQpResidual());
+  else
+    for (_qp = 0; _qp < _qrule->n_points(); _qp++)
+      for (_i = 0; _i < _test.size(); _i++)
+        _local_re(_i) += raw_value(_JxW[_qp] * _coord[_qp] * computeQpResidual());
 
   re += _local_re;
 
@@ -101,36 +115,33 @@ ADIntegratedBCTempl<T, compute_stage>::computeResidual()
   }
 }
 
-template <>
+template <typename T>
 void
-ADIntegratedBCTempl<Real, JACOBIAN>::computeResidual()
-{
-}
-
-template <>
-void
-ADIntegratedBCTempl<RealVectorValue, JACOBIAN>::computeResidual()
-{
-}
-
-template <typename T, ComputeStage compute_stage>
-void
-ADIntegratedBCTempl<T, compute_stage>::computeJacobian()
+ADIntegratedBCTempl<T>::computeJacobian()
 {
   DenseMatrix<Number> & ke = _assembly.jacobianBlock(_var.number(), _var.number());
   _local_ke.resize(ke.m(), ke.n());
   _local_ke.zero();
 
-  size_t ad_offset = _var.number() * _sys.getMaxVarNDofsPerElem();
+  auto ad_offset =
+      Moose::adOffset(_var.number(), _sys.getMaxVarNDofsPerElem(), Moose::ElementType::Element);
 
-  for (_qp = 0; _qp < _qrule->n_points(); _qp++)
-    for (_i = 0; _i < _test.size(); _i++)
-    {
-      DualReal residual = computeQpResidual();
-      for (_j = 0; _j < _var.phiSize(); ++_j)
-        _local_ke(_i, _j) +=
-            (_ad_JxW[_qp] * _ad_coord[_qp] * residual).derivatives()[ad_offset + _j];
-    }
+  if (_use_displaced_mesh)
+    for (_qp = 0; _qp < _qrule->n_points(); _qp++)
+      for (_i = 0; _i < _test.size(); _i++)
+      {
+        DualReal residual = _ad_JxW[_qp] * _ad_coord[_qp] * computeQpResidual();
+        for (_j = 0; _j < _var.phiSize(); ++_j)
+          _local_ke(_i, _j) += residual.derivatives()[ad_offset + _j];
+      }
+  else
+    for (_qp = 0; _qp < _qrule->n_points(); _qp++)
+      for (_i = 0; _i < _test.size(); _i++)
+      {
+        DualReal residual = _JxW[_qp] * _coord[_qp] * computeQpResidual();
+        for (_j = 0; _j < _var.phiSize(); ++_j)
+          _local_ke(_i, _j) += residual.derivatives()[ad_offset + _j];
+      }
 
   ke += _local_ke;
 
@@ -147,62 +158,51 @@ ADIntegratedBCTempl<T, compute_stage>::computeJacobian()
   }
 }
 
-template <>
+template <typename T>
 void
-ADIntegratedBCTempl<Real, RESIDUAL>::computeJacobian()
-{
-}
-template <>
-void
-ADIntegratedBCTempl<RealVectorValue, RESIDUAL>::computeJacobian()
-{
-}
-
-template <typename T, ComputeStage compute_stage>
-void
-ADIntegratedBCTempl<T, compute_stage>::computeJacobianBlock(MooseVariableFEBase & jvar)
+ADIntegratedBCTempl<T>::computeJacobianBlock(MooseVariableFEBase & jvar)
 {
   auto jvar_num = jvar.number();
+  auto phi_size = _sys.getVariable(_tid, jvar.number()).dofIndices().size();
 
   if (jvar_num == _var.number())
     computeJacobian();
   else
   {
     DenseMatrix<Number> & ke = _assembly.jacobianBlock(_var.number(), jvar_num);
-    if (jvar.phiFaceSize() != ke.n())
-      return;
+    mooseAssert(
+        phi_size == ke.n(),
+        "The size of the phi container does not match the number of local Jacobian columns");
 
-    size_t ad_offset = jvar_num * _sys.getMaxVarNDofsPerElem();
+    auto ad_offset =
+        Moose::adOffset(jvar_num, _sys.getMaxVarNDofsPerElem(), Moose::ElementType::Element);
 
-    for (_i = 0; _i < _test.size(); _i++)
-      for (_qp = 0; _qp < _qrule->n_points(); _qp++)
-      {
-        DualReal residual = _ad_JxW[_qp] * _coord[_qp] * computeQpResidual();
+    if (_use_displaced_mesh)
+      for (_i = 0; _i < _test.size(); _i++)
+        for (_qp = 0; _qp < _qrule->n_points(); _qp++)
+        {
+          DualReal residual = _ad_JxW[_qp] * _ad_coord[_qp] * computeQpResidual();
 
-        for (_j = 0; _j < jvar.phiFaceSize(); _j++)
-          ke(_i, _j) += residual.derivatives()[ad_offset + _j];
-      }
+          for (_j = 0; _j < phi_size; _j++)
+            ke(_i, _j) += residual.derivatives()[ad_offset + _j];
+        }
+    else
+      for (_i = 0; _i < _test.size(); _i++)
+        for (_qp = 0; _qp < _qrule->n_points(); _qp++)
+        {
+          DualReal residual = _JxW[_qp] * _coord[_qp] * computeQpResidual();
+
+          for (_j = 0; _j < phi_size; _j++)
+            ke(_i, _j) += residual.derivatives()[ad_offset + _j];
+        }
   }
 }
 
-template <>
+template <typename T>
 void
-ADIntegratedBCTempl<Real, RESIDUAL>::computeJacobianBlock(MooseVariableFEBase &)
-{
-}
-template <>
-void
-ADIntegratedBCTempl<RealVectorValue, RESIDUAL>::computeJacobianBlock(MooseVariableFEBase &)
+ADIntegratedBCTempl<T>::computeJacobianBlockScalar(unsigned int /*jvar*/)
 {
 }
 
-template <typename T, ComputeStage compute_stage>
-void
-ADIntegratedBCTempl<T, compute_stage>::computeJacobianBlockScalar(unsigned int /*jvar*/)
-{
-}
-
-template class ADIntegratedBCTempl<Real, RESIDUAL>;
-template class ADIntegratedBCTempl<Real, JACOBIAN>;
-template class ADIntegratedBCTempl<RealVectorValue, RESIDUAL>;
-template class ADIntegratedBCTempl<RealVectorValue, JACOBIAN>;
+template class ADIntegratedBCTempl<Real>;
+template class ADIntegratedBCTempl<RealVectorValue>;

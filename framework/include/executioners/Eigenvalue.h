@@ -30,11 +30,21 @@ public:
    * @param parameters The parameters object holding data for the class to use.
    * @return Whether or not the solve was successful.
    */
+  static InputParameters validParams();
+
   Eigenvalue(const InputParameters & parameters);
+
+  virtual void init() override;
 
   virtual void execute() override;
 
+  /**
+   * Here we scale the solution by the specified scalar and postprocessor value
+   */
+  virtual void postSolve() override;
+
 protected:
   EigenProblem & _eigen_problem;
+  /// Postprocessor value that scales solution when eigensolve is finished
+  const PostprocessorValue * _normalization;
 };
-

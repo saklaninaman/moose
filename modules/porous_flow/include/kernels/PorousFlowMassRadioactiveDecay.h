@@ -12,11 +12,6 @@
 #include "TimeDerivative.h"
 #include "PorousFlowDictator.h"
 
-class PorousFlowMassRadioactiveDecay;
-
-template <>
-InputParameters validParams<PorousFlowMassRadioactiveDecay>();
-
 /**
  * Kernel = _decay_rate * masscomponent
  * where mass_component =
@@ -26,6 +21,8 @@ InputParameters validParams<PorousFlowMassRadioactiveDecay>();
 class PorousFlowMassRadioactiveDecay : public TimeKernel
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowMassRadioactiveDecay(const InputParameters & parameters);
 
 protected:
@@ -88,4 +85,3 @@ protected:
    */
   Real computeQpJac(unsigned int pvar);
 };
-

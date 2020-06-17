@@ -10,18 +10,8 @@
 #pragma once
 
 #include "ACBulk.h"
-
-// Forward Declarations
-class ACGrGrElasticDrivingForce;
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-template <typename>
-class RankFourTensorTempl;
-typedef RankFourTensorTempl<Real> RankFourTensor;
-
-template <>
-InputParameters validParams<ACGrGrElasticDrivingForce>();
+#include "RankTwoTensorForward.h"
+#include "RankFourTensorForward.h"
 
 /**
  * Calculates the porton of the Allen-Cahn equation that results from the deformation energy.
@@ -31,6 +21,8 @@ InputParameters validParams<ACGrGrElasticDrivingForce>();
 class ACGrGrElasticDrivingForce : public ACBulk<Real>
 {
 public:
+  static InputParameters validParams();
+
   ACGrGrElasticDrivingForce(const InputParameters & parameters);
 
 protected:
@@ -40,4 +32,3 @@ private:
   const MaterialProperty<RankFourTensor> & _D_elastic_tensor;
   const MaterialProperty<RankTwoTensor> & _elastic_strain;
 };
-

@@ -10,24 +10,32 @@
 #include "ADFunctionPresetBC.h"
 #include "Function.h"
 
-registerADMooseObject("MooseApp", ADFunctionPresetBC);
+registerMooseObjectDeprecated("MooseApp", ADFunctionPresetBC, "06/30/2020 24:00");
 
-defineADValidParams(
-    ADFunctionPresetBC,
-    ADPresetNodalBC,
-    params.addRequiredParam<FunctionName>("function", "The forcing function.");
-    params.addClassDescription(
-        "The same as ADFunctionDirichletBC except the value is applied before the solve begins"););
-
-template <ComputeStage compute_stage>
-ADFunctionPresetBC<compute_stage>::ADFunctionPresetBC(const InputParameters & parameters)
-  : ADPresetNodalBC<compute_stage>(parameters), _func(getFunction("function"))
+InputParameters
+ADFunctionPresetBC::validParams()
 {
+  InputParameters params = ADDirichletBCBase::validParams();
+
+  params.addRequiredParam<FunctionName>("function", "The forcing function.");
+  params.addClassDescription(
+      "The same as ADFunctionDirichletBC except the value is applied before the solve begins");
+
+  // Utilize the new ADDirichletBCBase with preset, set true and don't let the user change it
+  params.set<bool>("preset") = true;
+  params.suppressParameter<bool>("preset");
+
+  return params;
 }
 
-template <ComputeStage compute_stage>
+ADFunctionPresetBC::ADFunctionPresetBC(const InputParameters & parameters)
+  : ADDirichletBCBase(parameters), _func(getFunction("function"))
+{
+  mooseDeprecated("Use ADFunctionDirichletBC with preset = true instead of ADFunctionPresetBC");
+}
+
 ADReal
-ADFunctionPresetBC<compute_stage>::computeQpValue()
+ADFunctionPresetBC::computeQpValue()
 {
   return _func.value(_t, *_current_node);
 }

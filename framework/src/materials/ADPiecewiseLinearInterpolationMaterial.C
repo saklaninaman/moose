@@ -11,34 +11,38 @@
 
 #include "MooseVariableFE.h"
 
-registerADMooseObject("MooseApp", ADPiecewiseLinearInterpolationMaterial);
+registerMooseObject("MooseApp", ADPiecewiseLinearInterpolationMaterial);
 
-defineADValidParams(
-    ADPiecewiseLinearInterpolationMaterial,
-    ADMaterial,
-    params.addClassDescription(
-        "Compute a property using a piecewise linear interpolation to define "
-        "its dependence on a variable");
-    params.addRequiredParam<std::string>("property",
-                                         "The name of the property this material will compute");
-    params.addRequiredCoupledVar(
-        "variable",
-        "The name of the variable whose value is used as the abscissa in the interpolation");
-    params.addParam<std::vector<Real>>("x", "The abscissa values");
-    params.addParam<std::vector<Real>>("y", "The ordinate values");
-    params.addParam<std::vector<Real>>("xy_data",
-                                       "All function data, supplied in abscissa, ordinate pairs");
-    params.addParam<Real>("scale_factor",
-                          1.0,
-                          "Scale factor to be applied to the ordinate values"););
+InputParameters
+ADPiecewiseLinearInterpolationMaterial::validParams()
+{
+  InputParameters params = ADMaterial::validParams();
+  params.addClassDescription("Compute a property using a piecewise linear interpolation to define "
+                             "its dependence on a variable");
+  params.addRequiredParam<std::string>("property",
+                                       "The name of the property this material will compute");
+  params.addRequiredCoupledVar(
+      "variable",
+      "The name of the variable whose value is used as the abscissa in the interpolation");
+  params.addParam<std::vector<Real>>("x", "The abscissa values");
+  params.addParam<std::vector<Real>>("y", "The ordinate values");
+  params.addParam<std::vector<Real>>("xy_data",
+                                     "All function data, supplied in abscissa, ordinate pairs");
+  params.addParam<Real>("scale_factor", 1.0, "Scale factor to be applied to the ordinate values");
+  params.addParam<bool>(
+      "extrapolation",
+      false,
+      "Use linear extrapolation to evaluate points that lie outside given data set domain. ");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADPiecewiseLinearInterpolationMaterial<compute_stage>::ADPiecewiseLinearInterpolationMaterial(
+ADPiecewiseLinearInterpolationMaterial::ADPiecewiseLinearInterpolationMaterial(
     const InputParameters & parameters)
-  : ADMaterial<compute_stage>(parameters),
+  : ADMaterial(parameters),
     _prop_name(getParam<std::string>("property")),
     _coupled_var(adCoupledValue("variable")),
     _scale_factor(getParam<Real>("scale_factor")),
+    _extrap(getParam<bool>("extrapolation")),
     _property(declareADProperty<Real>(_prop_name))
 {
   std::vector<Real> x;
@@ -74,7 +78,7 @@ ADPiecewiseLinearInterpolationMaterial<compute_stage>::ADPiecewiseLinearInterpol
 
   try
   {
-    _linear_interp = libmesh_make_unique<LinearInterpolation>(x, y);
+    _linear_interp = libmesh_make_unique<LinearInterpolation>(x, y, _extrap);
   }
   catch (std::domain_error & e)
   {
@@ -82,19 +86,11 @@ ADPiecewiseLinearInterpolationMaterial<compute_stage>::ADPiecewiseLinearInterpol
   }
 }
 
-template <ComputeStage compute_stage>
 void
-ADPiecewiseLinearInterpolationMaterial<compute_stage>::computeQpProperties()
+ADPiecewiseLinearInterpolationMaterial::computeQpProperties()
 {
   _property[_qp].value() = _scale_factor * _linear_interp->sample(_coupled_var[_qp].value());
   _property[_qp].derivatives() = _scale_factor *
                                  _linear_interp->sampleDerivative(_coupled_var[_qp].value()) *
                                  _coupled_var[_qp].derivatives();
-}
-
-template <>
-void
-ADPiecewiseLinearInterpolationMaterial<RESIDUAL>::computeQpProperties()
-{
-  _property[_qp] = _scale_factor * _linear_interp->sample(_coupled_var[_qp]);
 }

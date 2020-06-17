@@ -11,11 +11,10 @@
 
 registerMooseObject("TensorMechanicsApp", CrystalPlasticitySlipResistanceGSS);
 
-template <>
 InputParameters
-validParams<CrystalPlasticitySlipResistanceGSS>()
+CrystalPlasticitySlipResistanceGSS::validParams()
 {
-  InputParameters params = validParams<CrystalPlasticitySlipResistance>();
+  InputParameters params = CrystalPlasticitySlipResistance::validParams();
   params.addParam<std::string>("uo_state_var_name",
                                "Name of state variable property: Same as "
                                "state variable user object specified in input "

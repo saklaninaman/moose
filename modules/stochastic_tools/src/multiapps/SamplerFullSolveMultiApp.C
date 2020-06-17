@@ -14,12 +14,11 @@
 
 registerMooseObject("StochasticToolsApp", SamplerFullSolveMultiApp);
 
-template <>
 InputParameters
-validParams<SamplerFullSolveMultiApp>()
+SamplerFullSolveMultiApp::validParams()
 {
-  InputParameters params = validParams<FullSolveMultiApp>();
-  params += validParams<SamplerInterface>();
+  InputParameters params = FullSolveMultiApp::validParams();
+  params += SamplerInterface::validParams();
   params.addClassDescription(
       "Creates a full-solve type sub-application for each row of each Sampler matrix.");
   params.addParam<SamplerName>("sampler", "The Sampler object to utilize for creating MultiApps.");
@@ -46,18 +45,26 @@ SamplerFullSolveMultiApp::SamplerFullSolveMultiApp(const InputParameters & param
     SamplerInterface(this),
     _sampler(SamplerInterface::getSampler("sampler")),
     _mode(getParam<MooseEnum>("mode").getEnum<StochasticTools::MultiAppMode>()),
-    _local_batch_app_index(0)
+    _local_batch_app_index(0),
+    _perf_solve_step(registerTimedSection("solveStep", 1)),
+    _perf_solve_batch_step(registerTimedSection("solveStepBatch", 1)),
+    _perf_command_line_args(registerTimedSection("getCommandLineArgsParamHelper", 4))
 {
   if (_mode == StochasticTools::MultiAppMode::BATCH_RESET ||
       _mode == StochasticTools::MultiAppMode::BATCH_RESTORE)
     init(n_processors());
+
   else
-    init(_sampler.getTotalNumberOfRows());
+    init(_sampler.getNumberOfRows());
 }
 
 bool
 SamplerFullSolveMultiApp::solveStep(Real dt, Real target_time, bool auto_advance)
 {
+  TIME_SECTION(_perf_solve_step);
+
+  mooseAssert(_my_num_apps, _sampler.getNumberOfLocalRows());
+
   bool last_solve_converged = true;
   if (_mode == StochasticTools::MultiAppMode::BATCH_RESET ||
       _mode == StochasticTools::MultiAppMode::BATCH_RESTORE)
@@ -70,6 +77,8 @@ SamplerFullSolveMultiApp::solveStep(Real dt, Real target_time, bool auto_advance
 bool
 SamplerFullSolveMultiApp::solveStepBatch(Real dt, Real target_time, bool auto_advance)
 {
+  TIME_SECTION(_perf_solve_batch_step);
+
   // Value to return
   bool last_solve_converged = true;
 
@@ -82,6 +91,7 @@ SamplerFullSolveMultiApp::solveStepBatch(Real dt, Real target_time, bool auto_ad
   // Initialize to/from transfers
   for (auto transfer : to_transfers)
     transfer->initializeToMultiapp();
+
   for (auto transfer : from_transfers)
     transfer->initializeFromMultiapp();
 
@@ -90,18 +100,23 @@ SamplerFullSolveMultiApp::solveStepBatch(Real dt, Real target_time, bool auto_ad
 
   // Perform batch MultiApp solves
   _local_batch_app_index = 0;
-  dof_id_type num_items = _sampler.getLocalNumerOfRows();
-  for (MooseIndex(num_items) i = 0; i < num_items; ++i)
+  for (dof_id_type i = _sampler.getLocalRowBegin(); i < _sampler.getLocalRowEnd(); ++i)
   {
     for (auto & transfer : to_transfers)
+    {
+      transfer->setGlobalMultiAppIndex(i);
       transfer->executeToMultiapp();
+    }
 
     last_solve_converged = FullSolveMultiApp::solveStep(dt, target_time, auto_advance);
 
     for (auto & transfer : from_transfers)
+    {
+      transfer->setGlobalMultiAppIndex(i);
       transfer->executeFromMultiapp();
+    }
 
-    if (i != num_items - 1)
+    if (i < _sampler.getLocalRowEnd() - 1)
     {
       if (_mode == StochasticTools::MultiAppMode::BATCH_RESTORE)
         restore();
@@ -109,8 +124,7 @@ SamplerFullSolveMultiApp::solveStepBatch(Real dt, Real target_time, bool auto_ad
       {
         // The app is being reset for the next loop, thus the batch index must be indexed as such
         _local_batch_app_index = i + 1;
-        for (std::size_t app = 0; app < _total_num_apps; app++)
-          resetApp(app, target_time);
+        resetApp(_local_batch_app_index, target_time);
         initialSetup();
       }
     }
@@ -126,7 +140,7 @@ SamplerFullSolveMultiApp::solveStepBatch(Real dt, Real target_time, bool auto_ad
 }
 
 std::vector<std::shared_ptr<StochasticToolsTransfer>>
-SamplerFullSolveMultiApp::getActiveStochasticToolsTransfers(MultiAppTransfer::DIRECTION direction)
+SamplerFullSolveMultiApp::getActiveStochasticToolsTransfers(Transfer::DIRECTION direction)
 {
   std::vector<std::shared_ptr<StochasticToolsTransfer>> output;
   const ExecuteMooseObjectWarehouse<Transfer> & warehouse =
@@ -143,8 +157,21 @@ SamplerFullSolveMultiApp::getActiveStochasticToolsTransfers(MultiAppTransfer::DI
 std::string
 SamplerFullSolveMultiApp::getCommandLineArgsParamHelper(unsigned int local_app)
 {
-  if (_mode == StochasticTools::MultiAppMode::BATCH_RESET && _cli_args.size() > 1)
-    return _cli_args[_local_batch_app_index + _sampler.getLocalRowBegin()];
-  else
-    return FullSolveMultiApp::getCommandLineArgsParamHelper(local_app);
+  TIME_SECTION(_perf_command_line_args);
+
+  // Since we only store param_names in cli_args, we need to find the values for each param from
+  // sampler data and combine them to get full command line option strings.
+  std::vector<Real> row = _sampler.getNextLocalRow();
+
+  std::ostringstream oss;
+  const std::vector<std::string> & cli_args_name =
+      MooseUtils::split(FullSolveMultiApp::getCommandLineArgsParamHelper(local_app), ";");
+
+  for (dof_id_type col = 0; col < _sampler.getNumberOfCols(); ++col)
+  {
+    if (col > 0)
+      oss << ";";
+    oss << cli_args_name[col] << "=" << Moose::stringify(row[col]);
+  }
+  return oss.str();
 }

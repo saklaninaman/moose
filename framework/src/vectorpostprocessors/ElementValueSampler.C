@@ -17,15 +17,16 @@
 
 registerMooseObject("MooseApp", ElementValueSampler);
 
-template <>
+defineLegacyParams(ElementValueSampler);
+
 InputParameters
-validParams<ElementValueSampler>()
+ElementValueSampler::validParams()
 {
-  InputParameters params = validParams<ElementVariableVectorPostprocessor>();
+  InputParameters params = ElementVariableVectorPostprocessor::validParams();
 
   params.addClassDescription("Samples values of elemental variable(s).");
 
-  params += validParams<SamplerBase>();
+  params += SamplerBase::validParams();
 
   return params;
 }
@@ -59,7 +60,7 @@ void
 ElementValueSampler::execute()
 {
   for (unsigned int i = 0; i < _coupled_moose_vars.size(); i++)
-    _values[i] = _coupled_moose_vars[i]->getElementalValue(_current_elem);
+    _values[i] = _coupled_standard_moose_vars[i]->getElementalValue(_current_elem);
 
   SamplerBase::addSample(_current_elem->centroid(), _current_elem->id(), _values);
 }

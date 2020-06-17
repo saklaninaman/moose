@@ -11,11 +11,6 @@
 
 #include "CappedDruckerPragerStressUpdate.h"
 
-class CappedDruckerPragerCosseratStressUpdate;
-
-template <>
-InputParameters validParams<CappedDruckerPragerCosseratStressUpdate>();
-
 /**
  * CappedDruckerPragerCosseratStressUpdate performs the return-map
  * algorithm and associated stress updates for plastic
@@ -54,6 +49,8 @@ InputParameters validParams<CappedDruckerPragerCosseratStressUpdate>();
 class CappedDruckerPragerCosseratStressUpdate : public CappedDruckerPragerStressUpdate
 {
 public:
+  static InputParameters validParams();
+
   CappedDruckerPragerCosseratStressUpdate(const InputParameters & parameters);
 
   /**
@@ -91,4 +88,3 @@ protected:
                                          bool compute_full_tangent_operator,
                                          RankFourTensor & cto) const override;
 };
-

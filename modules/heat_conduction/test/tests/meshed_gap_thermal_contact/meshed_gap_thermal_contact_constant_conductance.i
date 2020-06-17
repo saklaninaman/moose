@@ -1,7 +1,15 @@
 [Mesh]
-  type = FileMesh
-  file = meshed_gap.e
-  dim = 2
+  [fmesh]
+    type = FileMeshGenerator
+    file = meshed_gap.e
+  []
+  [block0]
+    type = SubdomainBoundingBoxGenerator
+    input = fmesh
+    bottom_left = '.5 -.5 0'
+    top_right = '.7 .5 0'
+    block_id = 4
+  []
 []
 
 [Variables]
@@ -40,6 +48,8 @@
     variable = temp
     master = 2
     slave = 3
+    emissivity_master = 0
+    emissivity_slave = 0
     gap_conductance = 2.5
   [../]
 []

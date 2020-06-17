@@ -16,11 +16,10 @@
 
 registerMooseObject("RichardsApp", RichardsSeff1BWsmall);
 
-template <>
 InputParameters
-validParams<RichardsSeff1BWsmall>()
+RichardsSeff1BWsmall::validParams()
 {
-  InputParameters params = validParams<RichardsSeff>();
+  InputParameters params = RichardsSeff::validParams();
   params.addRequiredRangeCheckedParam<Real>(
       "Sn",
       "Sn >= 0",

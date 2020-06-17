@@ -11,15 +11,7 @@
 
 #include "Material.h"
 #include "DerivativeMaterialInterface.h"
-
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-
-class ThermalFractureIntegral;
-
-template <>
-InputParameters validParams<ThermalFractureIntegral>();
+#include "RankTwoTensorForward.h"
 
 /**
  * ThermalFractureIntegral computes the summation of the derivative of the
@@ -28,14 +20,16 @@ InputParameters validParams<ThermalFractureIntegral>();
 class ThermalFractureIntegral : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   ThermalFractureIntegral(const InputParameters & parameters);
 
   virtual void computeQpProperties() override;
 
 protected:
+  /// Base name of the material system
   const std::string _base_name;
   const std::vector<MaterialPropertyName> _eigenstrain_names;
   std::vector<const MaterialProperty<RankTwoTensor> *> _deigenstrain_dT;
   MaterialProperty<RankTwoTensor> & _total_deigenstrain_dT;
 };
-

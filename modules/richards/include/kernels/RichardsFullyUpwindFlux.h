@@ -17,10 +17,6 @@
 #include "Material.h"
 
 // Forward Declarations
-class RichardsFullyUpwindFlux;
-
-template <>
-InputParameters validParams<RichardsFullyUpwindFlux>();
 
 /**
  * This is a fully upwinded version of RichardsFlux.
@@ -47,6 +43,8 @@ InputParameters validParams<RichardsFullyUpwindFlux>();
 class RichardsFullyUpwindFlux : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   RichardsFullyUpwindFlux(const InputParameters & parameters);
 
 protected:

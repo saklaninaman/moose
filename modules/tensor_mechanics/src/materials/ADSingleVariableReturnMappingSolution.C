@@ -16,42 +16,45 @@
 #include "Conversion.h"
 #include "MathUtils.h"
 
-#include "metaphysicl/numberarray.h"
-#include "metaphysicl/dualnumber.h"
+#include "DualRealOps.h"
+
+#include "libmesh/auto_ptr.h" // libmesh_make_unique
 
 #include <limits>
 #include <string>
 #include <cmath>
+#include <memory>
 
-defineADValidParamsFromEmpty(
-    ADSingleVariableReturnMappingSolution,
-    params.addParam<Real>("relative_tolerance",
-                          1e-8,
-                          "Relative convergence tolerance for Newton iteration");
-    params.addParam<Real>("absolute_tolerance",
-                          1e-11,
-                          "Absolute convergence tolerance for Newton iteration");
-    params.addParam<Real>("acceptable_multiplier",
-                          10,
-                          "Factor applied to relative and absolute "
-                          "tolerance for acceptable convergence if "
-                          "iterations are no longer making progress");
+InputParameters
+ADSingleVariableReturnMappingSolution::validParams()
+{
+  InputParameters params = emptyInputParameters();
+  params.addParam<Real>(
+      "relative_tolerance", 1e-8, "Relative convergence tolerance for Newton iteration");
+  params.addParam<Real>(
+      "absolute_tolerance", 1e-11, "Absolute convergence tolerance for Newton iteration");
+  params.addParam<Real>("acceptable_multiplier",
+                        10,
+                        "Factor applied to relative and absolute "
+                        "tolerance for acceptable convergence if "
+                        "iterations are no longer making progress");
 
-    // diagnostic output parameters
-    MooseEnum internal_solve_output_on_enum("never on_error always", "on_error");
-    params.addParam<MooseEnum>("internal_solve_output_on",
-                               internal_solve_output_on_enum,
-                               "When to output internal Newton solve information");
-    params.addParam<bool>("internal_solve_full_iteration_history",
-                          false,
-                          "Set true to output full internal Newton iteration history at times "
-                          "determined by `internal_solve_output_on`. If false, only a summary is "
-                          "output.");
-    params.addParamNamesToGroup("internal_solve_output_on internal_solve_full_iteration_history",
-                                "Debug"););
+  // diagnostic output parameters
+  MooseEnum internal_solve_output_on_enum("never on_error always", "on_error");
+  params.addParam<MooseEnum>("internal_solve_output_on",
+                             internal_solve_output_on_enum,
+                             "When to output internal Newton solve information");
+  params.addParam<bool>("internal_solve_full_iteration_history",
+                        false,
+                        "Set true to output full internal Newton iteration history at times "
+                        "determined by `internal_solve_output_on`. If false, only a summary is "
+                        "output.");
+  params.addParamNamesToGroup("internal_solve_output_on internal_solve_full_iteration_history",
+                              "Debug");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADSingleVariableReturnMappingSolution<compute_stage>::ADSingleVariableReturnMappingSolution(
+ADSingleVariableReturnMappingSolution::ADSingleVariableReturnMappingSolution(
     const InputParameters & parameters)
   : _check_range(false),
     _line_search(true),
@@ -73,36 +76,37 @@ ADSingleVariableReturnMappingSolution<compute_stage>::ADSingleVariableReturnMapp
 {
 }
 
-template <ComputeStage compute_stage>
 ADReal
-ADSingleVariableReturnMappingSolution<compute_stage>::minimumPermissibleValue(
+ADSingleVariableReturnMappingSolution::minimumPermissibleValue(
     const ADReal & /*effective_trial_stress*/) const
 {
   return std::numeric_limits<Real>::lowest();
 }
 
-template <ComputeStage compute_stage>
 ADReal
-ADSingleVariableReturnMappingSolution<compute_stage>::maximumPermissibleValue(
+ADSingleVariableReturnMappingSolution::maximumPermissibleValue(
     const ADReal & /*effective_trial_stress*/) const
 {
   return std::numeric_limits<Real>::max();
 }
 
-template <ComputeStage compute_stage>
 void
-ADSingleVariableReturnMappingSolution<compute_stage>::returnMappingSolve(
-    const ADReal & effective_trial_stress, ADReal & scalar, const ConsoleStream & console)
+ADSingleVariableReturnMappingSolution::returnMappingSolve(const ADReal & effective_trial_stress,
+                                                          ADReal & scalar,
+                                                          const ConsoleStream & console)
 {
   // construct the stringstream here only if the debug level is set to ALL
-  std::stringstream * iter_output =
-      (_internal_solve_output_on == InternalSolveOutput::ALWAYS) ? new std::stringstream : nullptr;
+  std::unique_ptr<std::stringstream> iter_output =
+      (_internal_solve_output_on == InternalSolveOutput::ALWAYS)
+          ? libmesh_make_unique<std::stringstream>()
+          : nullptr;
 
   // do the internal solve and capture iteration info during the first round
   // iff full history output is requested regardless of whether the solve failed or succeeded
-  auto solve_state = internalSolve(effective_trial_stress,
-                                   scalar,
-                                   _internal_solve_full_iteration_history ? iter_output : nullptr);
+  auto solve_state =
+      internalSolve(effective_trial_stress,
+                    scalar,
+                    _internal_solve_full_iteration_history ? iter_output.get() : nullptr);
   if (solve_state != SolveState::SUCCESS &&
       _internal_solve_output_on != InternalSolveOutput::ALWAYS)
   {
@@ -112,7 +116,7 @@ ADSingleVariableReturnMappingSolution<compute_stage>::returnMappingSolve(
 
     // user expects some kind of output, if necessary setup output stream now
     if (!iter_output)
-      iter_output = new std::stringstream;
+      iter_output = libmesh_make_unique<std::stringstream>();
 
     // add the appropriate error message to the output
     switch (solve_state)
@@ -132,25 +136,25 @@ ADSingleVariableReturnMappingSolution<compute_stage>::returnMappingSolve(
     // if full history output is only requested for failed solves we have to repeat
     // the solve a second time
     if (_internal_solve_full_iteration_history)
-      internalSolve(effective_trial_stress, scalar, iter_output);
+      internalSolve(effective_trial_stress, scalar, iter_output.get());
 
     // Append summary and throw exception
-    outputIterationSummary(iter_output, _iteration);
+    outputIterationSummary(iter_output.get(), _iteration);
     throw MooseException(iter_output->str());
   }
 
   if (_internal_solve_output_on == InternalSolveOutput::ALWAYS)
   {
     // the solve did not fail but the user requested debug output anyways
-    outputIterationSummary(iter_output, _iteration);
+    outputIterationSummary(iter_output.get(), _iteration);
     console << iter_output->str();
   }
 }
 
-template <ComputeStage compute_stage>
-typename ADSingleVariableReturnMappingSolution<compute_stage>::SolveState
-ADSingleVariableReturnMappingSolution<compute_stage>::internalSolve(
-    const ADReal effective_trial_stress, ADReal & scalar, std::stringstream * iter_output)
+typename ADSingleVariableReturnMappingSolution::SolveState
+ADSingleVariableReturnMappingSolution::internalSolve(const ADReal effective_trial_stress,
+                                                     ADReal & scalar,
+                                                     std::stringstream * iter_output)
 {
   scalar = initialGuess(effective_trial_stress);
   ADReal scalar_old = scalar;
@@ -221,8 +225,9 @@ ADSingleVariableReturnMappingSolution<compute_stage>::internalSolve(
             modified_increment = true;
             scalar_increment *= alpha;
             if (iter_output)
-              *iter_output << "  Line search alpha = " << alpha
-                           << " increment = " << scalar_increment << std::endl;
+              *iter_output << "  Line search alpha = " << MetaPhysicL::raw_value(alpha)
+                           << " increment = " << MetaPhysicL::raw_value(scalar_increment)
+                           << std::endl;
           }
         }
       }
@@ -285,20 +290,17 @@ ADSingleVariableReturnMappingSolution<compute_stage>::internalSolve(
   return SolveState::SUCCESS;
 }
 
-template <ComputeStage compute_stage>
 bool
-ADSingleVariableReturnMappingSolution<compute_stage>::converged(const ADReal & ad_residual,
-                                                                const Real reference)
+ADSingleVariableReturnMappingSolution::converged(const ADReal & ad_residual, const Real reference)
 {
   const Real residual = MetaPhysicL::raw_value(ad_residual);
   return (std::abs(residual) <= _absolute_tolerance ||
           std::abs(residual / reference) <= _relative_tolerance);
 }
 
-template <ComputeStage compute_stage>
 bool
-ADSingleVariableReturnMappingSolution<compute_stage>::convergedAcceptable(const unsigned int it,
-                                                                          const Real reference)
+ADSingleVariableReturnMappingSolution::convergedAcceptable(const unsigned int it,
+                                                           const Real reference)
 {
   // Require that we have at least done _num_resids evaluations before we allow for
   // acceptable convergence
@@ -318,44 +320,42 @@ ADSingleVariableReturnMappingSolution<compute_stage>::convergedAcceptable(const 
   return converged(_residual / _acceptable_multiplier, reference);
 }
 
-template <ComputeStage compute_stage>
 void
-ADSingleVariableReturnMappingSolution<compute_stage>::checkPermissibleRange(
-    ADReal & scalar,
-    ADReal & scalar_increment,
-    const ADReal & scalar_old,
-    const ADReal min_permissible_scalar,
-    const ADReal max_permissible_scalar,
-    std::stringstream * iter_output)
+ADSingleVariableReturnMappingSolution::checkPermissibleRange(ADReal & scalar,
+                                                             ADReal & scalar_increment,
+                                                             const ADReal & scalar_old,
+                                                             const ADReal min_permissible_scalar,
+                                                             const ADReal max_permissible_scalar,
+                                                             std::stringstream * iter_output)
 {
   if (scalar > max_permissible_scalar)
   {
     scalar_increment = (max_permissible_scalar - scalar_old) / 2.0;
     scalar = scalar_old + scalar_increment;
     if (iter_output)
-      *iter_output << "Scalar greater than maximum (" << max_permissible_scalar
-                   << ") adjusted scalar=" << scalar << " scalar_increment=" << scalar_increment
-                   << std::endl;
+      *iter_output << "Scalar greater than maximum ("
+                   << MetaPhysicL::raw_value(max_permissible_scalar)
+                   << ") adjusted scalar=" << MetaPhysicL::raw_value(scalar)
+                   << " scalar_increment=" << MetaPhysicL::raw_value(scalar_increment) << std::endl;
   }
   else if (scalar < min_permissible_scalar)
   {
     scalar_increment = (min_permissible_scalar - scalar_old) / 2.0;
     scalar = scalar_old + scalar_increment;
     if (iter_output)
-      *iter_output << "Scalar less than minimum (" << min_permissible_scalar
-                   << ") adjusted scalar=" << scalar << " scalar_increment=" << scalar_increment
-                   << std::endl;
+      *iter_output << "Scalar less than minimum (" << MetaPhysicL::raw_value(min_permissible_scalar)
+                   << ") adjusted scalar=" << MetaPhysicL::raw_value(scalar)
+                   << " scalar_increment=" << MetaPhysicL::raw_value(scalar_increment) << std::endl;
   }
 }
 
-template <ComputeStage compute_stage>
 void
-ADSingleVariableReturnMappingSolution<compute_stage>::updateBounds(const ADReal & scalar,
-                                                                   const ADReal & residual,
-                                                                   const Real init_resid_sign,
-                                                                   ADReal & scalar_upper_bound,
-                                                                   ADReal & scalar_lower_bound,
-                                                                   std::stringstream * iter_output)
+ADSingleVariableReturnMappingSolution::updateBounds(const ADReal & scalar,
+                                                    const ADReal & residual,
+                                                    const Real init_resid_sign,
+                                                    ADReal & scalar_upper_bound,
+                                                    ADReal & scalar_lower_bound,
+                                                    std::stringstream * iter_output)
 {
   // Update upper/lower bounds as applicable
   if (residual * init_resid_sign < 0.0 && scalar < scalar_upper_bound)
@@ -376,13 +376,11 @@ ADSingleVariableReturnMappingSolution<compute_stage>::updateBounds(const ADReal 
     scalar_lower_bound = scalar;
 }
 
-template <ComputeStage compute_stage>
 void
-ADSingleVariableReturnMappingSolution<compute_stage>::outputIterationStep(
-    std::stringstream * iter_output,
-    const ADReal & effective_trial_stress,
-    const ADReal & scalar,
-    const Real reference_residual)
+ADSingleVariableReturnMappingSolution::outputIterationStep(std::stringstream * iter_output,
+                                                           const ADReal & effective_trial_stress,
+                                                           const ADReal & scalar,
+                                                           const Real reference_residual)
 {
   if (iter_output)
   {
@@ -393,21 +391,18 @@ ADSingleVariableReturnMappingSolution<compute_stage>::outputIterationStep(
                  << " trial_stress=" << MetaPhysicL::raw_value(effective_trial_stress)
                  << " scalar=" << MetaPhysicL::raw_value(scalar) << " residual=" << residual
                  << " ref_res=" << reference_residual
-                 << " rel_res=" << std::abs(MetaPhysicL::raw_value(residual)) / reference_residual
+                 << " rel_res=" << std::abs(residual) / reference_residual
                  << " rel_tol=" << _relative_tolerance << " abs_res=" << std::abs(residual)
                  << " abs_tol=" << _absolute_tolerance << '\n';
   }
 }
 
-template <ComputeStage compute_stage>
 void
-ADSingleVariableReturnMappingSolution<compute_stage>::outputIterationSummary(
-    std::stringstream * iter_output, const unsigned int total_it)
+ADSingleVariableReturnMappingSolution::outputIterationSummary(std::stringstream * iter_output,
+                                                              const unsigned int total_it)
 {
   if (iter_output)
-    *iter_output << "In " << total_it << " iterations the residual went from " << _initial_residual
-                 << " to " << _residual << " in '" << _svrms_name << "'.\n";
+    *iter_output << "In " << total_it << " iterations the residual went from "
+                 << MetaPhysicL::raw_value(_initial_residual) << " to "
+                 << MetaPhysicL::raw_value(_residual) << " in '" << _svrms_name << "'.\n";
 }
-
-// explicit instantiation is required for AD base classes
-adBaseClass(ADSingleVariableReturnMappingSolution);

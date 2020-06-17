@@ -11,12 +11,6 @@
 
 #include "ACBulk.h"
 
-// Forward Declarations
-class CoupledAllenCahn;
-
-template <>
-InputParameters validParams<CoupledAllenCahn>();
-
 /**
  * CoupledAllenCahn uses the Free Energy function and derivatives
  * provided by a DerivativeParsedMaterial to compute the residual
@@ -26,6 +20,8 @@ InputParameters validParams<CoupledAllenCahn>();
 class CoupledAllenCahn : public ACBulk<Real>
 {
 public:
+  static InputParameters validParams();
+
   CoupledAllenCahn(const InputParameters & parameters);
 
   virtual void initialSetup();
@@ -37,10 +33,8 @@ protected:
   // coupled variable name
   VariableName _v_name;
 
-  const unsigned int _nvar;
   const MaterialProperty<Real> & _dFdV;
   const MaterialProperty<Real> & _d2FdVdEta;
 
   std::vector<const MaterialProperty<Real> *> _d2FdVdarg;
 };
-

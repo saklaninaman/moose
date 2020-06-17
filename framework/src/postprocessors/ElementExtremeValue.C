@@ -14,21 +14,25 @@
 
 registerMooseObject("MooseApp", ElementExtremeValue);
 
-template <>
+defineLegacyParams(ElementExtremeValue);
+
 InputParameters
-validParams<ElementExtremeValue>()
+ElementExtremeValue::validParams()
 {
   // Define the min/max enumeration
   MooseEnum type_options("max=0 min=1", "max");
 
   // Define the parameters
-  InputParameters params = validParams<ElementVariablePostprocessor>();
+  InputParameters params = ElementVariablePostprocessor::validParams();
 
   params.addParam<MooseEnum>("value_type",
                              type_options,
                              "Type of extreme value to return. 'max' "
                              "returns the maximum value. 'min' returns "
                              "the minimum value.");
+
+  params.addClassDescription(
+      "Finds either the min or max elemental value of a a variable over the domain.");
 
   return params;
 }

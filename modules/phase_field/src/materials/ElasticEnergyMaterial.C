@@ -13,11 +13,10 @@
 
 registerMooseObject("PhaseFieldApp", ElasticEnergyMaterial);
 
-template <>
 InputParameters
-validParams<ElasticEnergyMaterial>()
+ElasticEnergyMaterial::validParams()
 {
-  InputParameters params = validParams<DerivativeFunctionMaterialBase>();
+  InputParameters params = DerivativeFunctionMaterialBase::validParams();
   params.addClassDescription("Free energy material for the elastic energy contributions.");
   params.addParam<std::string>("base_name", "Material property base name");
   params.addRequiredCoupledVar("args", "Arguments of F() - use vector coupling");
@@ -102,10 +101,9 @@ ElasticEnergyMaterial::computeD2F(unsigned int i_var, unsigned int j_var)
                  _elasticity_tensor[_qp] * (*_dstrain[i])[_qp])
                     .doubleContraction((*_dstrain[j])[_qp])
 
-                +
-                ( // dstress/dj
-                    (*_delasticity_tensor[j])[_qp] * _strain[_qp] +
-                    _elasticity_tensor[_qp] * (*_dstrain[j])[_qp])
-                    .doubleContraction((*_dstrain[i])[_qp]) +
+                + ( // dstress/dj
+                      (*_delasticity_tensor[j])[_qp] * _strain[_qp] +
+                      _elasticity_tensor[_qp] * (*_dstrain[j])[_qp])
+                      .doubleContraction((*_dstrain[i])[_qp]) +
                 _stress[_qp].doubleContraction((*_d2strain[i][j])[_qp]));
 }

@@ -13,11 +13,10 @@
 #include "Conversion.h"
 #include "libmesh/string_to_enum.h"
 
-template <>
 InputParameters
-validParams<PorousFlowSinglePhaseBase>()
+PorousFlowSinglePhaseBase::validParams()
 {
-  InputParameters params = validParams<PorousFlowActionBase>();
+  InputParameters params = PorousFlowActionBase::validParams();
   params.addParam<bool>("add_darcy_aux", true, "Add AuxVariables that record Darcy velocity");
   params.addParam<bool>("add_stress_aux", true, "Add AuxVariables that record effective stress");
   params.addParam<bool>("use_brine", false, "Use PorousFlowBrine material for the fluid phase");
@@ -142,8 +141,11 @@ PorousFlowSinglePhaseBase::addKernels()
       if (_thermal)
       {
         params.set<std::vector<VariableName>>("temperature") = _temperature_var;
-        params.set<std::string>("thermal_eigenstrain_name") =
-            getParam<std::string>("thermal_eigenstrain_name");
+        if (parameters().isParamValid("eigenstrain_names"))
+        {
+          params.set<std::vector<MaterialPropertyName>>("eigenstrain_names") =
+              getParam<std::vector<MaterialPropertyName>>("eigenstrain_names");
+        }
       }
       params.set<unsigned>("component") = i;
       params.set<bool>("use_displaced_mesh") = getParam<bool>("use_displaced_mesh");

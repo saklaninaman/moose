@@ -1,17 +1,17 @@
 [Mesh]
-  type = GeneratedMesh
-  dim = 3
-  nx = 1
-  ny = 1
-  nz = 1
-[]
-
-[MeshModifiers]
-  [./cnode]
-    type = AddExtraNodeset
+  [generated_mesh]
+    type = GeneratedMeshGenerator
+    dim = 3
+    nx = 1
+    ny = 1
+    nz = 1
+  []
+  [cnode]
+    type = ExtraNodesetGenerator
     coord = '0.0 0.0 0.0'
     new_boundary = 100
-  [../]
+    input = generated_mesh
+  []
 []
 
 [Variables]
@@ -88,19 +88,19 @@
 
   # fix center point location
   [./centerfix_x]
-    type = PresetBC
+    type = DirichletBC
     boundary = 100
     variable = u_x
     value = 0
   [../]
   [./centerfix_y]
-    type = PresetBC
+    type = DirichletBC
     boundary = 100
     variable = u_y
     value = 0
   [../]
   [./centerfix_z]
-    type = PresetBC
+    type = DirichletBC
     boundary = 100
     variable = u_z
     value = 0

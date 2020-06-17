@@ -110,25 +110,25 @@
 [BCs]
   active = 'left_x bottom_y'
   [./bottom_y]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_y
     boundary = bottom
     value = 0
   [../]
   [./left_x]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_x
     boundary = left
     value = 0
   [../]
   [./right_x]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_x
     boundary = right
     value = 0
   [../]
   [./top_y]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_y
     boundary = top
     value = 0.01
@@ -150,8 +150,8 @@
   l_max_its = 20
   nl_max_its = 10
   l_tol = 1.0e-4
-  nl_rel_tol = 1.0e-6
-  nl_abs_tol = 1.0e-8
+  nl_rel_tol = 1.0e-10
+  nl_abs_tol = 1.0e-50
 []
 
 [Outputs]

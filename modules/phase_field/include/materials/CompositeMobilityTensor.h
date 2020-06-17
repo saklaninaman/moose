@@ -23,6 +23,8 @@
 class CompositeMobilityTensor : public CompositeTensorBase<RealTensorValue, Material>
 {
 public:
+  static InputParameters validParams();
+
   CompositeMobilityTensor(const InputParameters & parameters);
 
 protected:
@@ -31,7 +33,3 @@ protected:
   const std::string _M_name;
   MaterialProperty<RealTensorValue> & _M;
 };
-
-template <>
-InputParameters validParams<CompositeMobilityTensor>();
-

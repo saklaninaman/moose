@@ -11,17 +11,14 @@
 
 #include "Kernel.h"
 
-class SimpleCHInterface;
-
-template <>
-InputParameters validParams<SimpleCHInterface>();
-
 /**
  * Compute the Cahn-Hilliard interface term with constant Mobility and Interfacial parameter
  */
 class SimpleCHInterface : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   SimpleCHInterface(const InputParameters & parameters);
 
 protected:
@@ -39,4 +36,3 @@ protected:
   /// Interfacial parameter
   const MaterialProperty<Real> & _kappa_c;
 };
-

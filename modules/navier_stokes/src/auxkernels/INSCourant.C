@@ -12,11 +12,10 @@
 
 registerMooseObject("NavierStokesApp", INSCourant);
 
-template <>
 InputParameters
-validParams<INSCourant>()
+INSCourant::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
 
   params.addClassDescription("Computes h_min / |u|.");
   // Coupled variables

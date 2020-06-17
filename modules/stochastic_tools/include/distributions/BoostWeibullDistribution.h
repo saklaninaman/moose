@@ -9,19 +9,14 @@
 
 #pragma once
 
-#include "BoostDistribution.h"
-
-class BoostWeibullDistribution;
-
-template <>
-InputParameters validParams<BoostWeibullDistribution>();
+#include "BoostWeibull.h"
 
 /**
- * A class used to generate Weibull distribution via Boost
+ * A deprecated class used to generate a Weibull distribution via boost
  */
-class BoostWeibullDistribution : public BoostDistribution<boost::math::weibull_distribution<Real>>
+class BoostWeibullDistribution : public BoostWeibull
 {
 public:
+  static InputParameters validParams();
   BoostWeibullDistribution(const InputParameters & parameters);
 };
-

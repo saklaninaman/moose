@@ -7,13 +7,14 @@
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
+#include "DenseMatrix.h"
 #include "DualReal.h"
 #include "MooseError.h"
 
 #include "libmesh/dense_matrix_base_impl.h"
 #include "libmesh/dense_matrix_impl.h"
 
-#include "metaphysicl/dualnumberarray.h"
+#include "DualRealOps.h"
 
 namespace libMesh
 {

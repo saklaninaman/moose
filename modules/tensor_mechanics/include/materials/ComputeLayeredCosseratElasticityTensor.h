@@ -11,11 +11,6 @@
 
 #include "ComputeElasticityTensorBase.h"
 
-class ComputeLayeredCosseratElasticityTensor;
-
-template <>
-InputParameters validParams<ComputeLayeredCosseratElasticityTensor>();
-
 /**
  * ComputeLayeredCosseratElasticityTensor defines an
  * elasticity tensor and an elastic flexural rigidity
@@ -26,6 +21,8 @@ InputParameters validParams<ComputeLayeredCosseratElasticityTensor>();
 class ComputeLayeredCosseratElasticityTensor : public ComputeElasticityTensorBase
 {
 public:
+  static InputParameters validParams();
+
   ComputeLayeredCosseratElasticityTensor(const InputParameters & parameters);
 
 protected:
@@ -50,4 +47,3 @@ protected:
   /// Compliance tensor (_Eijkl^-1) at the qps
   MaterialProperty<RankFourTensor> & _compliance;
 };
-

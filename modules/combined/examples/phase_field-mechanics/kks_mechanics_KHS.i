@@ -235,37 +235,37 @@
 
 [BCs]
   [./left_x]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_x
     boundary = left
     value = 0
   [../]
   [./right_x]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_x
     boundary = right
     value = 0
   [../]
   [./front_y]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_y
     boundary = front
     value = 0
   [../]
   [./back_y]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_y
     boundary = back
     value = 0
   [../]
   [./top_z]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_z
     boundary = top
     value = 0
   [../]
   [./bottom_z]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_z
     boundary = bottom
     value = 0
@@ -394,9 +394,7 @@
     type = KKSSplitCHCRes
     variable = c
     ca       = cm
-    cb       = cp
     fa_name  = fm
-    fb_name  = fp
     w        = w
   [../]
 
@@ -428,7 +426,6 @@
     ca       = cm
     cb       = cp
     fa_name  = fm
-    fb_name  = fp
   [../]
   [./ACBulk_el] #This adds df_el/deta for strain interpolation
     type = AllenCahn

@@ -8,13 +8,26 @@ A number of sources/sinks are available in Porous Flow, implemented as `DiracKer
 implements a constant mass point source that adds (removes) fluid at a constant
 mass flux rate (kg.s$^{-1}$) for times between the specified start and end times. If
 no start and end times are specified, the source (sink) starts at the
-start of the simulation and continues to act indefinitely. 
+start of the simulation and continues to act indefinitely.
 For instance:
 
 !listing modules/porous_flow/test/tests/dirackernels/squarepulse1.i block=DiracKernels
 
 Note that the parameter ```mass_flux``` is positive for a source and negative
 for a sink, which is dissimilar to the conventions used below for line-sink strength $s$ and flux $f$.
+
+## Point source from postprocessor
+
+A mass point source can be specified via a value computed by a postprocessor using [`PorousFlowPointSourceFromPostprocessor`](/PorousFlowPointSourceFromPostprocessor.md) Dirac kernel.
+Users have to make sure that the postprocessor is evaluated at ```timestep_begin``` so that the correct value is used within the timestep.
+
+Such example is shown here:
+
+!listing modules/porous_flow/test/tests/dirackernels/frompps.i block=DiracKernels
+
+!listing modules/porous_flow/test/tests/dirackernels/frompps.i block=Postprocessors
+
+Note that the parameter ```mass_flux``` is positive for a source and negative for a sink.
 
 ## PorousFlow polyline sinks in general
 
@@ -124,7 +137,7 @@ into the piecewise linear function, $L$.  Three standard types of $L$ are used i
 ## Peaceman Boreholes
 
 Wellbores are implemented in [`PorousFlowPeacemanBorehole`](/PorousFlowPeacemanBorehole.md)
-using the method first described by [cite!peaceman1983].  Here $f$ is a
+using the method first described by [!cite](peaceman1983).  Here $f$ is a
 special function (measured in kg.s$^{-1}$ in standard units) defined in terms of the pressure at a
 point at the wall of the wellbore.
 
@@ -209,7 +222,7 @@ In this formula:
 
 - $r_{e}$ is the effective borehole radius.
 
-For a cell-centred finite-difference approach, [cite!peaceman1983] found that
+For a cell-centred finite-difference approach, [!cite](peaceman1983) found that
 \begin{equation}
 r_{e} = 0.28 \frac{\sqrt{\sqrt{\kappa_{xx}/\kappa_{yy}}L_{x}^{2} +
     \sqrt{\kappa_{yy}/\kappa_{xx}}L_{y}^{2}}}{(\kappa_{xx}/\kappa_{yy})^{1/4}
@@ -221,7 +234,7 @@ r_{e} = 0.28 \frac{\sqrt{\sqrt{\kappa_{xx}/\kappa_{yy}}L_{x}^{2} +
 Here $L_{x}$ and $L_{y}$ are the finite-difference spatial sizes.
 
 Other authors have generalised Peaceman's approach to writing $W$ for different geometrical
-situations.  Some of these are contained in [cite!chen2009], where they show that for a finite
+situations.  Some of these are contained in [!cite](chen2009), where they show that for a finite
 element situation with square elements of size $L$, the borehole at a nodal position, and isotropic
 permeability
 
@@ -345,7 +358,7 @@ This is the fundamental solution used by Peaceman and others to derive
 expressions for $W$ by comparing with numerical expressions resulting
 from [eq:peaceman_f].
 
-Chen and Zhang [cite!chen2009] have derived an expression for $W$
+Chen and Zhang [!cite](chen2009) have derived an expression for $W$
 in the case where this borehole is placed at a node in a square mesh.
 This test compares the MOOSE steadystate solution with a single
 borehole with $W$ defined by

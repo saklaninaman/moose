@@ -16,12 +16,13 @@
 
 registerMooseObject("MooseApp", PerfGraphOutput);
 
-template <>
+defineLegacyParams(PerfGraphOutput);
+
 InputParameters
-validParams<PerfGraphOutput>()
+PerfGraphOutput::validParams()
 {
   // Get the base class parameters
-  InputParameters params = validParams<Output>();
+  InputParameters params = Output::validParams();
 
   // Hide/show variable output options
   params.addParam<std::vector<VariableName>>(
@@ -68,7 +69,7 @@ PerfGraphOutput::shouldOutput(const ExecFlagType & type)
 void
 PerfGraphOutput::output(const ExecFlagType & /*type*/)
 {
-  if (!_app.getParamTempl<bool>("no_timing"))
+  if (!_app.getParam<bool>("no_timing"))
   {
     _app.perfGraph().print(_console, _level);
 

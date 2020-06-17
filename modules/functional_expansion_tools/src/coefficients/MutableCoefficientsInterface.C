@@ -14,9 +14,8 @@
 
 #include "MutableCoefficientsInterface.h"
 
-template <>
 InputParameters
-validParams<MutableCoefficientsInterface>()
+MutableCoefficientsInterface::validParams()
 {
   InputParameters params = emptyInputParameters();
 

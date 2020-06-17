@@ -12,11 +12,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowRelativePermeabilityBC);
 
-template <>
 InputParameters
-validParams<PorousFlowRelativePermeabilityBC>()
+PorousFlowRelativePermeabilityBC::validParams()
 {
-  InputParameters params = validParams<PorousFlowRelativePermeabilityBase>();
+  InputParameters params = PorousFlowRelativePermeabilityBase::validParams();
   params.addRequiredParam<Real>("lambda", "The Brooks-Corey exponent of the phase");
   params.addParam<bool>("nw_phase", false, "Set true if this is the non-wetting phase");
   params.addClassDescription("Brooks-Corey relative permeability");

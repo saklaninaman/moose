@@ -11,32 +11,24 @@
 
 #include "ADKernelGrad.h"
 
-// Forward Declarations
-template <ComputeStage>
-class INSADMassPSPG;
-
-declareADValidParams(INSADMassPSPG);
-
 /**
  * This class adds PSPG stabilization to the mass equation, enabling use of
  * equal order shape functions for pressure and velocity variables
  */
-template <ComputeStage compute_stage>
-class INSADMassPSPG : public ADKernelGrad<compute_stage>
+class INSADMassPSPG : public ADKernelGrad
 {
 public:
+  static InputParameters validParams();
+
   INSADMassPSPG(const InputParameters & parameters);
 
 protected:
-  ADVectorResidual precomputeQpResidual() override;
+  ADRealVectorValue precomputeQpResidual() override;
 
   /// The density
-  const ADMaterialProperty(Real) & _rho;
+  const ADMaterialProperty<Real> & _rho;
   /// The stabilization parameter tau
-  const ADMaterialProperty(Real) & _tau;
+  const ADMaterialProperty<Real> & _tau;
   /// The strong residual of the momentum equation, computed using INSADMaterial
-  const ADMaterialProperty(RealVectorValue) & _momentum_strong_residual;
-
-  usingKernelGradMembers;
+  const ADMaterialProperty<RealVectorValue> & _momentum_strong_residual;
 };
-

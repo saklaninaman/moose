@@ -11,11 +11,6 @@
 
 #include "PorousFlowLineSink.h"
 
-class PorousFlowPeacemanBorehole;
-
-template <>
-InputParameters validParams<PorousFlowPeacemanBorehole>();
-
 /**
  * Approximates a borehole by a sequence of Dirac Points
  */
@@ -30,6 +25,8 @@ public:
    * It also calculates segment-lengths and rotation matrices
    * needed for computing the borehole well constant
    */
+  static InputParameters validParams();
+
   PorousFlowPeacemanBorehole(const InputParameters & parameters);
 
 protected:

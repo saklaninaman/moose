@@ -12,9 +12,8 @@
 
 registerMooseObject("PhaseFieldApp", ACGBPoly);
 
-template <>
 InputParameters
-validParams<ACGBPoly>()
+ACGBPoly::validParams()
 {
   InputParameters params = ACBulk<Real>::validParams();
   params.addClassDescription("Grain-Boundary model concentration dependent residual");

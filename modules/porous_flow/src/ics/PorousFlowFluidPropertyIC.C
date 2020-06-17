@@ -12,11 +12,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowFluidPropertyIC);
 
-template <>
 InputParameters
-validParams<PorousFlowFluidPropertyIC>()
+PorousFlowFluidPropertyIC::validParams()
 {
-  InputParameters params = validParams<InitialCondition>();
+  InputParameters params = InitialCondition::validParams();
   params.addRequiredCoupledVar("porepressure", "Fluid porepressure");
   params.addRequiredCoupledVar("temperature", "Fluid temperature");
   MooseEnum unit_choice("Kelvin=0 Celsius=1", "Kelvin");

@@ -13,14 +13,11 @@
 
 using namespace libMesh;
 
-class GeometricCut3DUserObject;
-
-template <>
-InputParameters validParams<GeometricCut3DUserObject>();
-
 class GeometricCut3DUserObject : public GeometricCutUserObject
 {
 public:
+  static InputParameters validParams();
+
   GeometricCut3DUserObject(const InputParameters & parameters);
 
   virtual bool cutElementByGeometry(const Elem * elem,
@@ -50,4 +47,3 @@ protected:
 
   Real getRelativePosition(const Point & p1, const Point & p2, const Point & p) const;
 };
-

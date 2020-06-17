@@ -11,11 +11,6 @@
 
 #include "PorousFlowMaterialVectorBase.h"
 
-class PorousFlowEffectiveFluidPressure;
-
-template <>
-InputParameters validParams<PorousFlowEffectiveFluidPressure>();
-
 /**
  * Material designed to calculate the effective fluid pressure
  * that can be used in the mechanical effective-stress calculations
@@ -25,6 +20,8 @@ InputParameters validParams<PorousFlowEffectiveFluidPressure>();
 class PorousFlowEffectiveFluidPressure : public PorousFlowMaterialVectorBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowEffectiveFluidPressure(const InputParameters & parameters);
 
 protected:
@@ -34,17 +31,11 @@ protected:
   /// Quadpoint or nodal porepressure of each phase
   const MaterialProperty<std::vector<Real>> & _porepressure;
 
-  /// Old value of quadpoint or nodal porepressure of each phase
-  const MaterialProperty<std::vector<Real>> & _porepressure_old;
-
   /// d(porepressure)/d(PorousFlow variable)
   const MaterialProperty<std::vector<std::vector<Real>>> & _dporepressure_dvar;
 
   /// Quadpoint or nodal saturation of each phase
   const MaterialProperty<std::vector<Real>> & _saturation;
-
-  /// Old value of quadpoint or nodal saturation of each phase
-  const MaterialProperty<std::vector<Real>> & _saturation_old;
 
   /// d(saturation)/d(PorousFlow variable)
   const MaterialProperty<std::vector<std::vector<Real>>> & _dsaturation_dvar;
@@ -55,4 +46,3 @@ protected:
   /// d(_pf)/d(PorousFlow variable)
   MaterialProperty<std::vector<Real>> & _dpf_dvar;
 };
-

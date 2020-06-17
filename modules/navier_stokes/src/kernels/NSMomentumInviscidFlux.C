@@ -16,14 +16,13 @@
 
 registerMooseObject("NavierStokesApp", NSMomentumInviscidFlux);
 
-template <>
 InputParameters
-validParams<NSMomentumInviscidFlux>()
+NSMomentumInviscidFlux::validParams()
 {
-  InputParameters params = validParams<NSKernel>();
+  InputParameters params = NSKernel::validParams();
   params.addClassDescription(
       "The inviscid flux (convective + pressure terms) for the momentum conservation equations.");
-  params.addRequiredCoupledVar(NS::pressure, "pressure");
+  params.addRequiredCoupledVar("pressure", "pressure");
   params.addRequiredParam<unsigned int>(
       "component",
       "0,1,2 depending on if we are solving the x,y,z component of the momentum equation");
@@ -32,7 +31,7 @@ validParams<NSMomentumInviscidFlux>()
 
 NSMomentumInviscidFlux::NSMomentumInviscidFlux(const InputParameters & parameters)
   : NSKernel(parameters),
-    _pressure(coupledValue(NS::pressure)),
+    _pressure(coupledValue("pressure")),
     _component(getParam<unsigned int>("component"))
 {
 }
@@ -97,9 +96,10 @@ NSMomentumInviscidFlux::computeJacobianHelper(unsigned int m)
       // Kronecker delta
       const Real delta_kl = (_component == m_local ? 1. : 0.);
 
-      return -1.0 * (vel(_component) * _grad_test[_i][_qp](m_local) +
-                     delta_kl * (vel * _grad_test[_i][_qp]) +
-                     (1. - gam) * vel(m_local) * _grad_test[_i][_qp](_component)) *
+      return -1.0 *
+             (vel(_component) * _grad_test[_i][_qp](m_local) +
+              delta_kl * (vel * _grad_test[_i][_qp]) +
+              (1. - gam) * vel(m_local) * _grad_test[_i][_qp](_component)) *
              _phi[_j][_qp];
     }
 

@@ -13,10 +13,6 @@
 
 // Forward Declarations
 class Function;
-class OutOfPlanePressure;
-
-template <>
-InputParameters validParams<OutOfPlanePressure>();
 
 /**
  * OutOfPlanePressure is a kernel used to apply pressure in the out-of-plane direction
@@ -28,6 +24,8 @@ InputParameters validParams<OutOfPlanePressure>();
 class OutOfPlanePressure : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   OutOfPlanePressure(const InputParameters & parameters);
 
 protected:

@@ -13,11 +13,12 @@
 #include "MooseMeshUtils.h"
 #include "CastUniquePointer.h"
 
-template <>
+defineLegacyParams(ElementDeletionGeneratorBase);
+
 InputParameters
-validParams<ElementDeletionGeneratorBase>()
+ElementDeletionGeneratorBase::validParams()
 {
-  InputParameters params = validParams<MeshGenerator>();
+  InputParameters params = MeshGenerator::validParams();
 
   params.addRequiredParam<MeshGeneratorName>("input", "The mesh we want to modify");
   params.addParam<BoundaryName>("new_boundary",
@@ -224,7 +225,7 @@ ElementDeletionGeneratorBase::generate()
    * Action that we need to re-prepare the mesh.
    */
   mesh->contract();
-  mesh->prepare_for_use();
+  mesh->prepare_for_use(false, false);
 
   return dynamic_pointer_cast<MeshBase>(mesh);
 }

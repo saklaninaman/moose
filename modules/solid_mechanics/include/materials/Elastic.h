@@ -11,17 +11,13 @@
 
 #include "SolidModel.h"
 
-class Elastic;
-
-template <>
-InputParameters validParams<Elastic>();
-
 class Elastic : public SolidModel
 {
 public:
+  static InputParameters validParams();
+
   Elastic(const InputParameters & parameters);
   virtual ~Elastic();
 
 protected:
 };
-

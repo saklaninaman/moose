@@ -13,17 +13,14 @@
 
 #include <array>
 
-class EBSDMesh;
-
-template <>
-InputParameters validParams<EBSDMesh>();
-
 /**
  * Mesh generated from parameters
  */
 class EBSDMesh : public GeneratedMesh
 {
 public:
+  static InputParameters validParams();
+
   EBSDMesh(const InputParameters & parameters);
   virtual ~EBSDMesh();
 
@@ -55,4 +52,3 @@ protected:
   /// EBSD data file mesh information
   EBSDMeshGeometry _geometry;
 };
-

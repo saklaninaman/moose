@@ -11,11 +11,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowPermeabilityExponential);
 
-template <>
 InputParameters
-validParams<PorousFlowPermeabilityExponential>()
+PorousFlowPermeabilityExponential::validParams()
 {
-  InputParameters params = validParams<PorousFlowPermeabilityBase>();
+  InputParameters params = PorousFlowPermeabilityBase::validParams();
   MooseEnum poroperm_function("log_k ln_k exp_k", "exp_k");
   params.addParam<MooseEnum>("poroperm_function",
                              poroperm_function,
@@ -69,6 +68,9 @@ PorousFlowPermeabilityExponential::PorousFlowPermeabilityExponential(
       _BB = _B;
       break;
   }
+
+  // Make sure that derivatives are included in the Jacobian calculations
+  _dictator.usePermDerivs(true);
 }
 
 void

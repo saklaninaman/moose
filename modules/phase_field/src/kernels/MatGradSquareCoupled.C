@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", MatGradSquareCoupled);
 
-template <>
 InputParameters
-validParams<MatGradSquareCoupled>()
+MatGradSquareCoupled::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addClassDescription("Gradient square of a coupled variable.");
   params.addCoupledVar("elec_potential", "Electric potential");
   params.addCoupledVar("args", "Vector of arguments to prefactor");
@@ -32,11 +31,10 @@ MatGradSquareCoupled::MatGradSquareCoupled(const InputParameters & parameters)
     _elec_potential_var(coupled("elec_potential")),
     _prefactor(getMaterialProperty<Real>("prefactor")),
     _dprefactor_dphi(getMaterialPropertyDerivative<Real>("prefactor", _var.name())),
-    _dprefactor_darg(_coupled_moose_vars.size())
+    _dprefactor_darg(_n_args)
 {
-  for (unsigned int i = 0; i < _dprefactor_darg.size(); ++i)
-    _dprefactor_darg[i] =
-        &getMaterialPropertyDerivative<Real>("prefactor", _coupled_moose_vars[i]->name());
+  for (unsigned int i = 0; i < _n_args; ++i)
+    _dprefactor_darg[i] = &getMaterialPropertyDerivative<Real>("prefactor", i);
 }
 
 void

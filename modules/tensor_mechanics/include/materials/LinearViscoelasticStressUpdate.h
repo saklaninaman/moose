@@ -12,11 +12,6 @@
 #include "StressUpdateBase.h"
 #include "LinearViscoelasticityBase.h"
 
-class LinearViscoelasticStressUpdate;
-
-template <>
-InputParameters validParams<LinearViscoelasticStressUpdate>();
-
 /**
  * This class computes a creep strain increment associated with a linear viscoelastic
  * model contained in a LinearViscoelasticityBase material. The creep strain increment
@@ -30,6 +25,8 @@ InputParameters validParams<LinearViscoelasticStressUpdate>();
 class LinearViscoelasticStressUpdate : public StressUpdateBase
 {
 public:
+  static InputParameters validParams();
+
   LinearViscoelasticStressUpdate(const InputParameters & parameters);
 
   /**
@@ -66,4 +63,3 @@ protected:
   /// Instantaneous compliance tensor (extracted from a LinearViscoelasticityBase object)
   const MaterialProperty<RankFourTensor> & _elasticity_tensor_inv;
 };
-

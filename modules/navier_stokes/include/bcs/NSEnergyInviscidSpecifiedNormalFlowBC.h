@@ -12,10 +12,6 @@
 #include "NSEnergyInviscidBC.h"
 
 // Forward Declarations
-class NSEnergyInviscidSpecifiedNormalFlowBC;
-
-template <>
-InputParameters validParams<NSEnergyInviscidSpecifiedNormalFlowBC>();
 
 /**
  * The inviscid energy BC term with specified normal flow.
@@ -23,6 +19,8 @@ InputParameters validParams<NSEnergyInviscidSpecifiedNormalFlowBC>();
 class NSEnergyInviscidSpecifiedNormalFlowBC : public NSEnergyInviscidBC
 {
 public:
+  static InputParameters validParams();
+
   NSEnergyInviscidSpecifiedNormalFlowBC(const InputParameters & parameters);
 
 protected:
@@ -39,4 +37,3 @@ protected:
 private:
   Real computeJacobianHelper(unsigned var_number);
 };
-

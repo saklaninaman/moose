@@ -1,18 +1,18 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # ElementVectorL2Error
 
-!alert construction title=Undocumented Class
-The ElementVectorL2Error has not been documented. The content contained on this page includes the
-typical automatic documentation associated with a MooseObject; however, what is contained is
-ultimately determined by what is necessary to make the documentation clear for users.
-
 !syntax description /Postprocessors/ElementVectorL2Error
+
+## Overview
+
+!! Replace these lines with information regarding the ElementL2Error object, be sure to include mathematical
+!! definitions such as the strong and weak form for Kernel objects.
+
+## Example Input File Syntax
+
+!! Describe and include an example of how to use the ElementL2Error object.
 
 !syntax parameters /Postprocessors/ElementVectorL2Error
 
 !syntax inputs /Postprocessors/ElementVectorL2Error
 
 !syntax children /Postprocessors/ElementVectorL2Error
-
-!bibtex bibliography

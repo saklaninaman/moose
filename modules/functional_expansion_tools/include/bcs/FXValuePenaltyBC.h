@@ -11,17 +11,13 @@
 
 #include "FunctionPenaltyDirichletBC.h"
 
-class FXValuePenaltyBC;
-
-template <>
-InputParameters validParams<FXValuePenaltyBC>();
-
 /**
  * Defines an FX-based BC that strongly encourages the values to match
  */
 class FXValuePenaltyBC : public FunctionPenaltyDirichletBC
 {
 public:
+  static InputParameters validParams();
+
   FXValuePenaltyBC(const InputParameters & parameters);
 };
-

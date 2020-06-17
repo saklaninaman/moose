@@ -12,11 +12,6 @@
 #include "IsotropicPlasticityStressUpdate.h"
 #include "MooseMesh.h"
 
-class IsotropicPowerLawHardeningStressUpdate;
-
-template <>
-InputParameters validParams<IsotropicPowerLawHardeningStressUpdate>();
-
 /**
  * This class uses the Discrete material in a radial return isotropic plasticity
  * model.  This class is one of the basic radial return constitutive models;
@@ -36,6 +31,8 @@ InputParameters validParams<IsotropicPowerLawHardeningStressUpdate>();
 class IsotropicPowerLawHardeningStressUpdate : public IsotropicPlasticityStressUpdate
 {
 public:
+  static InputParameters validParams();
+
   IsotropicPowerLawHardeningStressUpdate(const InputParameters & parameters);
 
 protected:
@@ -57,4 +54,3 @@ protected:
 
   Real getIsotropicLameLambda(const RankFourTensor & elasticity_tensor);
 };
-

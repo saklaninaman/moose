@@ -11,12 +11,6 @@
 
 #include "ADDGKernel.h"
 
-// Forward Declarations
-template <ComputeStage>
-class ADDGDiffusion;
-
-declareADValidParams(ADDGDiffusion);
-
 /**
  * DG kernel for diffusion
  *
@@ -27,20 +21,18 @@ declareADValidParams(ADDGDiffusion);
  * \f$ {a} = 0.5 * (a_1 + a_2) \f$
  *
  */
-template <ComputeStage compute_stage>
-class ADDGDiffusion : public ADDGKernel<compute_stage>
+class ADDGDiffusion : public ADDGKernel
 {
 public:
+  static InputParameters validParams();
+
   ADDGDiffusion(const InputParameters & parameters);
 
 protected:
-  virtual ADResidual computeQpResidual(Moose::DGResidualType type) override;
+  virtual ADReal computeQpResidual(Moose::DGResidualType type) override;
 
   Real _epsilon;
   Real _sigma;
-  const ADMaterialProperty(Real) & _diff;
-  const ADMaterialProperty(Real) & _diff_neighbor;
-
-  usingDGKernelMembers;
+  const ADMaterialProperty<Real> & _diff;
+  const ADMaterialProperty<Real> & _diff_neighbor;
 };
-

@@ -11,11 +11,6 @@
 
 #include "ComputeStressBase.h"
 
-class FiniteStrainCrystalPlasticity;
-
-template <>
-InputParameters validParams<FiniteStrainCrystalPlasticity>();
-
 /**
  * FiniteStrainCrystalPlasticity uses the multiplicative decomposition of deformation gradient
  * and solves the PK2 stress residual equation at the intermediate configuration to evolve the
@@ -26,6 +21,8 @@ InputParameters validParams<FiniteStrainCrystalPlasticity>();
 class FiniteStrainCrystalPlasticity : public ComputeStressBase
 {
 public:
+  static InputParameters validParams();
+
   FiniteStrainCrystalPlasticity(const InputParameters & parameters);
 
 protected:
@@ -355,4 +352,3 @@ protected:
   ///Flags to reset variables and reinitialize variables
   bool _first_step_iter, _last_step_iter, _first_substep;
 };
-

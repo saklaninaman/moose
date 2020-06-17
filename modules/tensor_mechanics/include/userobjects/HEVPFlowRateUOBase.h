@@ -13,11 +13,6 @@
 #include "RankTwoTensor.h"
 #include "RankFourTensor.h"
 
-class HEVPFlowRateUOBase;
-
-template <>
-InputParameters validParams<HEVPFlowRateUOBase>();
-
 /**
  * This user object is a pure virtual base classs
  * Derived classes computes flow rate, direction and derivatives
@@ -25,6 +20,8 @@ InputParameters validParams<HEVPFlowRateUOBase>();
 class HEVPFlowRateUOBase : public DiscreteElementUserObject
 {
 public:
+  static InputParameters validParams();
+
   HEVPFlowRateUOBase(const InputParameters & parameters);
 
   virtual bool computeValue(unsigned int, Real &) const = 0;
@@ -35,10 +32,11 @@ public:
 
 protected:
   std::string _strength_prop_name;
+
+  /// Base name of the material system
   const std::string _base_name;
   const MaterialProperty<Real> & _strength;
   std::string _pk2_prop_name;
   const MaterialProperty<RankTwoTensor> & _pk2;
   const MaterialProperty<RankTwoTensor> & _ce;
 };
-

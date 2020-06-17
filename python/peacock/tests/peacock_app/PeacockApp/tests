@@ -4,14 +4,14 @@
   [PeacockApp]
     type = PythonUnitTest
     input = test_PeacockApp.py
-    display_required = True
+    display_required = true
     test_case = Tests.testPeacockApp
     requirement = "The system shall include a graphical interface that opens without any input arguments."
   []
   [PeacockAppWithExec]
     type = PythonUnitTest
     input = test_PeacockApp.py
-    display_required = True
+    display_required = true
     test_case = Tests.testPeacockAppWithExe
     requirement = "The system shall include a graphical interface that opens with a MOOSE-based application executable."
     prereq = PeacockApp
@@ -19,7 +19,7 @@
   [PeacockAppWithInput]
     type = PythonUnitTest
     input = test_PeacockApp.py
-    display_required = True
+    display_required = true
     test_case = Tests.testPeacockAppWithInput
     requirement = "The system shall include a graphical interface that opens with a MOOSE-based application input file."
     prereq = PeacockAppWithExec
@@ -27,7 +27,7 @@
   [Results]
     type = PythonUnitTest
     input = test_PeacockApp.py
-    display_required = True
+    display_required = true
     test_case = Tests.testResults
     requirement = "The system shall include a graphical interface that opens with a MOOSE-based application Exodus result."
     prereq = PeacockAppWithInput
@@ -35,7 +35,7 @@
   [ResultsNoOption]
     type = PythonUnitTest
     input = test_PeacockApp.py
-    display_required = True
+    display_required = true
     test_case = Tests.testResultsNoOption
     requirement = "The system shall include a graphical interface that opens with a MOOSE-based application Exodus result without using the '-r' flag."
     prereq = Results
@@ -43,7 +43,7 @@
   [Postprocessor]
     type = PythonUnitTest
     input = test_PeacockApp.py
-    display_required = True
+    display_required = true
     test_case = Tests.testPostprocessor
     requirement = "The system shall include a graphical interface that opens with a MOOSE-based application CSV result."
     prereq = ResultsNoOption
@@ -51,7 +51,7 @@
   [PostprocessorNoOption]
     type = PythonUnitTest
     input = test_PeacockApp.py
-    display_required = True
+    display_required = true
     test_case = Tests.testPostprocessorNoOption
     requirement = "The system shall include a graphical interface that opens with a MOOSE-based application CSV result without using the '-p' flag."
     prereq = Postprocessor
@@ -59,7 +59,7 @@
   [AllCommandLine]
     type = PythonUnitTest
     input = test_PeacockApp.py
-    display_required = True
+    display_required = true
     test_case = Tests.testAllCommandLine
     requirement = "The system shall include a graphical interface that opens with a MOOSE-based application executable, input, Exodus, and CSV results."
     prereq = PostprocessorNoOption
@@ -67,7 +67,7 @@
   [OnlyInputFileWithExeInPath]
     type = PythonUnitTest
     input = test_PeacockApp.py
-    display_required = True
+    display_required = true
     test_case = Tests.testOnlyInputFileWithExeInPath
     requirement = "The system shall include a graphical interface that opens with a MOOSE-based application input file without the '-i' flag."
     prereq = AllCommandLine
@@ -75,7 +75,7 @@
   [WrongExe]
     type = PythonUnitTest
     input = test_PeacockApp.py
-    display_required = True
+    display_required = true
     test_case = Tests.testWrongExe
     requirement = "The system shall include a graphical interface that opens with an invalid MOOSE-based application executable."
     prereq = OnlyInputFileWithExeInPath
@@ -83,7 +83,7 @@
   [BadInput]
     type = PythonUnitTest
     input = test_PeacockApp.py
-    display_required = True
+    display_required = true
     test_case = Tests.testBadInput
     requirement = "The system shall include a graphical interface that opens with an invalid MOOSE-based application input file."
     prereq = WrongExe
@@ -91,7 +91,7 @@
   [ClearSettings]
     type = PythonUnitTest
     input = test_PeacockApp.py
-    display_required = True
+    display_required = true
     test_case = Tests.testClearSettings
     requirement = "The system shall include a graphical interface that includes the ability to clear stored settings."
     prereq = BadInput
@@ -99,7 +99,7 @@
   [BadMesh]
     type = PythonUnitTest
     input = test_PeacockApp.py
-    display_required = True
+    display_required = true
     test_case = Tests.testBadMesh
     requirement = "The system shall include a graphical interface that opens a MOOSE-based application input file that includes an invalid mesh."
     prereq = ClearSettings
@@ -107,7 +107,7 @@
   [ExodusChangedFile]
     type = PythonUnitTest
     input = test_PeacockApp.py
-    display_required = True
+    display_required = true
     test_case = Tests.testExodusChangedFile
     requirement = "The system shall include a graphical interface that includes the ability to change MOOSE-based application input files."
     prereq = BadMesh
@@ -115,7 +115,7 @@
   [ExodusExtentsReload]
     type = PythonUnitTest
     input = test_PeacockApp.py
-    display_required = True
+    display_required = true
     test_case = Tests.testExodusExtentsReload
     requirement = "The system shall include a graphical interface that includes the ability to visualize and reload Exodus result extents."
     prereq = ExodusChangedFile

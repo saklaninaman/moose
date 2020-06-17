@@ -11,11 +11,6 @@
 
 #include "ComputeSmallStrain.h"
 
-class Compute2DSmallStrain;
-
-template <>
-InputParameters validParams<Compute2DSmallStrain>();
-
 /**
  * Compute2DSmallStrain defines a strain tensor, assuming small strains,
  * in 2D geometries / simulations.  ComputePlaneSmallStrain acts as a
@@ -25,6 +20,8 @@ InputParameters validParams<Compute2DSmallStrain>();
 class Compute2DSmallStrain : public ComputeSmallStrain
 {
 public:
+  static InputParameters validParams();
+
   Compute2DSmallStrain(const InputParameters & parameters);
 
   void initialSetup() override;
@@ -36,4 +33,3 @@ protected:
 
   const unsigned int _out_of_plane_direction;
 };
-

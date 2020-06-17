@@ -12,11 +12,6 @@
 #include "DiscreteNucleationInserterBase.h"
 #include "DelimitedFileReader.h"
 
-class DiscreteNucleationFromFile;
-
-template <>
-InputParameters validParams<DiscreteNucleationFromFile>();
-
 /**
  * This UserObject manages the insertion and expiration of nuclei in the simulation
  * domain it manages a list of nuclei with their insertion times and their center
@@ -26,6 +21,8 @@ InputParameters validParams<DiscreteNucleationFromFile>();
 class DiscreteNucleationFromFile : public DiscreteNucleationInserterBase
 {
 public:
+  static InputParameters validParams();
+
   DiscreteNucleationFromFile(const InputParameters & parameters);
 
   void initialize() override;
@@ -54,4 +51,3 @@ protected:
   /// total nucleation rate
   const Real _nucleation_rate;
 };
-

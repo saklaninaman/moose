@@ -11,11 +11,6 @@
 
 #include "GeneralUserObject.h"
 
-class SubblockIndexProvider;
-
-template <>
-InputParameters validParams<SubblockIndexProvider>();
-
 /**
  * Abstract base class for user objects that provide an index for a given element that is
  * independent of the block id, so that behavior can be different on subsets of element blocks.
@@ -24,6 +19,8 @@ InputParameters validParams<SubblockIndexProvider>();
 class SubblockIndexProvider : public GeneralUserObject
 {
 public:
+  static InputParameters validParams();
+
   SubblockIndexProvider(const InputParameters & params) : GeneralUserObject(params) {}
 
   /**
@@ -36,4 +33,3 @@ public:
    */
   virtual unsigned int getMaxSubblockIndex() const = 0;
 };
-

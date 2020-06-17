@@ -17,11 +17,10 @@ registerMooseAction("TensorMechanicsApp",
 
 registerMooseAction("TensorMechanicsApp", LegacyTensorMechanicsAction, "add_kernel");
 
-template <>
 InputParameters
-validParams<LegacyTensorMechanicsAction>()
+LegacyTensorMechanicsAction::validParams()
 {
-  return validParams<TensorMechanicsAction>();
+  return TensorMechanicsAction::validParams();
 }
 
 LegacyTensorMechanicsAction::LegacyTensorMechanicsAction(const InputParameters & params)

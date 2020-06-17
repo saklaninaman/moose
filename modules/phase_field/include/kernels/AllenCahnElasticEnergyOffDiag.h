@@ -12,15 +12,7 @@
 #include "DerivativeMaterialInterface.h"
 #include "JvarMapInterface.h"
 #include "Kernel.h"
-
-// Forward Declarations
-class AllenCahnElasticEnergyOffDiag;
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-
-template <>
-InputParameters validParams<AllenCahnElasticEnergyOffDiag>();
+#include "RankTwoTensorForward.h"
 
 /**
  * This kernel computes the off-diagonal jacobian of elastic energy in AllenCahn respect to
@@ -30,6 +22,8 @@ class AllenCahnElasticEnergyOffDiag
   : public DerivativeMaterialInterface<JvarMapKernelInterface<Kernel>>
 {
 public:
+  static InputParameters validParams();
+
   AllenCahnElasticEnergyOffDiag(const InputParameters & parameters);
 
 protected:
@@ -40,10 +34,8 @@ protected:
   /// Mobility
   const MaterialProperty<Real> & _L;
 
-  ///@{ Displacement variables used for off-diagonal Jacobian
-  const unsigned int _ndisp;
-  std::vector<unsigned int> _disp_var;
-  ///@}
+  /// Displacement variables used for off-diagonal Jacobian
+  JvarMap _disp_map;
 
   /// Free energy material properties and derivatives
   const MaterialProperty<RankTwoTensor> & _d2Fdcdstrain;

@@ -13,11 +13,12 @@
 #include "MooseVariable.h"
 #include "Assembly.h"
 
-template <>
+defineLegacyParams(MortarConstraint);
+
 InputParameters
-validParams<MortarConstraint>()
+MortarConstraint::validParams()
 {
-  return validParams<MortarConstraintBase>();
+  return MortarConstraintBase::validParams();
 }
 
 MortarConstraint::MortarConstraint(const InputParameters & parameters)
@@ -89,8 +90,7 @@ MortarConstraint::computeJacobian(Moose::MortarType mortar_type)
       break;
   }
 
-  std::vector<std::pair<MooseVariableFEBase *, MooseVariableFEBase *>> & ce =
-      _assembly.couplingEntries();
+  auto & ce = _assembly.couplingEntries();
   for (const auto & it : ce)
   {
     MooseVariableFEBase & ivariable = *(it.first);
@@ -141,6 +141,13 @@ MortarConstraint::computeJacobian(Moose::MortarType mortar_type)
 
     for (MooseIndex(3) type_index = 0; type_index < 3; ++type_index)
     {
+      // If we don't have a master element, then we shouldn't be considering derivatives with
+      // respect to master dofs. More practically speaking, the local K matrix will be improperly
+      // sized whenever we don't have a master element because we won't be calling
+      // FEProblemBase::reinitNeighborFaceRef from withing ComputeMortarFunctor::operator()
+      if (type_index == 1 && !_has_master)
+        continue;
+
       prepareMatrixTagLower(_assembly, ivar, jvar, jacobian_types[type_index]);
 
       /// Set the proper phis

@@ -10,18 +10,13 @@
 #pragma once
 
 #include "XFEMMaterialStateMarkerBase.h"
-
-class XFEMRankTwoTensorMarkerUserObject;
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-
-template <>
-InputParameters validParams<XFEMRankTwoTensorMarkerUserObject>();
+#include "RankTwoTensorForward.h"
 
 class XFEMRankTwoTensorMarkerUserObject : public XFEMMaterialStateMarkerBase
 {
 public:
+  static InputParameters validParams();
+
   XFEMRankTwoTensorMarkerUserObject(const InputParameters & parameters);
   virtual ~XFEMRankTwoTensorMarkerUserObject() {}
 
@@ -48,4 +43,3 @@ protected:
 
   virtual bool doesElementCrack(RealVectorValue & direction) override;
 };
-

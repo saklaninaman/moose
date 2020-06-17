@@ -13,10 +13,6 @@
 #include "RankTwoTensor.h"
 
 // Forward Declarations
-class LevelSetBiMaterialRankTwo;
-
-template <>
-InputParameters validParams<LevelSetBiMaterialRankTwo>();
 
 /**
  * Compute a RankTwoTensor material property for bi-materials problem (consisting of two different
@@ -26,6 +22,8 @@ InputParameters validParams<LevelSetBiMaterialRankTwo>();
 class LevelSetBiMaterialRankTwo : public LevelSetBiMaterialBase
 {
 public:
+  static InputParameters validParams();
+
   LevelSetBiMaterialRankTwo(const InputParameters & parameters);
 
 protected:
@@ -38,4 +36,3 @@ protected:
   /// Global RankTwoTensor material property (switch bi-material diffusion coefficient based on level set values)
   MaterialProperty<RankTwoTensor> & _material_prop;
 };
-

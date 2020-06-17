@@ -18,11 +18,14 @@ template <>
 InputParameters validParams<SideSetsBetweenSubdomainsGenerator>();
 
 /**
- * MeshGenerator for
+ * MeshGenerator that creates a sideset composed of the nodes located between
+ * two or more subdomains.
  */
 class SideSetsBetweenSubdomainsGenerator : public MeshGenerator
 {
 public:
+  static InputParameters validParams();
+
   SideSetsBetweenSubdomainsGenerator(const InputParameters & parameters);
 
   std::unique_ptr<MeshBase> generate() override;
@@ -30,4 +33,3 @@ public:
 protected:
   std::unique_ptr<MeshBase> & _input;
 };
-

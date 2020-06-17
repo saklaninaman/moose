@@ -12,11 +12,10 @@
 
 registerMooseObject("NavierStokesApp", INSMomentumNoBCBCTractionForm);
 
-template <>
 InputParameters
-validParams<INSMomentumNoBCBCTractionForm>()
+INSMomentumNoBCBCTractionForm::validParams()
 {
-  InputParameters params = validParams<INSMomentumNoBCBCBase>();
+  InputParameters params = INSMomentumNoBCBCBase::validParams();
 
   params.addClassDescription("This class implements the 'No BC' boundary condition based on the "
                              "'traction' form of the viscous stress tensor.");
@@ -69,8 +68,9 @@ Real
 INSMomentumNoBCBCTractionForm::computeQpJacobian()
 {
   // The extra contribution comes from the "2" on the diagonal of the viscous stress tensor
-  return -_mu[_qp] * (_grad_phi[_j][_qp] * _normals[_qp] +
-                      _grad_phi[_j][_qp](_component) * _normals[_qp](_component)) *
+  return -_mu[_qp] *
+         (_grad_phi[_j][_qp] * _normals[_qp] +
+          _grad_phi[_j][_qp](_component) * _normals[_qp](_component)) *
          _test[_i][_qp];
 }
 

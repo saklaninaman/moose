@@ -12,11 +12,10 @@
 
 #include <fstream>
 
-template <>
 InputParameters
-validParams<CrystalPlasticitySlipRate>()
+CrystalPlasticitySlipRate::validParams()
 {
-  InputParameters params = validParams<CrystalPlasticityUOBase>();
+  InputParameters params = CrystalPlasticityUOBase::validParams();
   params.addParam<unsigned int>("num_slip_sys_props",
                                 0,
                                 "Number of slip system specific properties provided in the file "

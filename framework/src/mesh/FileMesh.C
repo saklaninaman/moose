@@ -19,11 +19,12 @@
 
 registerMooseObject("MooseApp", FileMesh);
 
-template <>
+defineLegacyParams(FileMesh);
+
 InputParameters
-validParams<FileMesh>()
+FileMesh::validParams()
 {
-  InputParameters params = validParams<MooseMesh>();
+  InputParameters params = MooseMesh::validParams();
   params.addRequiredParam<MeshFileName>("file", "The name of the mesh file to read");
   params.addClassDescription("Read a mesh from a file.");
   return params;
@@ -73,7 +74,7 @@ FileMesh::buildMesh()
     // file.
     bool skip_partitioning_later = getMesh().skip_partitioning();
     getMesh().skip_partitioning(true);
-    getMesh().prepare_for_use();
+    getMesh().prepare_for_use(false, false);
     getMesh().skip_partitioning(skip_partitioning_later);
   }
   else // not reading Nemesis files
@@ -91,7 +92,7 @@ FileMesh::buildMesh()
       _exreader->read(_file_name);
 
       getMesh().allow_renumbering(false);
-      getMesh().prepare_for_use();
+      getMesh().prepare_for_use(false, false);
     }
     else
     {

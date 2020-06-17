@@ -16,6 +16,8 @@
 #include "RelationshipManager.h"
 #include "PointListAdaptor.h"
 #include "TimedPrint.h"
+#include "Executioner.h"
+#include "NonlinearSystemBase.h"
 
 #include <utility>
 
@@ -55,15 +57,57 @@
 #include "libmesh/point_locator_base.h"
 #include "libmesh/default_coupling.h"
 #include "libmesh/ghost_point_neighbors.h"
+#include "libmesh/fe_type.h"
 
 static const int GRAIN_SIZE =
     1; // the grain_size does not have much influence on our execution speed
 
-template <>
-InputParameters
-validParams<MooseMesh>()
+FaceInfo::FaceInfo(const Elem * elem, unsigned int side, const Elem * neighbor)
 {
-  InputParameters params = validParams<MooseObject>();
+  _elem = elem;
+  _neighbor = neighbor;
+
+  _elem_side_id = side;
+  _elem_centroid = elem->centroid();
+  _elem_volume = elem->volume();
+
+  std::unique_ptr<const Elem> face = elem->build_side_ptr(_elem_side_id);
+  _face_area = face->volume();
+  _face_centroid = face->centroid();
+
+  // 1. compute face centroid
+  // 2. compute an centroid face normal by using 1-point quadrature
+  //    meshes)
+  unsigned int dim = elem->dim();
+  std::unique_ptr<FEBase> fe(FEBase::build(dim, FEType(elem->default_order())));
+  QGauss qface(dim - 1, CONSTANT);
+  fe->attach_quadrature_rule(&qface);
+  const std::vector<Point> & normals = fe->get_normals();
+  fe->reinit(elem, _elem_side_id);
+  mooseAssert(normals.size() == 1, "FaceInfo construction broken w.r.t. computing face normals");
+  _normal = normals[0];
+
+  // the neighbor info does not exist for domain boundaries
+  if (!_neighbor)
+  {
+    _neighbor_side_id = std::numeric_limits<unsigned int>::max();
+    _neighbor_centroid = 2 * (_face_centroid - _elem_centroid) + _elem_centroid;
+    _neighbor_volume = _elem_volume;
+  }
+  else
+  {
+    _neighbor_side_id = neighbor->which_neighbor_am_i(elem);
+    _neighbor_centroid = neighbor->centroid();
+    _neighbor_volume = neighbor->volume();
+  }
+}
+
+defineLegacyParams(MooseMesh);
+
+InputParameters
+MooseMesh::validParams()
+{
+  InputParameters params = MooseObject::validParams();
 
   MooseEnum parallel_type("DEFAULT REPLICATED DISTRIBUTED", "DEFAULT");
   params.addParam<MooseEnum>("parallel_type",
@@ -139,6 +183,10 @@ validParams<MooseMesh>()
                                 "KDTree construction becomes faster but the nearest neighbor search"
                                 "becomes slower.");
 
+  // This indicates that the derived mesh type accepts a MeshGenerator, and should be set to true in
+  // derived types that do so.
+  params.addPrivateParam<bool>("_mesh_generator_mesh", false);
+
   params.registerBase("MooseMesh");
 
   // groups
@@ -158,6 +206,7 @@ MooseMesh::MooseMesh(const InputParameters & parameters)
     _use_distributed_mesh(false),
     _distribution_overridden(false),
     _parallel_type_overridden(false),
+    _mesh(nullptr),
     _partitioner_name(getParam<MooseEnum>("partitioner")),
     _partitioner_overridden(false),
     _custom_partitioner_requested(false),
@@ -221,14 +270,17 @@ MooseMesh::MooseMesh(const MooseMesh & other_mesh)
     _parallel_type(other_mesh._parallel_type),
     _use_distributed_mesh(other_mesh._use_distributed_mesh),
     _distribution_overridden(other_mesh._distribution_overridden),
+    _parallel_type_overridden(other_mesh._parallel_type_overridden),
     _mesh(other_mesh.getMesh().clone()),
     _partitioner_name(other_mesh._partitioner_name),
     _partitioner_overridden(other_mesh._partitioner_overridden),
+    _custom_partitioner_requested(other_mesh._custom_partitioner_requested),
     _uniform_refine_level(other_mesh.uniformRefineLevel()),
     _is_nemesis(false),
     _is_prepared(false),
-    _needs_prepare_for_use(false),
+    _needs_prepare_for_use(other_mesh._needs_prepare_for_use),
     _node_to_elem_map_built(false),
+    _node_to_active_semilocal_elem_map_built(false),
     _patch_size(other_mesh._patch_size),
     _ghosting_patch_size(other_mesh._ghosting_patch_size),
     _max_leaf_size(other_mesh._max_leaf_size),
@@ -264,7 +316,8 @@ MooseMesh::MooseMesh(const MooseMesh & other_mesh)
     _change_boundary_id_timer(registerTimedSection("changeBoundaryId", 5)),
     _init_timer(registerTimedSection("init", 2)),
     _read_recovered_mesh_timer(registerTimedSection("readRecoveredMesh", 2)),
-    _ghost_ghosted_boundaries_timer(registerTimedSection("GhostGhostedBoundaries", 3))
+    _ghost_ghosted_boundaries_timer(registerTimedSection("GhostGhostedBoundaries", 3)),
+    _need_delete(other_mesh._need_delete)
 {
   // Note: this calls BoundaryInfo::operator= without changing the
   // ownership semantics of either Mesh's BoundaryInfo object.
@@ -355,7 +408,7 @@ MooseMesh::prepare(bool force)
     {
       CONSOLE_TIMED_PRINT("Preparing for use");
 
-      getMesh().prepare_for_use();
+      getMesh().prepare_for_use(false, false);
     }
   }
   else
@@ -365,7 +418,7 @@ MooseMesh::prepare(bool force)
     // Call prepare_for_use() and DO NOT allow renumbering
     getMesh().allow_renumbering(false);
     if (force || _needs_prepare_for_use)
-      getMesh().prepare_for_use();
+      getMesh().prepare_for_use(false, false);
   }
 
   // Collect (local) subdomain IDs
@@ -423,6 +476,8 @@ MooseMesh::update()
   buildNodeList();
   buildBndElemList();
   cacheInfo();
+
+  _face_info_dirty = true;
 }
 
 const Node &
@@ -750,7 +805,7 @@ MooseMesh::getActiveLocalElementRange()
   if (!_active_local_elem_range)
   {
     TIME_SECTION(_get_active_local_element_range_timer);
-    CONSOLE_TIMED_PRINT("Caching active local element rage");
+    CONSOLE_TIMED_PRINT("Caching active local element range");
 
     _active_local_elem_range = libmesh_make_unique<ConstElemRange>(
         getMesh().active_local_elements_begin(), getMesh().active_local_elements_end(), GRAIN_SIZE);
@@ -840,6 +895,10 @@ MooseMesh::cacheInfo()
   TIME_SECTION(_cache_info_timer);
   CONSOLE_TIMED_PRINT("Caching mesh information");
 
+  _subdomain_boundary_ids.clear();
+  _neighbor_subdomain_boundary_ids.clear();
+  _block_node_list.clear();
+
   // TODO: Thread this!
   for (const auto & elem : getMesh().element_ptr_range())
   {
@@ -852,6 +911,11 @@ MooseMesh::cacheInfo()
       std::set<BoundaryID> & subdomain_set = _subdomain_boundary_ids[subdomain_id];
 
       subdomain_set.insert(boundaryids.begin(), boundaryids.end());
+
+      Elem * neig = elem->neighbor_ptr(side);
+      if (neig)
+        _neighbor_subdomain_boundary_ids[neig->subdomain_id()].insert(boundaryids.begin(),
+                                                                      boundaryids.end());
     }
 
     for (unsigned int nd = 0; nd < elem->n_nodes(); ++nd)
@@ -859,6 +923,12 @@ MooseMesh::cacheInfo()
       Node & node = *elem->node_ptr(nd);
       _block_node_list[node.id()].insert(elem->subdomain_id());
     }
+  }
+
+  for (const auto & blk_id : _mesh_subdomains)
+  {
+    _communicator.set_union(_subdomain_boundary_ids[blk_id]);
+    _communicator.set_union(_neighbor_subdomain_boundary_ids[blk_id]);
   }
 }
 
@@ -1045,14 +1115,25 @@ MooseMesh::getBoundaryIDs(const std::vector<BoundaryName> & boundary_name,
   const std::map<BoundaryID, std::string> & sideset_map = boundary_info.get_sideset_name_map();
   const std::map<BoundaryID, std::string> & nodeset_map = boundary_info.get_nodeset_name_map();
 
-  std::set<BoundaryID> boundary_ids = boundary_info.get_boundary_ids();
+  BoundaryID max_boundary_local_id = 0;
+  /* It is required to generate a new ID for a given name. It is used often in mesh modifiers such
+   * as SideSetsBetweenSubdomains. Then we need to check the current boundary ids since they are
+   * changing during "mesh modify()", and figure out the right max boundary ID. Most of mesh
+   * modifiers are running in serial, and we won't involve a global communication.
+   */
+  if (generate_unknown)
+  {
+    const std::set<BoundaryID> & local_bids = getMesh().get_boundary_info().get_boundary_ids();
+    max_boundary_local_id = local_bids.empty() ? 0 : *(local_bids.rbegin());
+    /* We should not hit this often */
+    if (!getMesh().is_serial())
+      _communicator.max(max_boundary_local_id);
+  }
 
-  // On a distributed mesh we may have boundary ids that only exist on
-  // other processors.
-  if (!this->getMesh().is_replicated())
-    _communicator.set_union(boundary_ids);
+  BoundaryID max_boundary_id = _mesh_boundary_ids.empty() ? 0 : *(_mesh_boundary_ids.rbegin());
 
-  BoundaryID max_boundary_id = boundary_ids.empty() ? 0 : *(boundary_ids.rbegin());
+  max_boundary_id =
+      max_boundary_id > max_boundary_local_id ? max_boundary_id : max_boundary_local_id;
 
   std::vector<BoundaryID> ids(boundary_name.size());
   for (unsigned int i = 0; i < boundary_name.size(); i++)
@@ -1134,9 +1215,15 @@ MooseMesh::getSubdomainIDs(const std::vector<SubdomainName> & subdomain_name) co
 }
 
 void
-MooseMesh::setSubdomainName(SubdomainID subdomain_id, SubdomainName name)
+MooseMesh::setSubdomainName(SubdomainID subdomain_id, const SubdomainName & name)
 {
   getMesh().subdomain_name(subdomain_id) = name;
+}
+
+void
+MooseMesh::setSubdomainName(MeshBase & mesh, SubdomainID subdomain_id, const SubdomainName & name)
+{
+  mesh.subdomain_name(subdomain_id) = name;
 }
 
 const std::string &
@@ -1932,15 +2019,23 @@ MooseMesh::changeBoundaryId(const boundary_id_type old_id,
                             bool delete_prev)
 {
   TIME_SECTION(_change_boundary_id_timer);
+  changeBoundaryId(getMesh(), old_id, new_id, delete_prev);
+}
 
+void
+MooseMesh::changeBoundaryId(MeshBase & mesh,
+                            const boundary_id_type old_id,
+                            const boundary_id_type new_id,
+                            bool delete_prev)
+{
   // Get a reference to our BoundaryInfo object, we will use it several times below...
-  BoundaryInfo & boundary_info = getMesh().get_boundary_info();
+  BoundaryInfo & boundary_info = mesh.get_boundary_info();
 
   // Container to catch ids passed back from BoundaryInfo
   std::vector<boundary_id_type> old_ids;
 
   // Only level-0 elements store BCs.  Loop over them.
-  for (auto & elem : as_range(getMesh().level_elements_begin(0), getMesh().level_elements_end(0)))
+  for (auto & elem : as_range(mesh.level_elements_begin(0), mesh.level_elements_end(0)))
   {
     unsigned int n_sides = elem->n_sides();
     for (unsigned int s = 0; s != n_sides; ++s)
@@ -2075,54 +2170,7 @@ MooseMesh::init()
     getMesh().partitioner().reset(_custom_partitioner.release());
   }
   else
-  {
-    // Set standard partitioner
-    // Set the partitioner based on partitioner name
-    switch (_partitioner_name)
-    {
-      case -3: // default
-        // We'll use the default partitioner, but notify the user of which one is being used...
-        if (_use_distributed_mesh)
-          _partitioner_name = "parmetis";
-        else
-          _partitioner_name = "metis";
-        break;
-
-      // No need to explicitily create the metis or parmetis partitioners,
-      // They are the default for serial and parallel mesh respectively
-      case -2: // metis
-      case -1: // parmetis
-        break;
-
-      case 0: // linear
-        getMesh().partitioner().reset(new LinearPartitioner);
-        break;
-      case 1: // centroid
-      {
-        if (!isParamValid("centroid_partitioner_direction"))
-          mooseError("If using the centroid partitioner you _must_ specify "
-                     "centroid_partitioner_direction!");
-
-        MooseEnum direction = getParam<MooseEnum>("centroid_partitioner_direction");
-
-        if (direction == "x")
-          getMesh().partitioner().reset(new CentroidPartitioner(CentroidPartitioner::X));
-        else if (direction == "y")
-          getMesh().partitioner().reset(new CentroidPartitioner(CentroidPartitioner::Y));
-        else if (direction == "z")
-          getMesh().partitioner().reset(new CentroidPartitioner(CentroidPartitioner::Z));
-        else if (direction == "radial")
-          getMesh().partitioner().reset(new CentroidPartitioner(CentroidPartitioner::RADIAL));
-        break;
-      }
-      case 2: // hilbert_sfc
-        getMesh().partitioner().reset(new HilbertSFCPartitioner);
-        break;
-      case 3: // morton_sfc
-        getMesh().partitioner().reset(new MortonSFCPartitioner);
-        break;
-    }
-  }
+    setPartitionerHelper();
 
   if (_app.isRecovering() && _allow_recovery && _app.isUltimateMaster())
   {
@@ -2139,7 +2187,8 @@ MooseMesh::init()
     {
       TIME_SECTION(_read_recovered_mesh_timer);
       CONSOLE_TIMED_PRINT("Rcovering mesh");
-      getMesh().read(_app.getRecoverFileBase() + "_mesh." + _app.getRecoverFileSuffix());
+      getMesh().read(_app.getRestartRecoverFileBase() + "_mesh." +
+                     _app.getRestartRecoverFileSuffix());
     }
 
     getMesh().allow_renumbering(allow_renumbering_later);
@@ -2217,6 +2266,12 @@ std::vector<std::tuple<dof_id_type, unsigned short int, boundary_id_type>>
 MooseMesh::buildSideList()
 {
   return getMesh().get_boundary_info().build_side_list();
+}
+
+std::vector<std::tuple<dof_id_type, unsigned short int, boundary_id_type>>
+MooseMesh::buildActiveSideList()
+{
+  return getMesh().get_boundary_info().build_active_side_list();
 }
 
 unsigned int
@@ -2486,13 +2541,11 @@ MooseMesh::ghostGhostedBoundaries()
 
   DistributedMesh & mesh = dynamic_cast<DistributedMesh &>(getMesh());
 
-  // We would like to clear ghosted elements that were added by
-  // previous invocations of this method; however we can't do so
-  // simply without also clearing ghosted elements that were added by
-  // other code; e.g.  OversampleOutput.  So for now we'll just
-  // swallow the inefficiency that can come from leaving unnecessary
-  // elements ghosted after AMR.
-  //  mesh.clear_extra_ghost_elems();
+  // We clear ghosted elements that were added by previous invocations of this
+  // method but leave ghosted elements that were added by other code, e.g.
+  // OversampleOutput, untouched
+  mesh.clear_extra_ghost_elems(_ghost_elems_from_ghost_boundaries);
+  _ghost_elems_from_ghost_boundaries.clear();
 
   std::set<const Elem *, CompareElemsByLevel> boundary_elems_to_ghost;
   std::set<Node *> connected_nodes_to_ghost;
@@ -2536,6 +2589,9 @@ MooseMesh::ghostGhostedBoundaries()
     }
   }
 
+  // We really do want to store this by value instead of by reference
+  const auto prior_ghost_elems = mesh.extra_ghost_elems();
+
   mesh.comm().allgather_packed_range(&mesh,
                                      connected_nodes_to_ghost.begin(),
                                      connected_nodes_to_ghost.end(),
@@ -2544,6 +2600,15 @@ MooseMesh::ghostGhostedBoundaries()
                                      boundary_elems_to_ghost.begin(),
                                      boundary_elems_to_ghost.end(),
                                      extra_ghost_elem_inserter<Elem>(mesh));
+
+  const auto & current_ghost_elems = mesh.extra_ghost_elems();
+
+  std::set_difference(current_ghost_elems.begin(),
+                      current_ghost_elems.end(),
+                      prior_ghost_elems.begin(),
+                      prior_ghost_elems.end(),
+                      std::inserter(_ghost_elems_from_ghost_boundaries,
+                                    _ghost_elems_from_ghost_boundaries.begin()));
 }
 
 unsigned int
@@ -2644,13 +2709,48 @@ MooseMesh::getNodeList(boundary_id_type nodeset_id) const
 const std::set<BoundaryID> &
 MooseMesh::getSubdomainBoundaryIds(SubdomainID subdomain_id) const
 {
-  std::map<SubdomainID, std::set<BoundaryID>>::const_iterator it =
+  std::unordered_map<SubdomainID, std::set<BoundaryID>>::const_iterator it =
       _subdomain_boundary_ids.find(subdomain_id);
 
   if (it == _subdomain_boundary_ids.end())
     mooseError("Unable to find subdomain ID: ", subdomain_id, '.');
 
   return it->second;
+}
+
+std::set<BoundaryID>
+MooseMesh::getSubdomainInterfaceBoundaryIds(SubdomainID subdomain_id) const
+{
+  const auto & bnd_ids = getSubdomainBoundaryIds(subdomain_id);
+  std::set<BoundaryID> boundary_ids(bnd_ids.begin(), bnd_ids.end());
+  std::unordered_map<SubdomainID, std::set<BoundaryID>>::const_iterator it =
+      _neighbor_subdomain_boundary_ids.find(subdomain_id);
+
+  boundary_ids.insert(it->second.begin(), it->second.end());
+
+  return boundary_ids;
+}
+
+std::set<SubdomainID>
+MooseMesh::getBoundaryConnectedBlocks(const BoundaryID bid) const
+{
+  std::set<SubdomainID> subdomain_ids;
+  for (const auto & it : _subdomain_boundary_ids)
+    if (it.second.find(bid) != it.second.end())
+      subdomain_ids.insert(it.first);
+
+  return subdomain_ids;
+}
+
+std::set<SubdomainID>
+MooseMesh::getInterfaceConnectedBlocks(const BoundaryID bid) const
+{
+  std::set<SubdomainID> subdomain_ids = getBoundaryConnectedBlocks(bid);
+  for (const auto & it : _neighbor_subdomain_boundary_ids)
+    if (it.second.find(bid) != it.second.end())
+      subdomain_ids.insert(it.first);
+
+  return subdomain_ids;
 }
 
 bool
@@ -2717,6 +2817,67 @@ MooseMesh::errorIfDistributedMesh(std::string name) const
 }
 
 void
+MooseMesh::setPartitionerHelper()
+{
+  setPartitioner(getMesh(), _partitioner_name, _use_distributed_mesh, _pars, *this);
+}
+
+void
+MooseMesh::setPartitioner(MeshBase & mesh_base,
+                          MooseEnum & partitioner,
+                          bool use_distributed_mesh,
+                          const InputParameters & params,
+                          MooseObject & context_obj)
+{
+  // Set the partitioner based on partitioner name
+  switch (partitioner)
+  {
+    case -3: // default
+      // We'll use the default partitioner, but notify the user of which one is being used...
+      if (use_distributed_mesh)
+        partitioner = "parmetis";
+      else
+        partitioner = "metis";
+      break;
+
+    // No need to explicitily create the metis or parmetis partitioners,
+    // They are the default for serial and parallel mesh respectively
+    case -2: // metis
+    case -1: // parmetis
+      break;
+
+    case 0: // linear
+      mesh_base.partitioner().reset(new LinearPartitioner);
+      break;
+    case 1: // centroid
+    {
+      if (!params.isParamValid("centroid_partitioner_direction"))
+        context_obj.paramError(
+            "centroid_partitioner_direction",
+            "If using the centroid partitioner you _must_ specify centroid_partitioner_direction!");
+
+      MooseEnum direction = params.get<MooseEnum>("centroid_partitioner_direction");
+
+      if (direction == "x")
+        mesh_base.partitioner().reset(new CentroidPartitioner(CentroidPartitioner::X));
+      else if (direction == "y")
+        mesh_base.partitioner().reset(new CentroidPartitioner(CentroidPartitioner::Y));
+      else if (direction == "z")
+        mesh_base.partitioner().reset(new CentroidPartitioner(CentroidPartitioner::Z));
+      else if (direction == "radial")
+        mesh_base.partitioner().reset(new CentroidPartitioner(CentroidPartitioner::RADIAL));
+      break;
+    }
+    case 2: // hilbert_sfc
+      mesh_base.partitioner().reset(new HilbertSFCPartitioner);
+      break;
+    case 3: // morton_sfc
+      mesh_base.partitioner().reset(new MortonSFCPartitioner);
+      break;
+  }
+}
+
+void
 MooseMesh::setCustomPartitioner(Partitioner * partitioner)
 {
   _custom_partitioner = partitioner->clone();
@@ -2754,4 +2915,105 @@ std::unique_ptr<PointLocatorBase>
 MooseMesh::getPointLocator() const
 {
   return getMesh().sub_point_locator();
+}
+
+void
+MooseMesh::buildFaceInfo()
+{
+  if (!_face_info_dirty)
+    return;
+  _face_info_dirty = false;
+
+  using Keytype = std::pair<const Elem *, unsigned short int>;
+
+  // create a map from elem/side --> boundary ids
+  std::vector<std::tuple<dof_id_type, unsigned short int, boundary_id_type>> side_list =
+      buildActiveSideList();
+  std::map<Keytype, std::set<boundary_id_type>> side_map;
+  for (auto & e : side_list)
+  {
+    const Elem * elem = _mesh->elem_ptr(std::get<0>(e));
+    Keytype key(elem, std::get<1>(e));
+    auto it = side_map.find(key);
+    if (it == side_map.end())
+      side_map[key] = {std::get<2>(e)};
+    else
+      side_map[key].insert(std::get<2>(e));
+  }
+
+  _face_info.clear();
+
+  // loop over all active, local elements. Note that by looping over just *local* elements and by
+  // performing the element ID comparison check in the below loop, we are ensuring that we never
+  // double count face contributions. If a face lies along a process boundary, the only process that
+  // will contribute to both sides of the face residuals/Jacobians will be the process that owns the
+  // element with the lower ID.
+  auto begin = getMesh().active_local_elements_begin();
+  auto end = getMesh().active_local_elements_end();
+
+  for (auto it = begin; it != end; ++it)
+  {
+    const Elem * elem = *it;
+    const dof_id_type elem_id = elem->id();
+    for (unsigned int side = 0; side < elem->n_sides(); ++side)
+    {
+      // get the neighbor element
+      const Elem * neighbor = elem->neighbor_ptr(side);
+
+      // We want to create a face object in all of the following cases:
+      //
+      //  * at all mesh boundaries (i.e. where there is no neighbor
+      //
+      //  * when the following three conditions are met:
+      //
+      //     - the neighbor is active - this means we aren't looking at a face
+      //       between an active element and an inactive (pre-refined version)
+      //       of a neighbor
+      //
+      //     - the neighbor has the same refinement level as the element's level
+      //
+      //     - the neighbor has a higher ID than the element - this ensures
+      //       that when we revisit the same face when the neighbor is the
+      //       element and vise versa, we only create a face info object once
+      //       instead of twice.
+      //
+      //  * when the following two conditions are met:
+      //
+      //     - the neighbor is active - this means we aren't looking at a face
+      //       between an active element and an inactive (pre-refined version)
+      //       of a neighbor
+      //
+      //     - the neighbor has a lower refinement level than the element's
+      //       level - this ensures we only create face info objects for the
+      //       more finely divided version of a face when dealing with hanging
+      //       nodes caused by unequal refinement on both sides of a face.  We
+      //       need to make sure that the sum of all face areas of face info
+      //       objects is exactly equal to the shared interface area between all
+      //       mesh cells (and no larger)
+      if (!neighbor ||
+          (neighbor->active() && (neighbor->level() == elem->level()) &&
+           (elem_id < neighbor->id())) ||
+          (neighbor->level() < elem->level()))
+      {
+        _face_info.emplace_back(elem, side, neighbor);
+        auto & fi = _face_info.back();
+
+        // get all the sidesets that this face is contained in and cache them
+        // in the face info.
+        std::set<boundary_id_type> & boundary_ids = fi.boundaryIDs();
+        boundary_ids.clear();
+
+        auto lit = side_map.find(Keytype(&fi.elem(), fi.elemSideID()));
+        if (lit != side_map.end())
+          boundary_ids.insert(lit->second.begin(), lit->second.end());
+
+        if (fi.neighborPtr())
+        {
+          auto rit = side_map.find(Keytype(fi.neighborPtr(), fi.neighborSideID()));
+          if (rit != side_map.end())
+            boundary_ids.insert(rit->second.begin(), rit->second.end());
+        }
+      }
+    }
+  }
 }

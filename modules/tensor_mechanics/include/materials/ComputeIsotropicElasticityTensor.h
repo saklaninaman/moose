@@ -11,19 +11,17 @@
 
 #include "ComputeElasticityTensorBase.h"
 
-class ComputeIsotropicElasticityTensor;
-
-template <>
-InputParameters validParams<ComputeIsotropicElasticityTensor>();
-
 /**
  * ComputeIsotropicElasticityTensor defines an elasticity tensor material for
  * isotropic materials.
  */
-class ComputeIsotropicElasticityTensor : public ComputeElasticityTensorBase
+template <bool is_ad>
+class ComputeIsotropicElasticityTensorTempl : public ComputeElasticityTensorBaseTempl<is_ad>
 {
 public:
-  ComputeIsotropicElasticityTensor(const InputParameters & parameters);
+  static InputParameters validParams();
+
+  ComputeIsotropicElasticityTensorTempl(const InputParameters & parameters);
 
 protected:
   virtual void computeQpElasticityTensor() override;
@@ -43,5 +41,18 @@ protected:
 
   /// Individual elasticity tensor
   RankFourTensor _Cijkl;
+
+  /// Effective stiffness of the element: function of material properties
+  Real _effective_stiffness_local;
+
+  using ComputeElasticityTensorBaseTempl<is_ad>::name;
+  using ComputeElasticityTensorBaseTempl<is_ad>::_elasticity_tensor_name;
+  using ComputeElasticityTensorBaseTempl<is_ad>::issueGuarantee;
+  using ComputeElasticityTensorBaseTempl<is_ad>::isParamValid;
+  using ComputeElasticityTensorBaseTempl<is_ad>::_elasticity_tensor;
+  using ComputeElasticityTensorBaseTempl<is_ad>::_qp;
+  using ComputeElasticityTensorBaseTempl<is_ad>::_effective_stiffness;
 };
 
+typedef ComputeIsotropicElasticityTensorTempl<false> ComputeIsotropicElasticityTensor;
+typedef ComputeIsotropicElasticityTensorTempl<true> ADComputeIsotropicElasticityTensor;

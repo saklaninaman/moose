@@ -11,11 +11,6 @@
 
 #include "ThreadedGeneralUserObject.h"
 
-class RDGFluxBase;
-
-template <>
-InputParameters validParams<RDGFluxBase>();
-
 /**
  * Abstract base class for computing and caching internal or boundary fluxes for RDG
  *
@@ -26,6 +21,8 @@ InputParameters validParams<RDGFluxBase>();
 class RDGFluxBase : public ThreadedGeneralUserObject
 {
 public:
+  static InputParameters validParams();
+
   RDGFluxBase(const InputParameters & parameters);
 
   virtual void execute() override;
@@ -130,4 +127,3 @@ protected:
   /// Jacobian matrix contribution to the "right" cell
   mutable DenseMatrix<Real> _jac2;
 };
-

@@ -12,10 +12,6 @@
 #include "BoundaryFluxBase.h"
 
 // Forward Declarations
-class AEFVFreeOutflowBoundaryFlux;
-
-template <>
-InputParameters validParams<AEFVFreeOutflowBoundaryFlux>();
 
 /**
  * Free outflow BC based boundary flux user object
@@ -25,6 +21,8 @@ InputParameters validParams<AEFVFreeOutflowBoundaryFlux>();
 class AEFVFreeOutflowBoundaryFlux : public BoundaryFluxBase
 {
 public:
+  static InputParameters validParams();
+
   AEFVFreeOutflowBoundaryFlux(const InputParameters & parameters);
   virtual ~AEFVFreeOutflowBoundaryFlux();
 
@@ -44,4 +42,3 @@ protected:
   /// advective velocity
   const Real _velocity;
 };
-

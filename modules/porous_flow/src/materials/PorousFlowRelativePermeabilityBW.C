@@ -11,11 +11,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowRelativePermeabilityBW);
 
-template <>
 InputParameters
-validParams<PorousFlowRelativePermeabilityBW>()
+PorousFlowRelativePermeabilityBW::validParams()
 {
-  InputParameters params = validParams<PorousFlowRelativePermeabilityBase>();
+  InputParameters params = PorousFlowRelativePermeabilityBase::validParams();
   params.addRequiredRangeCheckedParam<Real>(
       "Sn",
       "Sn >= 0",

@@ -12,10 +12,6 @@
 #include "Material.h"
 
 // Forward Declarations
-class GBAnisotropyBase;
-
-template <>
-InputParameters validParams<GBAnisotropyBase>();
 
 /**
  * Function[kappa, gamma, m, L] = parameters (sigma, mob, w_GB, sigma0)
@@ -25,6 +21,8 @@ InputParameters validParams<GBAnisotropyBase>();
 class GBAnisotropyBase : public Material
 {
 public:
+  static InputParameters validParams();
+
   GBAnisotropyBase(const InputParameters & parameters);
 
 protected:
@@ -68,4 +66,3 @@ protected:
   std::vector<const VariableValue *> _vals;
   std::vector<const VariableGradient *> _grad_vals;
 };
-

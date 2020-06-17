@@ -12,11 +12,12 @@
 
 registerMooseObject("MooseApp", DebugResidualAux);
 
-template <>
+defineLegacyParams(DebugResidualAux);
+
 InputParameters
-validParams<DebugResidualAux>()
+DebugResidualAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   params.addRequiredParam<NonlinearVariableName>("debug_variable",
                                                  "The variable that is being debugged.");
   return params;
@@ -27,13 +28,19 @@ DebugResidualAux::DebugResidualAux(const InputParameters & parameters)
     _debug_var(_nl_sys.getVariable(_tid, getParam<NonlinearVariableName>("debug_variable"))),
     _residual_copy(_nl_sys.residualGhosted())
 {
-  if (!_nodal)
-    mooseError("Cannot use DebugResidualAux on elemental variables");
 }
 
 Real
 DebugResidualAux::computeValue()
 {
-  dof_id_type dof = _current_node->dof_number(_nl_sys.number(), _debug_var.number(), 0);
-  return _residual_copy(dof);
+  if (_nodal)
+  {
+    dof_id_type dof = _current_node->dof_number(_nl_sys.number(), _debug_var.number(), 0);
+    return _residual_copy(dof);
+  }
+  else
+  {
+    dof_id_type dof = _current_elem->dof_number(_nl_sys.number(), _debug_var.number(), 0);
+    return _residual_copy(dof);
+  }
 }

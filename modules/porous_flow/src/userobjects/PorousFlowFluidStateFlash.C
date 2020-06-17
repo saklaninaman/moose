@@ -9,11 +9,10 @@
 
 #include "PorousFlowFluidStateFlash.h"
 
-template <>
 InputParameters
-validParams<PorousFlowFluidStateFlash>()
+PorousFlowFluidStateFlash::validParams()
 {
-  InputParameters params = validParams<PorousFlowFluidStateBase>();
+  InputParameters params = PorousFlowFluidStateBase::validParams();
   params.addClassDescription("Compositional flash calculations for use in fluid state classes");
   return params;
 }
@@ -79,6 +78,14 @@ PorousFlowFluidStateFlash::rachfordRiceDeriv(Real x,
 
 Real
 PorousFlowFluidStateFlash::vaporMassFraction(Real Z0, Real K0, Real K1) const
+{
+  return (Z0 * (K1 - K0) - (K1 - 1.0)) / ((K0 - 1.0) * (K1 - 1.0));
+}
+
+DualReal
+PorousFlowFluidStateFlash::vaporMassFraction(const DualReal & Z0,
+                                             const DualReal & K0,
+                                             const DualReal & K1) const
 {
   return (Z0 * (K1 - K0) - (K1 - 1.0)) / ((K0 - 1.0) * (K1 - 1.0));
 }

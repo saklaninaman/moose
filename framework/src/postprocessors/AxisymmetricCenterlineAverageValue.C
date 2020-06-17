@@ -12,11 +12,12 @@
 
 registerMooseObject("MooseApp", AxisymmetricCenterlineAverageValue);
 
-template <>
+defineLegacyParams(AxisymmetricCenterlineAverageValue);
+
 InputParameters
-validParams<AxisymmetricCenterlineAverageValue>()
+AxisymmetricCenterlineAverageValue::validParams()
 {
-  InputParameters params = validParams<SideAverageValue>();
+  InputParameters params = SideAverageValue::validParams();
   params.addClassDescription("Computes the average value of a variable on a "
                              "sideset located along the centerline of an "
                              "axisymmetric model.");
@@ -30,6 +31,9 @@ AxisymmetricCenterlineAverageValue::AxisymmetricCenterlineAverageValue(
 {
 }
 
+// NOTE: We do not account for the coordinate system transformation here
+// (using _coord) because we want to average a variable over the centerline
+// of a cylinder. If we weight by _coord, we get 0 / 0.
 Real
 AxisymmetricCenterlineAverageValue::volume()
 {

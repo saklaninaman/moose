@@ -11,11 +11,6 @@
 
 #include "PorousFlowRelativePermeabilityBase.h"
 
-class PorousFlowRelativePermeabilityConst;
-
-template <>
-InputParameters validParams<PorousFlowRelativePermeabilityConst>();
-
 /**
  * This class simply sets a constant relative permeability at the nodes. This
  * simple class is useful for testing purposes mainly
@@ -23,6 +18,8 @@ InputParameters validParams<PorousFlowRelativePermeabilityConst>();
 class PorousFlowRelativePermeabilityConst : public PorousFlowRelativePermeabilityBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowRelativePermeabilityConst(const InputParameters & parameters);
 
 protected:
@@ -32,4 +29,3 @@ protected:
   /// Constant relative permeability
   const Real _relperm;
 };
-

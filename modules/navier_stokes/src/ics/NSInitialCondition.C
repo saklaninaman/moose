@@ -19,11 +19,10 @@
 
 registerMooseObject("NavierStokesApp", NSInitialCondition);
 
-template <>
 InputParameters
-validParams<NSInitialCondition>()
+NSInitialCondition::validParams()
 {
-  InputParameters params = validParams<InitialCondition>();
+  InputParameters params = InitialCondition::validParams();
   params.addClassDescription("NSInitialCondition sets intial constant values for all variables.");
   params.addRequiredParam<Real>("initial_pressure",
                                 "The initial pressure, assumed constant everywhere");

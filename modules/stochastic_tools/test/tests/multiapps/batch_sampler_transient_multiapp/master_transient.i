@@ -1,16 +1,10 @@
-[Mesh]
-  type = GeneratedMesh
-  dim = 1
-[]
-
-[Problem]
-  kernel_coverage_check = false
-  solve = false
+[StochasticTools]
+  auto_create_executioner = false
 []
 
 [Distributions]
   [uniform]
-    type = UniformDistribution
+    type = Uniform
     lower_bound = 2
     upper_bound = 4
   []
@@ -18,10 +12,10 @@
 
 [Samplers]
   [mc]
-    type = MonteCarloSampler
-    n_samples = 5
+    type = MonteCarlo
+    num_rows = 5
     distributions = 'uniform uniform'
-    execute_on = 'INITIAL TIMESTEP_END'
+    execute_on = 'INITIAL TIMESTEP_BEGIN'
   []
 []
 
@@ -35,29 +29,32 @@
     type = SamplerTransientMultiApp
     sampler = mc
     input_files = 'sub.i'
-    execute_on = 'INITIAL TIMESTEP_END'
+    execute_on = 'INITIAL TIMESTEP_BEGIN'
     mode = batch-restore
   []
 []
 
 [Transfers]
   [runner]
-    type = SamplerTransfer
+    type = SamplerParameterTransfer
     multi_app = runner
+    sampler = mc
     parameters = 'BCs/left/value BCs/right/value'
     to_control = 'stochastic'
   []
   [data]
     type = SamplerPostprocessorTransfer
     multi_app = runner
-    vector_postprocessor = storage
-    postprocessor = average
+    sampler = mc
+    to_vector_postprocessor = storage
+    from_postprocessor = average
   []
 []
 
 [VectorPostprocessors]
   [storage]
     type = StochasticResults
+    execute_on = 'INITIAL TIMESTEP_END'
   []
 []
 

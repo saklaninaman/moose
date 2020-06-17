@@ -43,25 +43,25 @@ public:
   static inline void seed(unsigned int seed) { mt_seed32new(seed); }
 
   /**
-   * This method returns the next random number (double format) from the generator
+   * This method returns the next random number (Real format) from the generator
    * @return      the next random number in the range [0,1) with 64-bit precision
    */
-  static inline double rand() { return mt_ldrand(); }
+  static inline Real rand() { return mt_ldrand(); }
 
   /**
-   * This method returns the next random number (double format) from the generator,
+   * This method returns the next random number (Real format) from the generator,
    * drawn from a normal distribution centered around mean, with a width of sigma
    * @param mean     center of the random number distribution
    * @param sigma    width  of the random number distribution
    * @return      the next random number following a normal distribution of width sigma around mean
    * with 64-bit precision
    */
-  static inline double randNormal(double mean, double sigma) { return rd_normal(mean, sigma); }
+  static inline Real randNormal(Real mean, Real sigma) { return rd_normal(mean, sigma); }
 
   /**
    * Return next random number drawn from a standard distribution.
    */
-  static inline double randNormal() { return randNormal(0.0, 1.0); }
+  static inline Real randNormal() { return randNormal(0.0, 1.0); }
 
   /**
    * This method returns the next random number (long format) from the generator
@@ -77,18 +77,18 @@ public:
   inline void seed(std::size_t i, unsigned int seed) { mts_seed32new(&(_states[i].first), seed); }
 
   /**
-   * This method returns the next random number (double format) from the specified generator
+   * This method returns the next random number (Real format) from the specified generator
    * @param i     the index of the generator
    * @return      the next random number in the range [0,1) with 64-bit precision
    */
-  inline double rand(std::size_t i)
+  inline Real rand(std::size_t i)
   {
     // mooseAssert(_states.find(i) != _states.end(), "No random state initialized for id: " << i);
     return mts_ldrand(&(_states[i].first));
   }
 
   /**
-   * This method returns the next random number (double format) from the specified generator,
+   * This method returns the next random number (Real format) from the specified generator,
    * drawn from a normal distribution centered around mean, with a width of sigma
    * @param i     the index of the generator
    * @param mean     center of the random number distribution
@@ -96,7 +96,7 @@ public:
    * @return      the next random number following a normal distribution of width sigma around mean
    * with 64-bit precision
    */
-  inline double randNormal(std::size_t i, double mean, double sigma)
+  inline Real randNormal(std::size_t i, Real mean, Real sigma)
   {
     mooseAssert(_states.find(i) != _states.end(), "No random state initialized for id: " << i);
     return rds_normal(&(_states[i].first), mean, sigma);
@@ -105,7 +105,7 @@ public:
   /**
    * Return next random number drawn from a standard distribution.
    */
-  inline double randNormal(std::size_t i) { return randNormal(i, 0.0, 1.0); }
+  inline Real randNormal(std::size_t i) { return randNormal(i, 0.0, 1.0); }
 
   /**
    * This method returns the next random number (long format) from the specified generator
@@ -116,6 +116,21 @@ public:
   {
     mooseAssert(_states.find(i) != _states.end(), "No random state initialized for id: " << i);
     return mts_lrand(&(_states[i].first));
+  }
+
+  /**
+   * This method returns the next random number (long format) from the specified generator
+   * within the supplied range.
+   *
+   * @param lower lower bounds of value
+   * @param upper upper bounds of value
+   * @param i     the index of the generator
+   * @return      the next random number in the range [0,max(uinit32_t)) with 32-bit number
+   */
+  inline uint32_t randl(std::size_t i, uint32_t lower, uint32_t upper)
+  {
+    mooseAssert(_states.find(i) != _states.end(), "No random state initialized for id: " << i);
+    return rds_iuniform(&(_states[i].first), lower, upper);
   }
 
   /**
@@ -178,4 +193,3 @@ dataLoad(std::istream & stream, MooseRandom & v, void * context)
 {
   loadHelper(stream, v._states, context);
 }
-

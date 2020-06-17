@@ -11,11 +11,6 @@
 
 #include "GeneralizedKelvinVoigtBase.h"
 
-class GeneralizedKelvinVoigtModel;
-
-template <>
-InputParameters validParams<GeneralizedKelvinVoigtModel>();
-
 /**
  * This class is an implementation of a generalized Kelvin-Voigt model
  * with constant mechanical properties. It consists of an arbitrary number
@@ -25,6 +20,8 @@ InputParameters validParams<GeneralizedKelvinVoigtModel>();
 class GeneralizedKelvinVoigtModel : public GeneralizedKelvinVoigtBase
 {
 public:
+  static InputParameters validParams();
+
   GeneralizedKelvinVoigtModel(const InputParameters & parameters);
 
 protected:
@@ -46,4 +43,3 @@ protected:
   /// The inverse of each subsequent spring elasticity tensor
   std::vector<RankFourTensor> _Si;
 };
-

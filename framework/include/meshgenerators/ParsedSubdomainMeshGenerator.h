@@ -21,9 +21,11 @@ InputParameters validParams<ParsedSubdomainMeshGenerator>();
 /**
  * MeshGenerator for defining a Subdomain inside or outside of combinatorial geometry
  */
-class ParsedSubdomainMeshGenerator : public MeshGenerator, public FunctionParserUtils
+class ParsedSubdomainMeshGenerator : public MeshGenerator, public FunctionParserUtils<false>
 {
 public:
+  static InputParameters validParams();
+
   ParsedSubdomainMeshGenerator(const InputParameters & parameters);
 
   std::unique_ptr<MeshBase> generate() override;
@@ -41,6 +43,7 @@ protected:
   const std::vector<subdomain_id_type> _excluded_ids;
 
   /// function parser object describing the combinatorial geometry
-  ADFunctionPtr _func_F;
-};
+  SymFunctionPtr _func_F;
 
+  usingFunctionParserUtilsMembers(false);
+};

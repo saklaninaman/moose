@@ -19,6 +19,8 @@
 #include "MooseTypes.h"
 #include "PerfGraphInterface.h"
 
+#include "libmesh/parallel_object.h"
+
 // libMesh
 #include "libmesh/mesh_refinement.h"
 
@@ -43,7 +45,9 @@ class ErrorEstimator;
  * Takes care of everything related to mesh adaptivity
  *
  */
-class Adaptivity : public ConsoleStreamInterface, public PerfGraphInterface
+class Adaptivity : public ConsoleStreamInterface,
+                   public PerfGraphInterface,
+                   public libMesh::ParallelObject
 {
 public:
   Adaptivity(FEProblemBase & subproblem);
@@ -144,7 +148,7 @@ public:
    * MooseMesh object. No solution projection is performed in this
    * version.
    */
-  static void uniformRefine(MooseMesh * mesh);
+  static void uniformRefine(MooseMesh * mesh, unsigned int level = libMesh::invalid_uint);
 
   /**
    * Performs uniform refinement on the meshes in the current
@@ -336,4 +340,3 @@ Adaptivity::setParam(const std::string & param_name, const T & param_value)
     mooseError("Invalid Param in adaptivity object");
 }
 #endif // LIBMESH_ENABLE_AMR
-

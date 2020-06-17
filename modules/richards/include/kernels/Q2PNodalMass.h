@@ -14,10 +14,6 @@
 #include "RichardsDensity.h"
 
 // Forward Declarations
-class Q2PNodalMass;
-
-template <>
-InputParameters validParams<Q2PNodalMass>();
 
 /**
  * fluid_mass/dt lumped to the nodes
@@ -25,6 +21,8 @@ InputParameters validParams<Q2PNodalMass>();
 class Q2PNodalMass : public TimeKernel
 {
 public:
+  static InputParameters validParams();
+
   Q2PNodalMass(const InputParameters & parameters);
 
 protected:

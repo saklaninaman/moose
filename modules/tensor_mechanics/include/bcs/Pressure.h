@@ -12,10 +12,6 @@
 #include "IntegratedBC.h"
 
 class Function;
-class Pressure;
-
-template <>
-InputParameters validParams<Pressure>();
 
 /**
  * Pressure applies a pressure on a given boundary in the direction defined by component
@@ -23,6 +19,8 @@ InputParameters validParams<Pressure>();
 class Pressure : public IntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   Pressure(const InputParameters & parameters);
 
 protected:

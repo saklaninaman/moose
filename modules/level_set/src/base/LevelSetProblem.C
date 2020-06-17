@@ -14,11 +14,10 @@
 
 registerMooseObject("LevelSetApp", LevelSetProblem);
 
-template <>
 InputParameters
-validParams<LevelSetProblem>()
+LevelSetProblem::validParams()
 {
-  InputParameters params = validParams<FEProblem>();
+  InputParameters params = FEProblem::validParams();
   params.addClassDescription("A specilized problem class that adds a custom call to "
                              "MultiAppTransfer execution to transfer adaptivity for the level set "
                              "reinitialization.");

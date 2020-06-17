@@ -11,11 +11,6 @@
 
 #include "RichardsDensity.h"
 
-class RichardsDensityVDW;
-
-template <>
-InputParameters validParams<RichardsDensityVDW>();
-
 /**
  * Density of a gas according to the van der Waals expression
  * (P + n^2 a/V^2)(V - nb) = nRT
@@ -36,6 +31,8 @@ InputParameters validParams<RichardsDensityVDW>();
 class RichardsDensityVDW : public RichardsDensity
 {
 public:
+  static InputParameters validParams();
+
   RichardsDensityVDW(const InputParameters & parameters);
 
   /**
@@ -91,4 +88,3 @@ protected:
    */
   Real densityVDW(Real p) const;
 };
-

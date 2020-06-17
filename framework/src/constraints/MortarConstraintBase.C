@@ -12,17 +12,15 @@
 #include "Assembly.h"
 #include "MooseVariableFE.h"
 
-template <>
+defineLegacyParams(MortarConstraintBase);
+
 InputParameters
-validParams<MortarConstraintBase>()
+MortarConstraintBase::validParams()
 {
-  InputParameters params = validParams<Constraint>();
-  params.addRequiredParam<BoundaryName>("master_boundary",
-                                        "The name of the master boundary sideset.");
-  params.addRequiredParam<BoundaryName>("slave_boundary",
-                                        "The name of the slave boundary sideset.");
-  params.addRequiredParam<SubdomainName>("master_subdomain", "The name of the master subdomain.");
-  params.addRequiredParam<SubdomainName>("slave_subdomain", "The name of the slave subdomain.");
+  InputParameters params = Constraint::validParams();
+  params += MortarInterface::validParams();
+  params += TwoMaterialPropertyInterface::validParams();
+
   params.addRelationshipManager(
       "AugmentSparsityOnInterface",
       Moose::RelationshipManagerType::GEOMETRIC | Moose::RelationshipManagerType::ALGEBRAIC,
@@ -51,27 +49,20 @@ validParams<MortarConstraintBase>()
       "compute_primal_residuals", true, "Whether to compute residuals for the primal variable.");
   params.addParam<bool>(
       "compute_lm_residuals", true, "Whether to compute Lagrange Multiplier residuals");
-  params.addParam<bool>(
-      "periodic",
-      false,
-      "Whether this constraint is going to be used to enforce a periodic condition. This has the "
-      "effect of changing the normals vector for projection from outward to inward facing");
   return params;
 }
 
 MortarConstraintBase::MortarConstraintBase(const InputParameters & parameters)
   : Constraint(parameters),
-    CoupleableMooseVariableDependencyIntermediateInterface(this, true),
+    NeighborCoupleableMooseVariableDependencyIntermediateInterface(this, false, false),
+    MortarInterface(this),
+    TwoMaterialPropertyInterface(this, Moose::EMPTY_BLOCK_IDS, getBoundaryIDs()),
     MooseVariableInterface<Real>(this,
                                  true,
                                  "variable",
                                  Moose::VarKindType::VAR_NONLINEAR,
                                  Moose::VarFieldType::VAR_FIELD_STANDARD),
     _fe_problem(*getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")),
-    _slave_id(_mesh.getBoundaryID(getParam<BoundaryName>("slave_boundary"))),
-    _master_id(_mesh.getBoundaryID(getParam<BoundaryName>("master_boundary"))),
-    _slave_subdomain_id(_mesh.getSubdomainID(getParam<SubdomainName>("slave_subdomain"))),
-    _master_subdomain_id(_mesh.getSubdomainID(getParam<SubdomainName>("master_subdomain"))),
     _var(isParamValid("variable")
              ? &_subproblem.getStandardVariable(_tid, parameters.getMooseType("variable"))
              : nullptr),
@@ -87,9 +78,11 @@ MortarConstraintBase::MortarConstraintBase(const InputParameters & parameters)
     _compute_primal_residuals(getParam<bool>("compute_primal_residuals")),
     _compute_lm_residuals(!_var ? false : getParam<bool>("compute_lm_residuals")),
     _test_dummy(),
+    _use_dual(_var ? _var->useDual() : false),
     _normals(_assembly.normals()),
+    _tangents(_assembly.tangents()),
     _JxW_msm(_assembly.jxWMortar()),
-    _coord(_assembly.coordTransformation()),
+    _coord(_assembly.mortarCoordTransformation()),
     _qrule_msm(_assembly.qRuleMortar()),
     _test(_var ? _var->phiLower() : _test_dummy),
     _test_slave(_slave_var.phiFace()),
@@ -99,15 +92,12 @@ MortarConstraintBase::MortarConstraintBase(const InputParameters & parameters)
     _phys_points_slave(_assembly.qPointsFace()),
     _phys_points_master(_assembly.qPointsFaceNeighbor())
 {
-  _fe_problem.createMortarInterface(std::make_pair(_master_id, _slave_id),
-                                    std::make_pair(_master_subdomain_id, _slave_subdomain_id),
-                                    getParam<bool>("use_displaced_mesh"),
-                                    getParam<bool>("periodic"));
 }
 
 void
 MortarConstraintBase::computeResidual(bool has_master)
 {
+  // Set this member for potential use by derived classes
   _has_master = has_master;
 
   if (_compute_primal_residuals)
@@ -115,8 +105,10 @@ MortarConstraintBase::computeResidual(bool has_master)
     // Compute the residual for the slave interior primal dofs
     computeResidual(Moose::MortarType::Slave);
 
-    // Compute the residual for the master interior primal dofs
-    computeResidual(Moose::MortarType::Master);
+    // Compute the residual for the master interior primal dofs. If we don't have a master element,
+    // then we don't have any master dofs
+    if (_has_master)
+      computeResidual(Moose::MortarType::Master);
   }
 
   if (_compute_lm_residuals)
@@ -134,8 +126,10 @@ MortarConstraintBase::computeJacobian(bool has_master)
     // Compute the jacobian for the slave interior primal dofs
     computeJacobian(Moose::MortarType::Slave);
 
-    // Compute the jacobian for the master interior primal dofs
-    computeJacobian(Moose::MortarType::Master);
+    // Compute the jacobian for the master interior primal dofs. If we don't have a master element,
+    // then we don't have any master dofs
+    if (_has_master)
+      computeJacobian(Moose::MortarType::Master);
   }
 
   if (_compute_lm_residuals)

@@ -25,17 +25,17 @@
 []
 
 [Mesh]
-  file = crack2d.e
   displacements = 'disp_x disp_y'
-#  uniform_refine = 3
-[]
-
-[MeshModifiers]
-  [./rotate]
-    type = Transform
+  [file_mesh]
+    type = FileMeshGenerator
+    file = crack2d.e
+  []
+  [rotate]
+    type = TransformGenerator
     transform = ROTATE
     vector_value = '0 0 90'
-  [../]
+    input = file_mesh
+  []
 []
 
 [AuxVariables]
@@ -108,19 +108,19 @@
 
 [BCs]
   [./crack_x]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_x
     boundary = 100
     value = 0.0
   [../]
   [./no_x]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_x
     boundary = 400
     value = 0.0
   [../]
   [./no_y1]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_y
     boundary = 900
     value = 0.0

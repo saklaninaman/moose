@@ -11,17 +11,14 @@
 
 #include "BoundaryFluxBase.h"
 
-class TestBoundaryFlux;
-
-template <>
-InputParameters validParams<TestBoundaryFlux>();
-
 /**
  * Boundary flux used for testing
  */
 class TestBoundaryFlux : public BoundaryFluxBase
 {
 public:
+  static InputParameters validParams();
+
   TestBoundaryFlux(const InputParameters & parameters);
 
   virtual void calcFlux(unsigned int iside,
@@ -36,4 +33,3 @@ public:
                             const RealVectorValue & dwave,
                             DenseMatrix<Real> & jac1) const override;
 };
-

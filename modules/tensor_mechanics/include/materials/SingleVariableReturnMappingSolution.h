@@ -12,11 +12,6 @@
 #include "InputParameters.h"
 #include "ConsoleStream.h"
 
-class SingleVariableReturnMappingSolution;
-
-template <>
-InputParameters validParams<SingleVariableReturnMappingSolution>();
-
 /**
  * Base class that provides capability for Newton return mapping
  * iterations on a single variable
@@ -24,6 +19,8 @@ InputParameters validParams<SingleVariableReturnMappingSolution>();
 class SingleVariableReturnMappingSolution
 {
 public:
+  static InputParameters validParams();
+
   SingleVariableReturnMappingSolution(const InputParameters & parameters);
   virtual ~SingleVariableReturnMappingSolution() {}
 

@@ -9,60 +9,50 @@
 
 #pragma once
 
+#include "MooseConfig.h"
+
 #include "libmesh/libmesh_common.h"
 #include "libmesh/compare_types.h"
 
+#include "metaphysicl/metaphysicl_version.h"
+
 namespace MetaPhysicL
 {
+#if METAPHYSICL_MAJOR_VERSION < 1
 template <typename, typename>
 class DualNumber;
+#else
+#include "metaphysicl/dualnumber_forward.h"
+#endif
+template <typename, typename, typename>
+class SemiDynamicSparseNumberArray;
 template <std::size_t, typename>
 class NumberArray;
+template <std::size_t N>
+struct NWrapper;
 }
 
 using libMesh::Real;
 using MetaPhysicL::DualNumber;
 using MetaPhysicL::NumberArray;
+using MetaPhysicL::NWrapper;
+using MetaPhysicL::SemiDynamicSparseNumberArray;
 
-#define AD_MAX_DOFS_PER_ELEM 50
+#ifdef MOOSE_SPARSE_AD
 
-typedef DualNumber<Real, NumberArray<AD_MAX_DOFS_PER_ELEM, Real>> DualReal;
+typedef SemiDynamicSparseNumberArray<Real, unsigned int, NWrapper<MOOSE_AD_MAX_DOFS_PER_ELEM>>
+    DNDerivativeType;
 
-#ifndef LIBMESH_DUAL_NUMBER_COMPARE_TYPES
+template <std::size_t N>
+using DNDerivativeSize = SemiDynamicSparseNumberArray<Real, unsigned int, NWrapper<N>>;
 
-namespace libMesh
-{
-template <typename T, typename T2, typename D>
-struct CompareTypes<T, DualNumber<T2, D>>
-{
-  typedef DualNumber<typename CompareTypes<T, T2>::supertype,
-                     typename D::template rebind<typename CompareTypes<T, T2>::supertype>::other>
-      supertype;
-};
-template <typename T, typename D, typename T2>
-struct CompareTypes<DualNumber<T, D>, T2>
-{
-  typedef DualNumber<typename CompareTypes<T, T2>::supertype,
-                     typename D::template rebind<typename CompareTypes<T, T2>::supertype>::other>
-      supertype;
-};
-template <typename T, typename D, typename T2, typename D2>
-struct CompareTypes<DualNumber<T, D>, DualNumber<T2, D2>>
-{
-  typedef DualNumber<typename CompareTypes<T, T2>::supertype,
-                     typename D::template rebind<typename CompareTypes<T, T2>::supertype>::other>
-      supertype;
-};
-template <typename T, typename D>
-struct CompareTypes<DualNumber<T, D>, DualNumber<T, D>>
-{
-  typedef DualNumber<T, D> supertype;
-};
-template <typename T, typename D>
-struct ScalarTraits<DualNumber<T, D>>
-{
-  static const bool value = ScalarTraits<T>::value;
-};
-}
+#else
 
-#endif
+typedef NumberArray<MOOSE_AD_MAX_DOFS_PER_ELEM, Real> DNDerivativeType;
+
+template <std::size_t N>
+using DNDerivativeSize = NumberArray<N, Real>;
+
+#endif // MOOSE_SPARSE_AD
+
+typedef DualNumber<Real, DNDerivativeType, /*allow_skiping_derivatives=*/true> DualReal;

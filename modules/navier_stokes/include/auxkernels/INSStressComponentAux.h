@@ -12,10 +12,6 @@
 #include "AuxKernel.h"
 
 // Forward Declarations
-class INSStressComponentAux;
-
-template <>
-InputParameters validParams<INSStressComponentAux>();
 
 /**
  * Computes h_min / |u|
@@ -23,6 +19,8 @@ InputParameters validParams<INSStressComponentAux>();
 class INSStressComponentAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   INSStressComponentAux(const InputParameters & parameters);
 
   virtual ~INSStressComponentAux() {}
@@ -36,4 +34,3 @@ protected:
   const unsigned _comp;
   const MaterialProperty<Real> & _mu;
 };
-

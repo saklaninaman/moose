@@ -11,11 +11,7 @@
 
 #include "GeneralPostprocessor.h"
 
-class TestDistributionPostprocessor;
 class Distribution;
-
-template <>
-InputParameters validParams<TestDistributionPostprocessor>();
 
 /**
  * Test object for testing distribution capabilities.
@@ -25,6 +21,8 @@ InputParameters validParams<TestDistributionPostprocessor>();
 class TestDistributionPostprocessor : public GeneralPostprocessor
 {
 public:
+  static InputParameters validParams();
+
   TestDistributionPostprocessor(const InputParameters & parameters);
   virtual void initialize() override {}
   virtual void execute() override {}
@@ -40,4 +38,3 @@ protected:
   /// The distribution method to call
   const MooseEnum & _distribution_method;
 };
-

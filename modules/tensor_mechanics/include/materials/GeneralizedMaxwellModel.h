@@ -11,11 +11,6 @@
 
 #include "GeneralizedMaxwellBase.h"
 
-class GeneralizedMaxwellModel;
-
-template <>
-InputParameters validParams<GeneralizedMaxwellModel>();
-
 /**
  * This class is an implementation of a generalized Maxwell model
  * with constant mechanical properties. It consists of an arbitrary number
@@ -26,6 +21,8 @@ InputParameters validParams<GeneralizedMaxwellModel>();
 class GeneralizedMaxwellModel : public GeneralizedMaxwellBase
 {
 public:
+  static InputParameters validParams();
+
   GeneralizedMaxwellModel(const InputParameters & parameters);
 
 protected:
@@ -47,4 +44,3 @@ protected:
   /// The inverse of each subsequent spring elasticity tensor
   std::vector<RankFourTensor> _Si;
 };
-

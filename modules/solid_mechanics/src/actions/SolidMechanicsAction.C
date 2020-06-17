@@ -15,11 +15,10 @@
 
 registerMooseAction("SolidMechanicsApp", SolidMechanicsAction, "add_kernel");
 
-template <>
 InputParameters
-validParams<SolidMechanicsAction>()
+SolidMechanicsAction::validParams()
 {
-  InputParameters params = validParams<Action>();
+  InputParameters params = Action::validParams();
   MooseEnum elemType("truss undefined", "undefined");
   params.addParam<MooseEnum>("type", elemType, "The element type: " + elemType.getRawNames());
   params.addParam<VariableName>("disp_x", "", "The x displacement");
@@ -58,6 +57,9 @@ validParams<SolidMechanicsAction>()
   params.addParam<std::vector<AuxVariableName>>(
       "diag_save_in_disp_r",
       "Auxiliary variables to save the r displacement diagonal preconditioner terms.");
+  params.addParam<std::vector<TagName>>(
+      "extra_vector_tags",
+      "The tag names for extra vectors that residual data should be saved into");
   return params;
 }
 
@@ -242,6 +244,9 @@ SolidMechanicsAction::act()
       params.set<Real>("alpha") = _alpha;
       params.set<bool>("volumetric_locking_correction") =
           getParam<bool>("volumetric_locking_correction");
+      if (isParamValid("extra_vector_tags"))
+        params.set<std::vector<TagName>>("extra_vector_tags") =
+            getParam<std::vector<TagName>>("extra_vector_tags");
       _problem->addKernel(type, name.str(), params);
     }
   }

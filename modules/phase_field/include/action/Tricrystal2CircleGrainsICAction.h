@@ -18,6 +18,8 @@
 class Tricrystal2CircleGrainsICAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   Tricrystal2CircleGrainsICAction(const InputParameters & params);
 
   virtual void act();
@@ -28,7 +30,3 @@ private:
   std::string _var_name_base;
   unsigned int _op_num;
 };
-
-template <>
-InputParameters validParams<Tricrystal2CircleGrainsICAction>();
-

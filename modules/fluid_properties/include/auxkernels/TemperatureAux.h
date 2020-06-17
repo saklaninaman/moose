@@ -11,11 +11,7 @@
 
 #include "AuxKernel.h"
 
-class TemperatureAux;
 class SinglePhaseFluidProperties;
-
-template <>
-InputParameters validParams<TemperatureAux>();
 
 /**
  * Compute temperature values from specific volume and internal energy
@@ -23,6 +19,8 @@ InputParameters validParams<TemperatureAux>();
 class TemperatureAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   TemperatureAux(const InputParameters & parameters);
 
 protected:
@@ -33,4 +31,3 @@ protected:
 
   const SinglePhaseFluidProperties & _fp;
 };
-

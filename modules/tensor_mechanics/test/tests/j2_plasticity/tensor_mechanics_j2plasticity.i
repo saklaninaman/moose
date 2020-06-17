@@ -1,30 +1,31 @@
 [Mesh]
-  type = GeneratedMesh
-  elem_type = HEX8
-  dim = 3
-  nx = 1
-  ny = 1
-  nz = 1
-  xmin=0.0
-  xmax=1.0
-  ymin=0.0
-  ymax=1.0
-  zmin=0.0
-  zmax=1.0
   displacements = 'x_disp y_disp z_disp'
-[]
-
-[MeshModifiers]
-  [./cnode]
-    type = AddExtraNodeset
+  [generated_mesh]
+    type = GeneratedMeshGenerator
+    elem_type = HEX8
+    dim = 3
+    nx = 1
+    ny = 1
+    nz = 1
+    xmin = 0.0
+    xmax = 1.0
+    ymin = 0.0
+    ymax = 1.0
+    zmin = 0.0
+    zmax = 1.0
+  []
+  [cnode]
+    type = ExtraNodesetGenerator
     coord = '0.0 0.0 0.0'
     new_boundary = 6
-  [../]
-  [./snode]
-    type = AddExtraNodeset
+    input = generated_mesh
+  []
+  [snode]
+    type = ExtraNodesetGenerator
     coord = '1.0 0.0 0.0'
     new_boundary = 7
-  [../]
+    input = cnode
+  []
 []
 
 [Variables]
@@ -77,43 +78,43 @@
 
 [BCs]
   [./bottom3]
-    type = PresetBC
+    type = DirichletBC
     variable = z_disp
     boundary = 0
     value = 0.0
   [../]
   [./top]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = z_disp
     boundary = 5
     function = topfunc
   [../]
   [./corner1]
-    type = PresetBC
+    type = DirichletBC
     variable = x_disp
     boundary = 6
     value = 0.0
   [../]
   [./corner2]
-    type = PresetBC
+    type = DirichletBC
     variable = y_disp
     boundary = 6
     value = 0.0
   [../]
   [./corner3]
-    type = PresetBC
+    type = DirichletBC
     variable = z_disp
     boundary = 6
     value = 0.0
   [../]
   [./side1]
-    type = PresetBC
+    type = DirichletBC
     variable = y_disp
     boundary = 7
     value = 0.0
   [../]
   [./side2]
-    type = PresetBC
+    type = DirichletBC
     variable = z_disp
     boundary = 7
     value = 0.0

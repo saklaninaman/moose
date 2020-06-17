@@ -13,11 +13,10 @@
 
 registerMooseObject("NavierStokesApp", NSEnthalpyAux);
 
-template <>
 InputParameters
-validParams<NSEnthalpyAux>()
+NSEnthalpyAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
 
   params.addClassDescription("Nodal auxiliary variable, for computing enthalpy at the nodes.");
   // Mark variables as required
@@ -34,6 +33,8 @@ NSEnthalpyAux::NSEnthalpyAux(const InputParameters & parameters)
     _rhoE(coupledValue(NS::total_energy)),
     _pressure(coupledValue(NS::pressure))
 {
+  mooseDeprecated("The NSEnthalpyAux auxiliary kernel has been replaced by the EnthalpyAux "
+                  "auxiliary kernel");
 }
 
 Real

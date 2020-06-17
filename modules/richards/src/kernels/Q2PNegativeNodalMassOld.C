@@ -17,11 +17,10 @@
 
 registerMooseObject("RichardsApp", Q2PNegativeNodalMassOld);
 
-template <>
 InputParameters
-validParams<Q2PNegativeNodalMassOld>()
+Q2PNegativeNodalMassOld::validParams()
 {
-  InputParameters params = validParams<TimeKernel>();
+  InputParameters params = TimeKernel::validParams();
   params.addRequiredParam<UserObjectName>(
       "fluid_density",
       "A RichardsDensity UserObject that defines the fluid density as a function of pressure.");

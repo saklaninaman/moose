@@ -12,11 +12,6 @@
 #include "TensorMechanicsPlasticModel.h"
 #include "TensorMechanicsHardeningModel.h"
 
-class TensorMechanicsPlasticWeakPlaneShear;
-
-template <>
-InputParameters validParams<TensorMechanicsPlasticWeakPlaneShear>();
-
 /**
  * Rate-independent associative weak-plane tensile failure
  * with hardening/softening.  The cone's tip is smoothed.
@@ -24,6 +19,8 @@ InputParameters validParams<TensorMechanicsPlasticWeakPlaneShear>();
 class TensorMechanicsPlasticWeakPlaneShear : public TensorMechanicsPlasticModel
 {
 public:
+  static InputParameters validParams();
+
   TensorMechanicsPlasticWeakPlaneShear(const InputParameters & parameters);
 
   virtual void activeConstraints(const std::vector<Real> & f,
@@ -106,4 +103,3 @@ protected:
   /// d(tan_psi)/d(internal_param);
   virtual Real dtan_psi(const Real internal_param) const;
 };
-

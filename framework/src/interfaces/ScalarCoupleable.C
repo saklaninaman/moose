@@ -64,15 +64,6 @@ ScalarCoupleable::ScalarCoupleable(const MooseObject * moose_object)
   }
 }
 
-ScalarCoupleable::~ScalarCoupleable()
-{
-  for (auto & it : _default_value)
-  {
-    it.second->release();
-    delete it.second;
-  }
-}
-
 const std::vector<MooseVariableScalar *> &
 ScalarCoupleable::getCoupledMooseScalarVars()
 {
@@ -82,8 +73,7 @@ ScalarCoupleable::getCoupledMooseScalarVars()
 bool
 ScalarCoupleable::isCoupledScalar(const std::string & var_name, unsigned int i)
 {
-  std::map<std::string, std::vector<MooseVariableScalar *>>::iterator it =
-      _coupled_scalar_vars.find(var_name);
+  auto it = _coupled_scalar_vars.find(var_name);
   if (it != _coupled_scalar_vars.end())
     return (i < it->second.size());
   else
@@ -121,15 +111,15 @@ ScalarCoupleable::coupledScalarOrder(const std::string & var_name, unsigned int 
 VariableValue *
 ScalarCoupleable::getDefaultValue(const std::string & var_name)
 {
-  std::map<std::string, VariableValue *>::iterator default_value_it = _default_value.find(var_name);
+  auto default_value_it = _default_value.find(var_name);
   if (default_value_it == _default_value.end())
   {
-    VariableValue * value = new VariableValue(_sc_fe_problem.getMaxScalarOrder(),
-                                              _coupleable_params.defaultCoupledValue(var_name));
-    default_value_it = _default_value.insert(std::make_pair(var_name, value)).first;
+    auto value = libmesh_make_unique<VariableValue>(
+        _sc_fe_problem.getMaxScalarOrder(), _coupleable_params.defaultCoupledValue(var_name));
+    default_value_it = _default_value.insert(std::make_pair(var_name, std::move(value))).first;
   }
 
-  return default_value_it->second;
+  return default_value_it->second.get();
 }
 
 VariableValue &
@@ -143,6 +133,36 @@ ScalarCoupleable::coupledScalarValue(const std::string & var_name, unsigned int 
   return (_sc_is_implicit) ? var->sln() : var->slnOld();
 }
 
+const ADVariableValue &
+ScalarCoupleable::adCoupledScalarValue(const std::string & var_name, unsigned int comp)
+{
+  checkVar(var_name);
+  if (!isCoupledScalar(var_name, comp))
+    return *getADDefaultValue(var_name);
+
+  MooseVariableScalar * var = getScalarVar(var_name, comp);
+
+  if (_sc_is_implicit)
+    return var->adSln();
+  else
+    mooseError("adCoupledValue for non-implicit calculations is not currently supported. Use "
+               "coupledValue instead for non-implicit");
+}
+
+ADVariableValue *
+ScalarCoupleable::getADDefaultValue(const std::string & var_name)
+{
+  auto default_value_it = _dual_default_value.find(var_name);
+  if (default_value_it == _dual_default_value.end())
+  {
+    auto value = libmesh_make_unique<ADVariableValue>(
+        _sc_fe_problem.getMaxScalarOrder(), _coupleable_params.defaultCoupledValue(var_name));
+    default_value_it = _dual_default_value.insert(std::make_pair(var_name, std::move(value))).first;
+  }
+
+  return default_value_it->second.get();
+}
+
 VariableValue &
 ScalarCoupleable::coupledVectorTagScalarValue(const std::string & var_name,
                                               TagID tag,
@@ -151,6 +171,13 @@ ScalarCoupleable::coupledVectorTagScalarValue(const std::string & var_name,
   checkVar(var_name);
   if (!isCoupledScalar(var_name, comp))
     return *getDefaultValue(var_name);
+
+  if (!_sc_fe_problem.vectorTagExists(tag))
+    mooseError("Attempting to couple to vector tag scalar with ID ",
+               tag,
+               "in ",
+               _sc_name,
+               ", but a vector tag with that ID does not exist");
 
   addScalarVariableCoupleableVectorTag(tag);
 

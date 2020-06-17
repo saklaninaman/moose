@@ -12,10 +12,6 @@
 #include "AuxKernel.h"
 
 // Forward Declarations
-class DarcyFluxComponent;
-
-template <>
-InputParameters validParams<DarcyFluxComponent>();
 
 /**
  * Computes a component of the Darcy flux:
@@ -35,6 +31,8 @@ InputParameters validParams<DarcyFluxComponent>();
 class DarcyFluxComponent : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   DarcyFluxComponent(const InputParameters & parameters);
 
 protected:
@@ -58,4 +56,3 @@ protected:
   /// Desired component
   unsigned int _component;
 };
-

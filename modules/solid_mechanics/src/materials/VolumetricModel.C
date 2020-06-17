@@ -9,11 +9,10 @@
 
 #include "VolumetricModel.h"
 
-template <>
 InputParameters
-validParams<VolumetricModel>()
+VolumetricModel::validParams()
 {
-  return validParams<Material>();
+  return Material::validParams();
 }
 
 VolumetricModel::VolumetricModel(const InputParameters & parameters) : Material(parameters) {}

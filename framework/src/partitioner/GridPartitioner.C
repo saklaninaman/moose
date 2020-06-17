@@ -19,14 +19,15 @@ registerMooseObject("MooseApp", GridPartitioner);
 
 #include <memory>
 
-template <>
+defineLegacyParams(GridPartitioner);
+
 InputParameters
-validParams<GridPartitioner>()
+GridPartitioner::validParams()
 {
   // These two are in this order because they are from different systems
   // so you have to apply _this_ system's second to override the base
-  InputParameters params = validParams<GeneratedMesh>();
-  params += validParams<MoosePartitioner>();
+  InputParameters params = GeneratedMesh::validParams();
+  params += MoosePartitioner::validParams();
 
   // These are suppressed because they're going to get set programmatically
   params.suppressParameter<MooseEnum>("elem_type");
@@ -89,11 +90,21 @@ GridPartitioner::_do_partition(MeshBase & mesh, const unsigned int /*n*/)
   if (dim == 3)
     num_cells *= getParam<unsigned int>("nz");
 
+  // We should compute a balanced factorization so
+  // that we can assign proper processors to each direction.
+  // I just want to make grid partitioner smarter.
   if (num_cells != mesh.n_partitions())
-    mooseError("Number of cells in the GridPartitioner must match the number of MPI ranks! ",
-               num_cells,
-               " != ",
-               mesh.n_partitions());
+  {
+    // Anybody knows we are living in a 3D space.
+    int dims[] = {0, 0, 0};
+    MPI_Dims_create(mesh.n_partitions(), dim, dims);
+
+    params.set<unsigned int>("nx") = dims[0];
+    if (dim >= 2)
+      params.set<unsigned int>("ny") = dims[1];
+    if (dim == 3)
+      params.set<unsigned int>("nz") = dims[2];
+  }
 
   params.set<Real>("xmin") = min(0);
   params.set<Real>("ymin") = min(1);

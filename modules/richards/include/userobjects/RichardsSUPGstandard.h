@@ -11,11 +11,6 @@
 
 #include "RichardsSUPG.h"
 
-class RichardsSUPGstandard;
-
-template <>
-InputParameters validParams<RichardsSUPGstandard>();
-
 /**
  * standard SUPG relationships
  * valid for the Richards equation.
@@ -27,6 +22,8 @@ InputParameters validParams<RichardsSUPGstandard>();
 class RichardsSUPGstandard : public RichardsSUPG
 {
 public:
+  static InputParameters validParams();
+
   RichardsSUPGstandard(const InputParameters & parameters);
 
   /**
@@ -153,4 +150,3 @@ private:
   /// derivative of cosh_relation wrt alpha
   Real cosh_relation_prime(Real alpha) const;
 };
-

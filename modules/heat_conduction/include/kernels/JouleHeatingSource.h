@@ -14,10 +14,6 @@
 #include "DerivativeMaterialInterface.h"
 
 // Forward Declarations
-class JouleHeatingSource;
-
-template <>
-InputParameters validParams<JouleHeatingSource>();
 
 /**
  * This kernel calculates the heat source term corresponding to joule heating,
@@ -26,6 +22,8 @@ InputParameters validParams<JouleHeatingSource>();
 class JouleHeatingSource : public DerivativeMaterialInterface<JvarMapKernelInterface<HeatSource>>
 {
 public:
+  static InputParameters validParams();
+
   JouleHeatingSource(const InputParameters & parameters);
   virtual void initialSetup();
 
@@ -42,4 +40,3 @@ private:
   const MaterialProperty<Real> & _delec_cond_dT;
   std::vector<const MaterialProperty<Real> *> _delec_cond_darg;
 };
-

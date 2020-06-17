@@ -12,10 +12,6 @@
 #include "AuxKernel.h"
 
 // Forward Declarations
-class INSCourant;
-
-template <>
-InputParameters validParams<INSCourant>();
 
 /**
  * Computes h_min / |u|
@@ -23,6 +19,8 @@ InputParameters validParams<INSCourant>();
 class INSCourant : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   INSCourant(const InputParameters & parameters);
 
 protected:
@@ -33,4 +31,3 @@ protected:
   const VariableValue & _v_vel;
   const VariableValue & _w_vel;
 };
-

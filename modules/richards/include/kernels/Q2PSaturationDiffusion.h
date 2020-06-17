@@ -16,10 +16,6 @@
 #include "Function.h"
 
 // Forward Declarations
-class Q2PSaturationDiffusion;
-
-template <>
-InputParameters validParams<Q2PSaturationDiffusion>();
 
 /**
  * Diffusive Kernel that models nonzero capillary pressure in Q2P models
@@ -28,6 +24,8 @@ InputParameters validParams<Q2PSaturationDiffusion>();
 class Q2PSaturationDiffusion : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   Q2PSaturationDiffusion(const InputParameters & parameters);
 
 protected:

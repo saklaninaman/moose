@@ -11,11 +11,6 @@
 
 #include "AuxKernel.h"
 
-class RadialDisplacementCylinderAux;
-
-template <>
-InputParameters validParams<RadialDisplacementCylinderAux>();
-
 /**
  * Calculates the radial displacement for cylindrical geometries.
  * Works for 2D and 3D Cartesian systems and axisymmetric systems
@@ -24,6 +19,8 @@ InputParameters validParams<RadialDisplacementCylinderAux>();
 class RadialDisplacementCylinderAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   RadialDisplacementCylinderAux(const InputParameters & parameters);
 
   virtual ~RadialDisplacementCylinderAux() {}
@@ -46,4 +43,3 @@ protected:
   /// Point used to define the origin of the cylinder axis for Cartesian systems
   RealVectorValue _origin;
 };
-

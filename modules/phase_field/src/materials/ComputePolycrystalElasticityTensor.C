@@ -12,16 +12,15 @@
 
 registerMooseObject("PhaseFieldApp", ComputePolycrystalElasticityTensor);
 
-template <>
 InputParameters
-validParams<ComputePolycrystalElasticityTensor>()
+ComputePolycrystalElasticityTensor::validParams()
 {
-  InputParameters params = validParams<ComputeElasticityTensorBase>();
+  InputParameters params = ComputeElasticityTensorBase::validParams();
   params.addClassDescription(
       "Compute an evolving elasticity tensor coupled to a grain growth phase field model.");
   params.addRequiredParam<UserObjectName>(
       "grain_tracker", "Name of GrainTracker user object that provides RankFourTensors");
-  params.addParam<Real>("length_scale", 1.0e-9, "Lengthscale of the problem, in meters");
+  params.addParam<Real>("length_scale", 1.0e-9, "Length scale of the problem, in meters");
   params.addParam<Real>("pressure_scale", 1.0e6, "Pressure scale of the problem, in pa");
   params.addRequiredCoupledVarWithAutoBuild(
       "v", "var_name_base", "op_num", "Array of coupled variables");

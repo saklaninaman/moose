@@ -11,28 +11,20 @@
 
 #include "ADKernelValue.h"
 
-// Forward Declarations
-template <ComputeStage>
-class INSADMomentumAdvection;
-
-declareADValidParams(INSADMomentumAdvection);
-
 /**
  * This class computes the momentum equation residual and Jacobian
  * contributions for the convective term of the incompressible Navier-Stokes momentum
  * equation.
  */
-template <ComputeStage compute_stage>
-class INSADMomentumAdvection : public ADVectorKernelValue<compute_stage>
+class INSADMomentumAdvection : public ADVectorKernelValue
 {
 public:
+  static InputParameters validParams();
+
   INSADMomentumAdvection(const InputParameters & parameters);
 
 protected:
-  virtual ADVectorResidual precomputeQpResidual() override;
+  virtual ADRealVectorValue precomputeQpResidual() override;
 
-  const ADMaterialProperty(RealVectorValue) & _convective_strong_residual;
-
-  usingVectorKernelValueMembers;
+  const ADMaterialProperty<RealVectorValue> & _convective_strong_residual;
 };
-

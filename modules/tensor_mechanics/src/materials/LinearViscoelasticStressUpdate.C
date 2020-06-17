@@ -11,11 +11,10 @@
 
 registerMooseObject("TensorMechanicsApp", LinearViscoelasticStressUpdate);
 
-template <>
 InputParameters
-validParams<LinearViscoelasticStressUpdate>()
+LinearViscoelasticStressUpdate::validParams()
 {
-  InputParameters params = validParams<StressUpdateBase>();
+  InputParameters params = StressUpdateBase::validParams();
   params.addParam<std::string>(
       "apparent_creep_strain",
       "apparent_creep_strain",

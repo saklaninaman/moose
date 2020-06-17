@@ -1,18 +1,18 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # MathEBFreeEnergy
 
-!alert construction title=Undocumented Class
-The MathEBFreeEnergy has not been documented. The content contained on this page
-includes the basic documentation associated with a MooseObject; however, what is contained is
-ultimately determined by what is necessary to make the documentation clear for users.
-
 !syntax description /Materials/MathEBFreeEnergy
+
+Implements the bulk free free energy density
+
+!equation
+f_\text{bulk}(c) = \frac14(1-c)^2(1+c)^2
+
+using the [ExpressionBuilder](/ExpressionBuilder.md) system, where $c$ (`c`) is
+a coupled concentration. The minima of this free energy density lie at $c=1$ and
+$c=-1$. See also [`SplitCHMath`](/SplitCHMath.md).
 
 !syntax parameters /Materials/MathEBFreeEnergy
 
 !syntax inputs /Materials/MathEBFreeEnergy
 
 !syntax children /Materials/MathEBFreeEnergy
-
-!bibtex bibliography

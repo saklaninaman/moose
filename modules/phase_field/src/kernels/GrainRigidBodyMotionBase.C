@@ -13,11 +13,10 @@
 #include "GrainTrackerInterface.h"
 #include "MooseVariable.h"
 
-template <>
 InputParameters
-validParams<GrainRigidBodyMotionBase>()
+GrainRigidBodyMotionBase::validParams()
 {
-  InputParameters params = validParams<NonlocalKernel>();
+  InputParameters params = NonlocalKernel::validParams();
   params.addClassDescription("Base class for adding rigid body motion to grains");
   params.addRequiredCoupledVar("c", "Concentration");
   params.addRequiredCoupledVarWithAutoBuild(

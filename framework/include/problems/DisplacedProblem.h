@@ -18,12 +18,13 @@
 #include "libmesh/enum_quadrature_type.h"
 
 // Forward declarations
-class MooseVariableFEBase;
+class MooseVariableFieldBase;
 class AssemblyData;
 class DisplacedProblem;
 class MooseMesh;
 class Assembly;
 class FEProblemBase;
+class LineSearch;
 
 // libMesh forward declarations
 namespace libMesh
@@ -38,6 +39,8 @@ InputParameters validParams<DisplacedProblem>();
 class DisplacedProblem : public SubProblem
 {
 public:
+  static InputParameters validParams();
+
   DisplacedProblem(const InputParameters & parameters);
 
   virtual EquationSystems & es() override { return _eq; }
@@ -87,8 +90,15 @@ public:
   /**
    * Copy the solutions on the undisplaced systems to the displaced systems and
    * reinitialize the geometry search data and Dirac kernel information due to mesh displacement.
+   * The parameter \p mesh_changing indicates whether this method is getting called because of mesh
+   * changes, e.g. due to mesh adaptivity. If \p mesh_changing we need to renitialize the
+   * GeometricSearchData instead of simply update. Reinitialization operations are a super-set of
+   * update operations. Reinitialization for example re-generates neighbor nodes in
+   * NearestNodeLocators, while update does not. Additionally we do not want to use the undisplaced
+   * mesh solution because it may be out-of-sync, whereas our displaced mesh solution should be in
+   * the correct state after getting restricted/prolonged in EquationSystems::reinit
    */
-  virtual void updateMesh();
+  virtual void updateMesh(bool mesh_changing = false);
 
   /**
    * Synchronize the solutions on the displaced systems to the given solutions and
@@ -97,12 +107,17 @@ public:
   virtual void updateMesh(const NumericVector<Number> & soln,
                           const NumericVector<Number> & aux_soln);
 
-  virtual TagID addVectorTag(TagName tag_name) override;
-  virtual TagID getVectorTagID(const TagName & tag_name) override;
-  virtual TagName vectorTagName(TagID tag) override;
-  virtual bool vectorTagExists(TagID tag) override;
-  virtual unsigned int numVectorTags() const override;
-  virtual std::map<TagName, TagID> & getVectorTags() override;
+  virtual TagID addVectorTag(const TagName & tag_name,
+                             const Moose::VectorTagType type = Moose::VECTOR_TAG_RESIDUAL) override;
+  virtual const VectorTag & getVectorTag(const TagID tag_id) const override;
+  virtual TagID getVectorTagID(const TagName & tag_name) const override;
+  virtual TagName vectorTagName(const TagID tag_id) const override;
+  virtual bool vectorTagExists(const TagID tag_id) const override;
+  virtual unsigned int
+  numVectorTags(const Moose::VectorTagType type = Moose::VECTOR_TAG_ANY) const override;
+  virtual const std::vector<VectorTag> &
+  getVectorTags(const Moose::VectorTagType type = Moose::VECTOR_TAG_ANY) const override;
+  virtual Moose::VectorTagType vectorTagType(const TagID tag_id) const override;
 
   virtual TagID addMatrixTag(TagName tag_name) override;
   virtual TagID getMatrixTagID(const TagName & tag_name) override;
@@ -124,27 +139,19 @@ public:
   virtual MooseVariable & getStandardVariable(THREAD_ID tid, const std::string & var_name) override;
   virtual VectorMooseVariable & getVectorVariable(THREAD_ID tid,
                                                   const std::string & var_name) override;
+  virtual ArrayMooseVariable & getArrayVariable(THREAD_ID tid,
+                                                const std::string & var_name) override;
   virtual bool hasScalarVariable(const std::string & var_name) const override;
   virtual MooseVariableScalar & getScalarVariable(THREAD_ID tid,
                                                   const std::string & var_name) override;
   virtual System & getSystem(const std::string & var_name) override;
 
-  virtual void addVariable(const std::string & var_name,
-                           const FEType & type,
-                           Real scale_factor,
-                           const std::set<SubdomainID> * const active_subdomains = NULL);
-  virtual void addAuxVariable(const std::string & var_name,
-                              const FEType & type,
-                              const std::set<SubdomainID> * const active_subdomains = NULL);
-  virtual void addScalarVariable(const std::string & var_name,
-                                 Order order,
-                                 Real scale_factor = 1.,
-                                 const std::set<SubdomainID> * const active_subdomains = NULL);
-  virtual void addAuxScalarVariable(const std::string & var_name,
-                                    Order order,
-                                    Real scale_factor = 1.,
-                                    const std::set<SubdomainID> * const active_subdomains = NULL);
-
+  virtual void
+  addVariable(const std::string & var_type, const std::string & name, InputParameters & parameters);
+  virtual void addAuxVariable(const std::string & var_type,
+                              const std::string & name,
+                              InputParameters & parameters);
+  //
   // Adaptivity /////
   virtual void initAdaptivity();
   virtual void meshChanged() override;
@@ -169,6 +176,7 @@ public:
   virtual void prepareAssemblyNeighbor(THREAD_ID tid);
 
   virtual bool reinitDirac(const Elem * elem, THREAD_ID tid) override;
+
   virtual void reinitElem(const Elem * elem, THREAD_ID tid) override;
   virtual void reinitElemPhys(const Elem * elem,
                               const std::vector<Point> & phys_points_in_elem,
@@ -181,6 +189,21 @@ public:
   virtual void reinitNodes(const std::vector<dof_id_type> & nodes, THREAD_ID tid) override;
   virtual void reinitNodesNeighbor(const std::vector<dof_id_type> & nodes, THREAD_ID tid) override;
   virtual void reinitNeighbor(const Elem * elem, unsigned int side, THREAD_ID tid) override;
+
+  /**
+   * reinitialize neighbor routine
+   * @param elem The element driving the reinit (note that this is not the *neighbor*)
+   * @param side The side, e.g. face,  of the \p elem that we want to reinit
+   * @param tid The thread for which we are reiniting
+   * @param neighbor_reference_points Specify the referrence points for the
+   *                                  neighbor element. Useful if the element and neighbor faces are
+   *                                  not coincident
+   */
+  void reinitNeighbor(const Elem * elem,
+                      unsigned int side,
+                      THREAD_ID tid,
+                      const std::vector<Point> * neighbor_reference_points);
+
   virtual void reinitNeighborPhys(const Elem * neighbor,
                                   unsigned int neighbor_side,
                                   const std::vector<Point> & physical_points,
@@ -188,7 +211,7 @@ public:
   virtual void reinitNeighborPhys(const Elem * neighbor,
                                   const std::vector<Point> & physical_points,
                                   THREAD_ID tid) override;
-  virtual void reinitScalars(THREAD_ID tid) override;
+  virtual void reinitScalars(THREAD_ID tid, bool reinit_for_derivative_reordering = false) override;
   virtual void reinitOffDiagScalars(THREAD_ID tid) override;
 
   /// Fills "elems" with the elements that should be looped over for Dirac Kernels
@@ -216,6 +239,13 @@ public:
                                 const DofMap & dof_map,
                                 std::vector<dof_id_type> & dof_indices,
                                 THREAD_ID tid) override;
+  virtual void addJacobianBlockTags(SparseMatrix<Number> & jacobian,
+                                    unsigned int ivar,
+                                    unsigned int jvar,
+                                    const DofMap & dof_map,
+                                    std::vector<dof_id_type> & dof_indices,
+                                    const std::set<TagID> & tags,
+                                    THREAD_ID tid);
   virtual void addJacobianBlockNonlocal(SparseMatrix<Number> & jacobian,
                                         unsigned int ivar,
                                         unsigned int jvar,
@@ -281,6 +311,10 @@ public:
    */
   void undisplaceMesh();
 
+  LineSearch * getLineSearch() override;
+
+  const CouplingMatrix * couplingMatrix() const override;
+
 protected:
   FEProblemBase & _mproblem;
   MooseMesh & _mesh;
@@ -309,4 +343,3 @@ private:
   friend class UpdateDisplacedMeshThread;
   friend class Restartable;
 };
-

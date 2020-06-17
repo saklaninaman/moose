@@ -12,12 +12,13 @@
 
 registerMooseObject("TensorMechanicsApp", InteractionIntegralBenchmarkBC);
 
-template <>
 InputParameters
-validParams<InteractionIntegralBenchmarkBC>()
+InteractionIntegralBenchmarkBC::validParams()
 {
   MooseEnum disp_component("x=0 y=1 z=2");
-  InputParameters params = validParams<PresetNodalBC>();
+  InputParameters params = DirichletBCBase::validParams();
+  params.addClassDescription("Implements a boundary condition that enforces a displacement field "
+                             "around a crack tip based on applied stress intensity factors.");
   params.addRequiredParam<MooseEnum>(
       "component", disp_component, "The component of the displacement to apply BC on.");
   params.addRequiredParam<UserObjectName>("crack_front_definition",
@@ -32,11 +33,12 @@ validParams<InteractionIntegralBenchmarkBC>()
                                         "Function describing the Mode II stress intensity factor.");
   params.addRequiredParam<FunctionName>(
       "KIII_function", "Function describing the Mode III stress intensity factor.");
+  params.set<bool>("preset") = true;
   return params;
 }
 
 InteractionIntegralBenchmarkBC::InteractionIntegralBenchmarkBC(const InputParameters & parameters)
-  : PresetNodalBC(parameters),
+  : DirichletBCBase(parameters),
     _component(getParam<MooseEnum>("component")),
     _crack_front_definition(&getUserObject<CrackFrontDefinition>("crack_front_definition")),
     _crack_front_point_index(getParam<unsigned int>("crack_front_point_index")),

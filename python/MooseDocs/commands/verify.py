@@ -1,4 +1,3 @@
-#pylint: disable=missing-docstring
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -7,27 +6,27 @@
 #*
 #* Licensed under LGPL 2.1, please see LICENSE for details
 #* https://www.gnu.org/licenses/lgpl-2.1.html
-#pylint: enable=missing-docstring
 import os
 import sys
 import re
 import subprocess
 import mooseutils
+
 import MooseDocs
+from .. import common
 
 try:
     import bs4
 except ImportError:
-    print "The BeutifulSoup package (bs4) is required for the verify command, " \
-          "it may be downloaded by running the following:\n" \
-          "    pip install --user bs4"
-    sys.exit(1)
+    print("The BeutifulSoup package (bs4) is required for the verify command",
+          "it may be downloaded by running the following:\n",
+          "\tpip install --user bs4")
 
 def command_line_options(subparser, parent):
     """Command line options for 'verify' command."""
     parser = subparser.add_parser('verify', parents=[parent], help="Testing only, do not use.")
     parser.add_argument('-f', '--form', default='materialize',
-                        choices=['materialize', 'html', 'json', 'latex'],
+                        choices=['materialize', 'html', 'latex'],
                         help="The desired output format to verify.")
     parser.add_argument('--disable', nargs='*', default=[],
                         help="A list of extensions to disable.")
@@ -51,8 +50,8 @@ def insert_moose_dir(content):
 
 def replace_uuid4(content):
     """Replace uuid.uuid4() numbers."""
-    return re.sub(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',
-                  r'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', content)
+    return re.sub('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',
+                  'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', content, flags=re.UNICODE)
 
 def replace_package_file(content):
     """Replace the package filename with something consistent."""
@@ -64,34 +63,36 @@ def replace_tmp_file(content):
 
 def update_gold_helper(gold, out_content):
     """Update the gold files."""
-    dirname = os.path.dirname(gold)
-    if not os.path.isdir(dirname):
-        os.makedirs(dirname)
-    with open(gold, 'w') as fid:
-        print "WRITING GOLD: {}".format(gold)
-        fid.write(out_content)
+    if os.path.exists(gold):
+        with open(gold, 'w') as fid:
+            print("WRITING GOLD: {}".format(gold))
+            fid.write(out_content)
 
 def compare(out_fname, out_dir, gold_dir, update_gold=False):
     """Compare supplied file with gold counter part."""
-
     errno = 0
     gold_fname = out_fname.replace(out_dir, gold_dir)
 
     # Read the content to be tested
-    with open(out_fname, 'r') as fid:
-        out_content = prepare_content(fid.read())
+    out_content = common.read(out_fname)
+    out_content = prepare_content(out_content)
 
     # Update gold content
     if update_gold:
         update_gold_helper(gold_fname, out_content)
 
     if not os.path.exists(gold_fname):
-        print mooseutils.colorText('MISSING GOLD: {}'.format(gold_fname), 'RED')
-        errno = 1
+        # The verify command is going away because work is being done to move all testing to be
+        # unittest based; but the test pages are still useful for development and will be used to
+        # make sure the various executioner types achieve the same results.
+        #
+        # To allow test pages to exist without testing assume that if a gold doesn't exist then
+        # it should not be tested.
+        pass
+
     else:
-        with open(gold_fname, 'r') as fid:
-            gold_content = fid.read()
-            gold_content = bs4.BeautifulSoup(gold_content, 'lxml').prettify()
+        gold_content = common.read(gold_fname)
+        gold_content = bs4.BeautifulSoup(gold_content, 'lxml').prettify()
 
         out_content = bs4.BeautifulSoup(out_content, 'lxml').prettify()
         diff = mooseutils.text_unidiff(out_content,
@@ -100,11 +101,11 @@ def compare(out_fname, out_dir, gold_dir, update_gold=False):
                                        gold_fname=gold_fname,
                                        color=True, num_lines=2)
         if diff:
-            print mooseutils.colorText("DIFF: {} != {}".format(out_fname, gold_fname), 'YELLOW')
-            print diff.encode('utf-8')
+            print(mooseutils.colorText("DIFF: {} != {}".format(out_fname, gold_fname), 'YELLOW'))
+            print(str(diff))
             errno = 1
         else:
-            print mooseutils.colorText("PASS: {} == {}".format(out_fname, gold_fname), 'GREEN')
+            print(mooseutils.colorText("PASS: {} == {}".format(out_fname, gold_fname), 'GREEN'))
 
     return errno
 
@@ -113,11 +114,11 @@ def main(options):
 
     # Create the content
     config = options.form + '.yml'
-    subprocess.check_output(['python', 'moosedocs.py', 'build',
-                             '--config', config,
-                             '--executioner', options.executioner,
-                             '--disable', ' '.join(options.disable)],
-                            cwd=os.path.join(MooseDocs.MOOSE_DIR, 'python', 'MooseDocs', 'test'))
+    cmd = ['python', 'moosedocs.py', 'build', '--config', config, '--executioner', options.executioner]
+    if options.disable:
+        cmd += ['--disable', ' '.join(options.disable)]
+    print(' '.join(cmd))
+    subprocess.check_output(cmd, cwd=os.path.join(MooseDocs.MOOSE_DIR, 'python', 'MooseDocs', 'test'))
 
     # Define output and gold directories
     out_dir = os.path.join('output', options.form)
@@ -126,8 +127,6 @@ def main(options):
     # Setup extensions
     if options.form in ['materialize', 'html']:
         extensions = ['.html']
-    elif options.form == 'json':
-        extensions = ['.json']
     elif options.form == 'latex':
         extensions = ['.tex']
 

@@ -12,11 +12,10 @@
 
 registerMooseObject("PhaseFieldApp", DiscreteNucleationMarker);
 
-template <>
 InputParameters
-validParams<DiscreteNucleationMarker>()
+DiscreteNucleationMarker::validParams()
 {
-  InputParameters params = validParams<Marker>();
+  InputParameters params = Marker::validParams();
   params.addClassDescription("Mark new nucleation sites for refinement");
   params.addRequiredParam<UserObjectName>("map", "DiscreteNucleationMap user object");
   return params;

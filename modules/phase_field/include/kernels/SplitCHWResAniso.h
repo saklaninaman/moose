@@ -19,9 +19,7 @@
 class SplitCHWResAniso : public SplitCHWResBase<RealTensorValue>
 {
 public:
+  static InputParameters validParams();
+
   SplitCHWResAniso(const InputParameters & parameters);
 };
-
-template <>
-InputParameters validParams<SplitCHWResAniso>();
-

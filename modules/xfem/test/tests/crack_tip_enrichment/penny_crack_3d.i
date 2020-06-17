@@ -27,23 +27,23 @@
 []
 
 [Mesh]
-  type = GeneratedMesh
-  dim = 3
-  nx = 9
-  ny = 9
-  nz = 3
-  xmin = -1.0
-  xmax = 1.0
-  ymin = -1.0
-  ymax = 1.0
-  zmin = -0.75
-  zmax = 0.75
-  elem_type = HEX8
-[]
-
-[MeshModifiers]
+  [gen]
+    type = GeneratedMeshGenerator
+    dim = 3
+    nx = 9
+    ny = 9
+    nz = 3
+    xmin = -1.0
+    xmax = 1.0
+    ymin = -1.0
+    ymax = 1.0
+    zmin = -0.75
+    zmax = 0.75
+    elem_type = HEX8
+  []
   [./all_node]
-    type = BoundingBoxNodeSet
+    type = BoundingBoxNodeSetGenerator
+    input = gen
     new_boundary = 'all'
     top_right = '1 1 1'
     bottom_left = '-1 -1 -1'
@@ -128,19 +128,19 @@
     factor = -1
   [../]
   [./bottom_x]
-    type = PresetBC
+    type = DirichletBC
     boundary = back
     variable = disp_x
     value = 0.0
   [../]
   [./bottom_y]
-    type = PresetBC
+    type = DirichletBC
     boundary = back
     variable = disp_y
     value = 0.0
   [../]
   [./bottom_z]
-    type = PresetBC
+    type = DirichletBC
     boundary = back
     variable = disp_z
     value = 0.0

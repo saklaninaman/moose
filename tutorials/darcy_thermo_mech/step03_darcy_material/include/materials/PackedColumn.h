@@ -14,11 +14,6 @@
 // A helper class from MOOSE that linear interpolates x,y data
 #include "LinearInterpolation.h"
 
-class PackedColumn;
-
-template <>
-InputParameters validParams<PackedColumn>();
-
 /**
  * Material objects inherit from Material and override computeQpProperties.
  *
@@ -28,6 +23,8 @@ InputParameters validParams<PackedColumn>();
 class PackedColumn : public Material
 {
 public:
+  static InputParameters validParams();
+
   PackedColumn(const InputParameters & parameters);
 
 protected:
@@ -44,8 +41,8 @@ protected:
   LinearInterpolation _permeability_interpolation;
 
   /// The permeability (K)
-  MaterialProperty<Real> & _permeability;
+  ADMaterialProperty<Real> & _permeability;
 
   /// The viscosity of the fluid (mu)
-  MaterialProperty<Real> & _viscosity;
+  ADMaterialProperty<Real> & _viscosity;
 };

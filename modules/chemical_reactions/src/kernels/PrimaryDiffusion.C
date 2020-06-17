@@ -11,11 +11,10 @@
 
 registerMooseObject("ChemicalReactionsApp", PrimaryDiffusion);
 
-template <>
 InputParameters
-validParams<PrimaryDiffusion>()
+PrimaryDiffusion::validParams()
 {
-  InputParameters params = validParams<Diffusion>();
+  InputParameters params = Diffusion::validParams();
   params.addClassDescription("Diffusion of primary species");
   return params;
 }

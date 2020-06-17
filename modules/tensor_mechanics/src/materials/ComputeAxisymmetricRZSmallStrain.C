@@ -13,11 +13,10 @@
 
 registerMooseObject("TensorMechanicsApp", ComputeAxisymmetricRZSmallStrain);
 
-template <>
 InputParameters
-validParams<ComputeAxisymmetricRZSmallStrain>()
+ComputeAxisymmetricRZSmallStrain::validParams()
 {
-  InputParameters params = validParams<Compute2DSmallStrain>();
+  InputParameters params = Compute2DSmallStrain::validParams();
   params.addClassDescription("Compute a small strain in an Axisymmetric geometry");
   return params;
 }

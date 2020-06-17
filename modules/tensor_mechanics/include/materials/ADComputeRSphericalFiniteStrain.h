@@ -11,21 +11,16 @@
 
 #include "ADComputeFiniteStrain.h"
 
-template <ComputeStage>
-class ADComputeRSphericalFiniteStrain;
-
-declareADValidParams(ADComputeRSphericalFiniteStrain);
-
 /**
  * ADComputeRSphericalFiniteStrain defines a strain increment and a rotation increment
  * for finite strains in 1D spherical symmetry geometries.  The strains in the
  * polar and azimuthal directions are functions of the radial displacement.
-
  */
-template <ComputeStage compute_stage>
-class ADComputeRSphericalFiniteStrain : public ADComputeFiniteStrain<compute_stage>
+class ADComputeRSphericalFiniteStrain : public ADComputeFiniteStrain
 {
 public:
+  static InputParameters validParams();
+
   ADComputeRSphericalFiniteStrain(const InputParameters & parameters);
 
   virtual void initialSetup();
@@ -37,7 +32,4 @@ public:
 protected:
   /// the old value of the first component of the displacements vector
   const VariableValue & _disp_old_0;
-
-  usingComputeFiniteStrainMembers;
 };
-

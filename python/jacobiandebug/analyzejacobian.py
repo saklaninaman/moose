@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -8,7 +8,6 @@
 #* Licensed under LGPL 2.1, please see LICENSE for details
 #* https://www.gnu.org/licenses/lgpl-2.1.html
 
-from __future__ import print_function
 import sys
 import os
 import re
@@ -408,11 +407,11 @@ if __name__ == '__main__':
     moose_dir = os.environ.get('MOOSE_DIR',
                                os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                             '../..')))
-    if os.environ.has_key("LIBMESH_DIR"):
+    if os.environ.get("LIBMESH_DIR"):
         libmesh_dir = os.environ['LIBMESH_DIR']
     else:
         libmesh_dir = os.path.join(moose_dir, 'libmesh', 'installed')
-    new_petsc = map(int, util.getPetscVersion(libmesh_dir).split(".")) >= [3, 9]
+    new_petsc = list(map(int, util.getPetscVersion(libmesh_dir).split("."))) >= [3, 9]
 
     # build the parameter list for the jacobian debug run
     mooseparams = moosebaseparams[:]

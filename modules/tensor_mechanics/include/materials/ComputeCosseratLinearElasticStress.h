@@ -11,11 +11,6 @@
 
 #include "ComputeCosseratStressBase.h"
 
-class ComputeCosseratLinearElasticStress;
-
-template <>
-InputParameters validParams<ComputeCosseratLinearElasticStress>();
-
 /**
  * ComputeCosseratLinearElasticStress computes the Cosserat stress
  * and couple-stress following linear elasticity theory
@@ -25,7 +20,10 @@ InputParameters validParams<ComputeCosseratLinearElasticStress>();
 class ComputeCosseratLinearElasticStress : public ComputeCosseratStressBase
 {
 public:
+  static InputParameters validParams();
+
   ComputeCosseratLinearElasticStress(const InputParameters & parameters);
+
   virtual void initialSetup() override;
 
 protected:
@@ -36,4 +34,3 @@ protected:
   /// Elasticity tensor material property
   const MaterialProperty<RankFourTensor> & _elasticity_tensor;
 };
-

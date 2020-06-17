@@ -34,12 +34,34 @@
 #include <numeric>
 #include <unistd.h>
 
+#ifdef LIBMESH_HAVE_PETSC
+#include "petscsys.h"
+#endif
+
+#ifdef __WIN32__
+#include <windows.h>
+#include <winbase.h>
+#include <fileapi.h>
+#endif
+
 std::string getLatestCheckpointFileHelper(const std::list<std::string> & checkpoint_files,
                                           const std::vector<std::string> extensions,
                                           bool keep_extension);
 
 namespace MooseUtils
 {
+
+std::string
+replaceAll(std::string str, const std::string & from, const std::string & to)
+{
+  size_t start_pos = 0;
+  while ((start_pos = str.find(from, start_pos)) != std::string::npos)
+  {
+    str.replace(start_pos, from.length(), to);
+    start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+  }
+  return str;
+}
 
 std::string
 convertLatestCheckpoint(std::string orig, bool base_only)
@@ -318,7 +340,7 @@ splitFileName(std::string full_file)
 std::string
 camelCaseToUnderscore(const std::string & camel_case_name)
 {
-  string replaced = camel_case_name;
+  std::string replaced = camel_case_name;
   // Put underscores in front of each contiguous set of capital letters
   pcrecpp::RE("(?!^)(?<![A-Z_])([A-Z]+)").GlobalReplace("_\\1", &replaced);
 
@@ -374,15 +396,16 @@ baseName(const std::string & name)
 std::string
 hostname()
 {
-  // This is from: https://stackoverflow.com/a/505546
   char hostname[1024];
   hostname[1023] = '\0';
-
-  auto failure = gethostname(hostname, 1023);
-
-  if (failure)
+#ifndef __WIN32__
+  if (gethostname(hostname, 1023))
     mooseError("Failed to retrieve hostname!");
-
+#else
+  DWORD dwSize = sizeof(hostname);
+  if (!GetComputerNameEx(ComputerNamePhysicalDnsHostname, hostname, &dwSize))
+    mooseError("Failed to retrieve hostname!");
+#endif
   return hostname;
 }
 
@@ -691,7 +714,6 @@ stringToInteger(const std::string & input, bool throw_on_failure)
 }
 
 void
-
 linearPartitionItems(dof_id_type num_items,
                      dof_id_type num_chunks,
                      dof_id_type chunk_id,
@@ -748,7 +770,7 @@ split(const std::string & str, const std::string & delimiter)
     pos = str.find(delimiter, prev);
     output.push_back(str.substr(prev, pos - prev));
     prev = pos + delimiter.length();
-  } while (pos != string::npos);
+  } while (pos != std::string::npos);
   return output;
 }
 
@@ -774,32 +796,135 @@ void
 createSymlink(const std::string & target, const std::string & link)
 {
   clearSymlink(link);
-  int err = symlink(target.c_str(), link.c_str());
-  if (err != 0)
+#ifndef __WIN32__
+  auto err = symlink(target.c_str(), link.c_str());
+#else
+  auto err = CreateSymbolicLink(target.c_str(), link.c_str(), 0);
+#endif
+  if (err)
     mooseError("Failed to create symbolic link (via 'symlink') from ", target, " to ", link);
 }
 
 void
 clearSymlink(const std::string & link)
 {
+#ifndef __WIN32__
   struct stat sbuf;
   if (lstat(link.c_str(), &sbuf) == 0)
   {
-    int err = unlink(link.c_str());
+    auto err = unlink(link.c_str());
     if (err != 0)
       mooseError("Failed to remove symbolic link (via 'unlink') to ", link);
   }
+#else
+  auto attr = GetFileAttributesA(link.c_str());
+  if (attr != INVALID_FILE_ATTRIBUTES)
+  {
+    auto err = _unlink(link.c_str());
+    if (err != 0)
+      mooseError("Failed to remove link/file (via '_unlink') to ", link);
+  }
+#endif
 }
 
 std::size_t
 fileSize(const std::string & filename)
 {
+#ifndef __WIN32__
   struct stat buffer;
-  if (stat(filename.c_str(), &buffer))
+  if (!stat(filename.c_str(), &buffer))
+    return buffer.st_size;
+#else
+  HANDLE hFile = CreateFile(filename.c_str(),
+                            GENERIC_READ,
+                            FILE_SHARE_READ | FILE_SHARE_WRITE,
+                            NULL,
+                            OPEN_EXISTING,
+                            FILE_ATTRIBUTE_NORMAL,
+                            NULL);
+  if (hFile == INVALID_HANDLE_VALUE)
     return 0;
 
-  return buffer.st_size;
+  LARGE_INTEGER size;
+  if (GetFileSizeEx(hFile, &size))
+  {
+    CloseHandle(hFile);
+    return size.QuadPart;
+  }
+
+  CloseHandle(hFile);
+#endif
+  return 0;
 }
+
+std::string
+realpath(const std::string & path)
+{
+#ifdef LIBMESH_HAVE_PETSC
+  char dummy[PETSC_MAX_PATH_LEN];
+  if (PetscGetRealPath(path.c_str(), dummy))
+    mooseError("Failed to get real path for ", path);
+  return dummy;
+#else
+#ifndef __WIN32__
+  char dummy[PATH_MAX];
+  if (!realpath(path.c_str(), dummy))
+    mooseError("Failed to get real path for ", path);
+  return dummy;
+#else
+  // on windows, but without PETSc: just return original path
+  return path;
+#endif
+#endif
+}
+
+std::string
+relativepath(const std::string & path, const std::string & start)
+{
+  std::vector<std::string> vecpath;
+  std::vector<std::string> vecstart;
+  size_t index_size;
+  unsigned int same_size(0);
+
+  vecpath = split(path, "/");
+  vecstart = split(realpath(start), "/");
+  if (vecstart.size() < vecpath.size())
+    index_size = vecstart.size();
+  else
+    index_size = vecpath.size();
+
+  for (unsigned int i = 0; i < index_size; ++i)
+  {
+    if (vecstart[i] != vecpath[i])
+    {
+      same_size = i;
+      break;
+    }
+  }
+
+  std::string relative_path("");
+  for (unsigned int i = 0; i < (vecstart.size() - same_size); ++i)
+    relative_path += "../";
+
+  for (unsigned int i = same_size; i < vecpath.size(); ++i)
+  {
+    relative_path += vecpath[i];
+    if (i < (vecpath.size() - 1))
+      relative_path += "/";
+  }
+
+  return relative_path;
+}
+
+BoundingBox
+buildBoundingBox(const Point & p1, const Point & p2)
+{
+  BoundingBox bb;
+  bb.union_with(p1);
+  bb.union_with(p2);
+  return bb;
+}
+
 } // MooseUtils namespace
 
 std::string

@@ -11,11 +11,6 @@
 
 #include "RichardsRelPerm.h"
 
-class RichardsRelPermMonomial;
-
-template <>
-InputParameters validParams<RichardsRelPermMonomial>();
-
 /**
  * Monomial form of relative permeability
  * relperm = Seff^n for 0<Seff<=1, where S = (S - simm)/(1 - simm)
@@ -25,6 +20,8 @@ InputParameters validParams<RichardsRelPermMonomial>();
 class RichardsRelPermMonomial : public RichardsRelPerm
 {
 public:
+  static InputParameters validParams();
+
   RichardsRelPermMonomial(const InputParameters & parameters);
 
   /**
@@ -55,4 +52,3 @@ protected:
   /// 0^0, which is used if _n=0
   Real _zero_to_the_zero;
 };
-

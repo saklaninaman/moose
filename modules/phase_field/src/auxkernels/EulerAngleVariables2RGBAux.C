@@ -12,11 +12,10 @@
 
 registerMooseObject("PhaseFieldApp", EulerAngleVariables2RGBAux);
 
-template <>
 InputParameters
-validParams<EulerAngleVariables2RGBAux>()
+EulerAngleVariables2RGBAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   MooseEnum sd_enum = MooseEnum("100=1 010=2 001=3", "001");
   params.addParam<MooseEnum>("sd", sd_enum, "Reference sample direction");
   MooseEnum output_types = MooseEnum("red green blue scalar", "scalar");
@@ -25,7 +24,7 @@ validParams<EulerAngleVariables2RGBAux>()
   params.addCoupledVar("phi", "Euler angle 2");
   params.addCoupledVar("phi2", "Euler angle 3");
   params.addCoupledVar("phase", "Grain phase index");
-  params.addCoupledVar("symmetry", "Grain symmetry indentifier");
+  params.addCoupledVar("symmetry", "Grain symmetry identifier");
   return params;
 }
 

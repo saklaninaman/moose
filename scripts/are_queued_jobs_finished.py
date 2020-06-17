@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -20,7 +20,7 @@ class Jobs:
             raise Exception('File does not exist: %s' % (json_file))
 
     def yieldJobsResultPath(self):
-        for k, v in self.__job_data.iteritems():
+        for k, v in self.__job_data.items():
             yield k, v
 
 def hasExited(meta):

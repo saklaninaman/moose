@@ -11,11 +11,6 @@
 
 #include "CrystalPlasticityUOBase.h"
 
-class CrystalPlasticitySlipResistance;
-
-template <>
-InputParameters validParams<CrystalPlasticitySlipResistance>();
-
 /**
  * Crystal plasticity slip resistance userobject class.
  * The virtual functions written below must be
@@ -24,8 +19,9 @@ InputParameters validParams<CrystalPlasticitySlipResistance>();
 class CrystalPlasticitySlipResistance : public CrystalPlasticityUOBase
 {
 public:
+  static InputParameters validParams();
+
   CrystalPlasticitySlipResistance(const InputParameters & parameters);
 
   virtual bool calcSlipResistance(unsigned int qp, std::vector<Real> & val) const = 0;
 };
-

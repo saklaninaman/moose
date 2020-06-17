@@ -41,6 +41,8 @@ template <typename T>
 class ShapeUserObject : public T
 {
 public:
+  static InputParameters validParams();
+
   ShapeUserObject(const InputParameters & parameters, ShapeType type);
 
   /// check if jacobian is to be computed in user objects
@@ -49,7 +51,7 @@ public:
   /**
    * Returns the set of variables a Jacobian has been requested for
    */
-  const std::set<MooseVariableFEBase *> & jacobianMooseVariables() const
+  const std::set<const MooseVariableFEBase *> & jacobianMooseVariables() const
   {
     return _jacobian_moose_variables;
   }
@@ -60,8 +62,6 @@ public:
    */
   virtual void executeJacobianWrapper(unsigned int jvar,
                                       const std::vector<dof_id_type> & dof_indices);
-
-  static InputParameters validParams();
 
 protected:
   /**
@@ -76,7 +76,7 @@ protected:
    * of a Jacobian w.r.t. to this variable i.e. the call to executeJacobian() with
    * shapefunctions initialized for this variable.
    */
-  virtual unsigned int coupled(const std::string & var_name, unsigned int comp = 0);
+  virtual unsigned int coupled(const std::string & var_name, unsigned int comp = 0) const override;
 
   /// shape function values
   const VariablePhiValue & _phi;
@@ -92,7 +92,7 @@ protected:
 
 private:
   const bool _compute_jacobians;
-  std::set<MooseVariableFEBase *> _jacobian_moose_variables;
+  mutable std::set<const MooseVariableFEBase *> _jacobian_moose_variables;
 };
 
 template <typename T>
@@ -101,7 +101,7 @@ ShapeUserObject<T>::ShapeUserObject(const InputParameters & parameters, ShapeTyp
     _phi(type == ShapeType::Element ? this->_assembly.phi() : this->_assembly.phiFace()),
     _grad_phi(type == ShapeType::Element ? this->_assembly.gradPhi()
                                          : this->_assembly.gradPhiFace()),
-    _compute_jacobians(MooseObject::getParamTempl<bool>("compute_jacobians"))
+    _compute_jacobians(MooseObject::getParam<bool>("compute_jacobians"))
 {
   mooseWarning("Jacobian calculation in UserObjects is an experimental capability with a "
                "potentially unstable interface.");
@@ -119,9 +119,9 @@ ShapeUserObject<T>::validParams()
 
 template <typename T>
 unsigned int
-ShapeUserObject<T>::coupled(const std::string & var_name, unsigned int comp)
+ShapeUserObject<T>::coupled(const std::string & var_name, unsigned int comp) const
 {
-  MooseVariableFEBase * var = Coupleable::getVar(var_name, comp);
+  const auto * var = Coupleable::getVar(var_name, comp);
 
   // add to the set of variables for which executeJacobian will be called
   if (_compute_jacobians && var->kind() == Moose::VAR_NONLINEAR)

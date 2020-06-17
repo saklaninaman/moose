@@ -11,10 +11,14 @@
 #include "Conversion.h"
 #include "MooseMesh.h"
 #include "MooseTypes.h"
+#include "MooseUtils.h"
 
 #include "libmesh/elem.h"
 
-registerMooseObject("MooseApp", AddSideSetsFromBoundingBox);
+registerMooseObjectReplaced("MooseApp",
+                            AddSideSetsFromBoundingBox,
+                            "11/30/2019 00:00",
+                            SideSetsFromBoundingBoxGenerator);
 
 template <>
 InputParameters
@@ -52,8 +56,8 @@ AddSideSetsFromBoundingBox::AddSideSetsFromBoundingBox(const InputParameters & p
     _location(parameters.get<MooseEnum>("location")),
     _boundary_id_old(parameters.get<std::vector<BoundaryName>>("boundary_id_old")),
     _boundary_id_new(parameters.get<boundary_id_type>("boundary_id_new")),
-    _bounding_box(parameters.get<RealVectorValue>("bottom_left"),
-                  parameters.get<RealVectorValue>("top_right")),
+    _bounding_box(MooseUtils::buildBoundingBox(parameters.get<RealVectorValue>("bottom_left"),
+                                               parameters.get<RealVectorValue>("top_right"))),
     _boundary_id_overlap(parameters.get<bool>("boundary_id_overlap"))
 {
 }

@@ -7,29 +7,28 @@
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
-// MOOSE includes
 #include "LevelSetAdvection.h"
 
-registerADMooseObject("LevelSetApp", LevelSetAdvection);
+registerMooseObject("LevelSetApp", LevelSetAdvection);
 
-defineADValidParams(LevelSetAdvection,
-                    ADKernelValue,
-                    params.addClassDescription(
-                        "Implements the level set advection equation: $\\vec{v}\\cdot\\nabla "
-                        "u = 0$, where the weak form is $(\\psi_i, \\vec{v}\\cdot\\nabla u) = "
-                        "0$.");
-                    params += validParams<LevelSetVelocityInterface<>>(););
+InputParameters
+LevelSetAdvection::validParams()
+{
+  InputParameters params = ADKernelValue::validParams();
+  params.addClassDescription("Implements the level set advection equation: $\\vec{v}\\cdot\\nabla "
+                             "u = 0$, where the weak form is $(\\psi_i, \\vec{v}\\cdot\\nabla u) = "
+                             "0$.");
+  params.addRequiredCoupledVar("velocity", "Velocity vector variable.");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-LevelSetAdvection<compute_stage>::LevelSetAdvection(const InputParameters & parameters)
-  : LevelSetVelocityInterface<ADKernelValue<compute_stage>>(parameters)
+LevelSetAdvection::LevelSetAdvection(const InputParameters & parameters)
+  : ADKernelValue(parameters), _velocity(adCoupledVectorValue("velocity"))
 {
 }
 
-template <ComputeStage compute_stage>
-ADResidual
-LevelSetAdvection<compute_stage>::precomputeQpResidual()
+ADReal
+LevelSetAdvection::precomputeQpResidual()
 {
-  computeQpVelocity();
-  return _velocity * _grad_u[_qp];
+  return _velocity[_qp] * _grad_u[_qp];
 }

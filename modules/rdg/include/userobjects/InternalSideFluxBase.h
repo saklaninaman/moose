@@ -11,11 +11,6 @@
 
 #include "ThreadedGeneralUserObject.h"
 
-class InternalSideFluxBase;
-
-template <>
-InputParameters validParams<InternalSideFluxBase>();
-
 /**
  * A base class for computing and caching internal side flux
  *
@@ -32,6 +27,8 @@ InputParameters validParams<InternalSideFluxBase>();
 class InternalSideFluxBase : public ThreadedGeneralUserObject
 {
 public:
+  static InputParameters validParams();
+
   InternalSideFluxBase(const InputParameters & parameters);
 
   virtual void execute() override;
@@ -128,4 +125,3 @@ protected:
   /// Jacobian matrix contribution to the "right" cell
   mutable DenseMatrix<Real> _jac2;
 };
-

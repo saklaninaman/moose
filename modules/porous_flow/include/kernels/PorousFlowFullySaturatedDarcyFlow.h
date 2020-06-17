@@ -11,11 +11,6 @@
 
 #include "PorousFlowFullySaturatedDarcyBase.h"
 
-class PorousFlowFullySaturatedDarcyFlow;
-
-template <>
-InputParameters validParams<PorousFlowFullySaturatedDarcyFlow>();
-
 /**
  * Darcy advective flux for a fully-saturated,
  * single-phase, multi-component fluid.
@@ -24,6 +19,8 @@ InputParameters validParams<PorousFlowFullySaturatedDarcyFlow>();
 class PorousFlowFullySaturatedDarcyFlow : public PorousFlowFullySaturatedDarcyBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowFullySaturatedDarcyFlow(const InputParameters & parameters);
 
 protected:
@@ -47,4 +44,3 @@ protected:
   /// The fluid component for this Kernel
   const unsigned int _fluid_component;
 };
-

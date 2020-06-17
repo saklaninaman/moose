@@ -11,11 +11,6 @@
 
 #include "RichardsRelPerm.h"
 
-class RichardsRelPermVG;
-
-template <>
-InputParameters validParams<RichardsRelPermVG>();
-
 /**
  * Van-Genuchten form of relative permeability
  * as a function of effective saturation
@@ -23,6 +18,8 @@ InputParameters validParams<RichardsRelPermVG>();
 class RichardsRelPermVG : public RichardsRelPerm
 {
 public:
+  static InputParameters validParams();
+
   RichardsRelPermVG(const InputParameters & parameters);
 
   /**
@@ -50,4 +47,3 @@ protected:
   /// van Genuchten m parameter
   Real _m;
 };
-

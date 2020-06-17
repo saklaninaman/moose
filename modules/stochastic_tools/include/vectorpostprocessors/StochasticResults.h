@@ -12,11 +12,18 @@
 // MOOSE includes
 #include "GeneralVectorPostprocessor.h"
 #include "SamplerInterface.h"
+#include "StochasticResultsAction.h"
 
-class StochasticResults;
-
-template <>
-InputParameters validParams<StochasticResults>();
+/**
+ * Storage helper for managing data being assigned to this VPP by a Transfer object.
+ */
+struct StochasticResultsData
+{
+  StochasticResultsData(const VectorPostprocessorName & name, VectorPostprocessorValue *);
+  VectorPostprocessorName name;
+  VectorPostprocessorValue * vector;
+  VectorPostprocessorValue current;
+};
 
 /**
  * A tool for output Sampler data.
@@ -24,41 +31,39 @@ InputParameters validParams<StochasticResults>();
 class StochasticResults : public GeneralVectorPostprocessor, SamplerInterface
 {
 public:
+  static InputParameters validParams();
+
   StochasticResults(const InputParameters & parameters);
-  void virtual initialize() override;
-  void virtual finalize() override {}
-  void virtual execute() override {}
+  virtual void initialize() override;
+  virtual void finalize() override;
+  virtual void execute() override {}
 
-  /**
-   * Initialize storage based on the Sampler returned by the SamplerTransientMultiApp or
-   * SamplerFullSolveMultiApp.
-   * @param sampler The Sampler associated with the MultiApp that this VPP is working with.
-   *
-   * This method is called by the SamplerPostprocessorTransfer.
-   */
-  void init(Sampler & _sampler);
-
-  /**
-   * Return the VectorPostprocessorValue for a given Sampler group index.
-   * @param group Index related to the index of the DenseMatrix returned by Sampler::getSamples()
-   * @return A reference to the storage location for the PP data from the sub-applications.
-   */
-  VectorPostprocessorValue & getVectorPostprocessorValueByGroup(unsigned int group);
-
-  /**
-   * Get the sample vectors
-   * @return A const pointer to the vector of sample vectors
-   */
-  const std::vector<VectorPostprocessorValue *> & getSampleVectors() const
-  {
-    return _sample_vectors;
-  }
+  // This method is used by the Transfers for populating data within the vectors for this VPP; this
+  // is required to allow for the "contains_complete_history = true" to operate correctly with the
+  // different modes of parallel operation, without the Transfer objects needing knowledge of the
+  // modes.
+  //
+  // In practice, the Transfer objects are responsible for populating the vector that contains the
+  // current data from sub-application for this local process. This object then handles the
+  // communication and updating of the actual VPP data being mindfull of the
+  // "contains_complete_history". An r-value reference is used by this object to take ownership of
+  // the data to avoid unnecessary copying, because the supplied data can be very large.
+  //
+  // For an example use, please refer to SamplerPostprocessorTransfer.
+  //
+  // @param vector_name: name of the vector to populated, should be the name of the sampler.
+  // @paran current: current local VPP data from sub-applications (see SamplerPostprocessorTranfer)
+  void setCurrentLocalVectorPostprocessorValue(const std::string & vector_name,
+                                               const VectorPostprocessorValue && current);
 
 protected:
   /// Storage for declared vectors
-  std::vector<VectorPostprocessorValue *> _sample_vectors;
+  std::vector<StochasticResultsData> _sample_vectors;
 
-  /// The sampler to extract data
-  Sampler * _sampler = nullptr;
+  /**
+   * Create a VPP vector for results data for a given Sampler, see StochasticResultsAction for
+   * more details to why this is necessary.
+   */
+  void initVector(const std::string & vector_name);
+  friend void StochasticResultsAction::act();
 };
-

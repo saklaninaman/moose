@@ -14,11 +14,10 @@
 
 registerMooseAction("PhaseFieldApp", PolycrystalStoredEnergyAction, "add_kernel");
 
-template <>
 InputParameters
-validParams<PolycrystalStoredEnergyAction>()
+PolycrystalStoredEnergyAction::validParams()
 {
-  InputParameters params = validParams<Action>();
+  InputParameters params = Action::validParams();
   params.addClassDescription("Action that adds the contribution of stored energy associated with "
                              "dislocations to grain growth models");
   params.addRequiredParam<unsigned int>("op_num",

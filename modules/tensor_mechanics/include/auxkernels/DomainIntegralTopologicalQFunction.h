@@ -18,6 +18,8 @@
 class DomainIntegralTopologicalQFunction : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   /**
    * Factory constructor, takes parameters so that all derived classes can be built using the same
    * constructor.
@@ -37,7 +39,3 @@ private:
   const unsigned int _crack_front_point_index;
   bool _treat_as_2d;
 };
-
-template <>
-InputParameters validParams<DomainIntegralTopologicalQFunction>();
-

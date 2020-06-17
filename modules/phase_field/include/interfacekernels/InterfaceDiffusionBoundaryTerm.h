@@ -11,11 +11,6 @@
 
 #include "InterfaceDiffusionBase.h"
 
-class InterfaceDiffusionBoundaryTerm;
-
-template <>
-InputParameters validParams<InterfaceDiffusionBoundaryTerm>();
-
 /**
  * Add weak form surface terms of the Diffusion equation for two different
  * variables across a subdomain boundary
@@ -23,10 +18,11 @@ InputParameters validParams<InterfaceDiffusionBoundaryTerm>();
 class InterfaceDiffusionBoundaryTerm : public InterfaceDiffusionBase
 {
 public:
+  static InputParameters validParams();
+
   InterfaceDiffusionBoundaryTerm(const InputParameters & parameters);
 
 protected:
   virtual Real computeQpResidual(Moose::DGResidualType type) override;
   virtual Real computeQpJacobian(Moose::DGJacobianType type) override;
 };
-

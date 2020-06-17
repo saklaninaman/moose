@@ -45,12 +45,11 @@ dataLoad(std::istream & stream, GrainTracker::PartialFeatureData & feature, void
 
 registerMooseObject("PhaseFieldApp", GrainTracker);
 
-template <>
 InputParameters
-validParams<GrainTracker>()
+GrainTracker::validParams()
 {
-  InputParameters params = validParams<FeatureFloodCount>();
-  params += validParams<GrainTrackerInterface>();
+  InputParameters params = FeatureFloodCount::validParams();
+  params += GrainTrackerInterface::validParams();
 
   // FeatureFloodCount adds a relationship manager, but we need to extend that for GrainTracker
   params.clearRelationshipManagers();
@@ -182,6 +181,23 @@ GrainTracker::doesFeatureIntersectBoundary(unsigned int feature_id) const
   {
     mooseAssert(feature_index < _feature_sets.size(), "Grain index out of bounds");
     return _feature_sets[feature_index]._boundary_intersection != BoundaryIntersection::NONE;
+  }
+
+  return false;
+}
+
+bool
+GrainTracker::doesFeatureIntersectSpecifiedBoundary(unsigned int feature_id) const
+{
+  // TODO: This data structure may need to be turned into a Multimap
+  mooseAssert(feature_id < _feature_id_to_local_index.size(), "Grain ID out of bounds");
+
+  auto feature_index = _feature_id_to_local_index[feature_id];
+  if (feature_index != invalid_size_t)
+  {
+    mooseAssert(feature_index < _feature_sets.size(), "Grain index out of bounds");
+    return ((_feature_sets[feature_index]._boundary_intersection &
+             BoundaryIntersection::SPECIFIED_BOUNDARY) == BoundaryIntersection::SPECIFIED_BOUNDARY);
   }
 
   return false;
@@ -1429,7 +1445,7 @@ GrainTracker::swapSolutionValues(FeatureData & grain,
   {
     if (_is_elemental)
     {
-      Elem * elem = mesh.query_elem(entity);
+      Elem * elem = mesh.query_elem_ptr(entity);
       if (!elem)
         continue;
 
@@ -1700,8 +1716,8 @@ GrainTracker::communicateHaloMap()
 }
 
 Real
-GrainTracker::centroidRegionDistance(std::vector<MeshTools::BoundingBox> & bboxes1,
-                                     std::vector<MeshTools::BoundingBox> & bboxes2) const
+GrainTracker::centroidRegionDistance(std::vector<BoundingBox> & bboxes1,
+                                     std::vector<BoundingBox> & bboxes2) const
 {
   /**
    * Find the minimum centroid distance between any to pieces of the grains.
@@ -1727,8 +1743,8 @@ GrainTracker::centroidRegionDistance(std::vector<MeshTools::BoundingBox> & bboxe
 }
 
 Real
-GrainTracker::boundingRegionDistance(std::vector<MeshTools::BoundingBox> & bboxes1,
-                                     std::vector<MeshTools::BoundingBox> & bboxes2) const
+GrainTracker::boundingRegionDistance(std::vector<BoundingBox> & bboxes1,
+                                     std::vector<BoundingBox> & bboxes2) const
 {
   /**
    * The region that each grain covers is represented by a bounding box large enough to encompassing

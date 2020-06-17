@@ -11,11 +11,10 @@
 
 registerMooseObject("ChemicalReactionsApp", CoupledDiffusionReactionSub);
 
-template <>
 InputParameters
-validParams<CoupledDiffusionReactionSub>()
+CoupledDiffusionReactionSub::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addParam<Real>(
       "weight",
       1.0,

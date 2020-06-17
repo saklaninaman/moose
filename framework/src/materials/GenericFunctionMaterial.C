@@ -11,12 +11,16 @@
 #include "Function.h"
 
 registerMooseObject("MooseApp", GenericFunctionMaterial);
+registerMooseObject("MooseApp", ADGenericFunctionMaterial);
 
-template <>
+defineLegacyParams(GenericFunctionMaterial);
+
+template <bool is_ad>
 InputParameters
-validParams<GenericFunctionMaterial>()
+GenericFunctionMaterialTempl<is_ad>::validParams()
 {
-  InputParameters params = validParams<Material>();
+
+  InputParameters params = Material::validParams();
   params.addParam<std::vector<std::string>>("prop_names",
                                             "The names of the properties this material will have");
   params.addParam<std::vector<FunctionName>>("prop_values",
@@ -30,7 +34,9 @@ validParams<GenericFunctionMaterial>()
   return params;
 }
 
-GenericFunctionMaterial::GenericFunctionMaterial(const InputParameters & parameters)
+template <bool is_ad>
+GenericFunctionMaterialTempl<is_ad>::GenericFunctionMaterialTempl(
+    const InputParameters & parameters)
   : Material(parameters),
     _prop_names(getParam<std::vector<std::string>>("prop_names")),
     _prop_values(getParam<std::vector<FunctionName>>("prop_values")),
@@ -57,26 +63,32 @@ GenericFunctionMaterial::GenericFunctionMaterial(const InputParameters & paramet
 
   for (unsigned int i = 0; i < _num_props; i++)
   {
-    _properties[i] = &declareProperty<Real>(_prop_names[i]);
+    _properties[i] = &declareGenericProperty<Real, is_ad>(_prop_names[i]);
     _functions[i] = &getFunctionByName(_prop_values[i]);
   }
 }
 
+template <bool is_ad>
 void
-GenericFunctionMaterial::initQpStatefulProperties()
+GenericFunctionMaterialTempl<is_ad>::initQpStatefulProperties()
 {
   computeQpFunctions();
 }
 
+template <bool is_ad>
 void
-GenericFunctionMaterial::computeQpProperties()
+GenericFunctionMaterialTempl<is_ad>::computeQpProperties()
 {
   computeQpFunctions();
 }
 
+template <bool is_ad>
 void
-GenericFunctionMaterial::computeQpFunctions()
+GenericFunctionMaterialTempl<is_ad>::computeQpFunctions()
 {
   for (unsigned int i = 0; i < _num_props; i++)
     (*_properties[i])[_qp] = (*_functions[i]).value(_t, _q_point[_qp]);
 }
+
+template class GenericFunctionMaterialTempl<false>;
+template class GenericFunctionMaterialTempl<true>;

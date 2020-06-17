@@ -17,14 +17,14 @@
 
 registerMooseObject("PhaseFieldApp", PolycrystalColoringIC);
 
-template <>
 InputParameters
-validParams<PolycrystalColoringIC>()
+PolycrystalColoringIC::validParams()
 {
-  InputParameters params = validParams<InitialCondition>();
+  InputParameters params = InitialCondition::validParams();
   params.addClassDescription(
       "Random Voronoi tesselation polycrystal (used by PolycrystalVoronoiICAction)");
-  params.addRequiredParam<UserObjectName>("polycrystal_ic_uo", "TODO");
+  params.addRequiredParam<UserObjectName>("polycrystal_ic_uo",
+                                          "User object generating a point to grain number mapping");
   params.addRequiredParam<unsigned int>("op_index", "The index for the current order parameter");
 
   return params;

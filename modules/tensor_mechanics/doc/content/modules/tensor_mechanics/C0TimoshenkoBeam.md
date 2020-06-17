@@ -9,7 +9,7 @@ A beam element [fig_beam] is used to model the response of a structural element 
 
 1. +Euler-Bernoulli beam element+: used to model bending deformation in long and slender beams. The two main assumptions in this beam theory are that: (i) the beam cross-section is rigid and does not deform under the application of transverse or lateral loads, and (ii) the cross-section of the beam remains planar and normal to the deformed axis of the beam.
 
-1. +Timoshenko beam element+ [citep!timoshenko_correction_1921, timoshenko_transverse_1922]: used to model both shear and bending deformation in short and thick beams. The beam cross-section does not deform in this beam theory as well and it remains planar. But the cross-section need not be normal to the deformed axis of the beam. The Euler-Bernoulli beam element can be derived as a special case of the Timoshenko beam element.
+1. +Timoshenko beam element+ [!citep](timoshenko_correction_1921, timoshenko_transverse_1922): used to model both shear and bending deformation in short and thick beams. The beam cross-section does not deform in this beam theory as well and it remains planar. But the cross-section need not be normal to the deformed axis of the beam. The Euler-Bernoulli beam element can be derived as a special case of the Timoshenko beam element.
 
 Therefore, a C0 Timoshenko beam element is implemented in MOOSE. This element has two nodes and each node has 6 degrees of freedom (DOFs) - 3 translational and 3 rotational displacements. All the 12 DOFs are considered to be independent and the variation of both translational and rotational displacements along the length of the beam are modeled using first order Lagrange shape functions. The independent rotational DOFs at the nodes makes it easier to model the shear deformation which results in non-perpendicular cross-sections with respect to the beam axis.
 
@@ -18,7 +18,7 @@ The basic equation of motion for a quasi-static beam is the same as that of a co
 \nabla \cdot \sigma = F_{ext}
 \end{equation}
 
-An updated Lagrangian formulation similar to the one in [cite!bathe_large_1979] is used in the calculation of beam stresses and strains.
+An updated Lagrangian formulation similar to the one in [!cite](bathe_large_1979) is used in the calculation of beam stresses and strains.
 
 ## Strain Calculation
 
@@ -41,7 +41,7 @@ These global displacements are converted to the beam local configuration at $t$ 
 ^{t+\Delta t} {\{ {\Delta \theta} \}}^{local} = {}^tR \;\; ^{t+\Delta t} \{ {\Delta \theta} \}
 \end{equation}
 
-These beam local displacements are then used in the calculation of the Euler angles $\alpha$, $\beta$ and $\gamma$ as in [cite!bathe_large_1979]. These Euler angles are used to calculate the rotation increment $\Delta R$. Using $\Delta R$, the rotation matrix at $t+\Delta t$ can be calculated as:
+These beam local displacements are then used in the calculation of the Euler angles $\alpha$, $\beta$ and $\gamma$ as in [!cite](bathe_large_1979). These Euler angles are used to calculate the rotation increment $\Delta R$. Using $\Delta R$, the rotation matrix at $t+\Delta t$ can be calculated as:
 \begin{equation}
 {}^{t+\Delta t}R = \Delta R \; {}^tR
 \end{equation}
@@ -56,7 +56,7 @@ To calculate the beam strain increment, the incremental beam displacements at ti
 \end{equation}
 \begin{equation}
 {u_2}(x,y,z) = u_2(x) - \theta_1(x) z
-\end{equations}
+\end{equation}
 \begin{equation}
 {u_3}(x,y,z) = u_3(x) + \theta_1(x) y
 \end{equation}
@@ -74,19 +74,19 @@ The axial strain ($\epsilon_{11}$) and the shear strains ($\epsilon_{12}$ and $\
 \epsilon_{13}(x,y,z) = \frac{\partial u_1(x,y,z)}{\partial z} + \frac{\partial u_3(x,y,z)}{\partial x} = \theta_2 + \frac{\partial u_3(x)}{\partial x} + \frac{\partial \theta_1(x)}{\partial x} y
 \end{equation}
 
-It should be noted here that using a linear interpolation of the rotational variables in the calculation of shear strain leads to shear locking of the beam. Using $\theta_1(x) = ({\theta_1}^0 + {\theta_1}^1)/2$ in the calculation of $\epsilon_{12}$ and $\epsilon_{13}$ ensures that the beam doesn't lock under shear deformation [citep!prathap_reduced_1982].
+It should be noted here that using a linear interpolation of the rotational variables in the calculation of shear strain leads to shear locking of the beam. Using $\theta_1(x) = ({\theta_1}^0 + {\theta_1}^1)/2$ in the calculation of $\epsilon_{12}$ and $\epsilon_{13}$ ensures that the beam doesn't lock under shear deformation [!citep](prathap_reduced_1982).
 
 The above translational strain increments are functions of x, y and z. However, since the beam cross-section does not deform, these strains can be integrated over the cross-section to obtain strain increments as a function of only x.
 \begin{equation}
-\epsilon_{1}(x) = \int_A \epsilon_{11}(x,y,z) = \frac{\partial u_1(x)}{\partial x} A - \frac{\partial \theta_3(x)}{\partial x} A_y + \frac{\partial \theta_2(x)}{\partial x} A_z
+\epsilon_{1}(x) = \int_A \epsilon_{11}(x,y,z) dA= \frac{\partial u_1(x)}{\partial x} A - \frac{\partial \theta_3(x)}{\partial x} A_y + \frac{\partial \theta_2(x)}{\partial x} A_z
 \end{equation}
 
 \begin{equation}
-\epsilon_{2}(x) = \int_A \epsilon_{12}(x,y,z) = -\theta_3 A + \frac{\partial u_2(x)}{\partial x} A - \frac{\partial \theta_1(x)}{\partial x} A_z
+\epsilon_{2}(x) = \int_A \epsilon_{12}(x,y,z) dA= -\theta_3 A + \frac{\partial u_2(x)}{\partial x} A - \frac{\partial \theta_1(x)}{\partial x} A_z
 \end{equation}
 
 \begin{equation}
-\epsilon_{3}(x) = \int_A \epsilon_{13}(x,y,z) = \theta_2 A + \frac{\partial u_3(x)}{\partial x} A + \frac{\partial \theta_1(x)}{\partial x} A_y
+\epsilon_{3}(x) = \int_A \epsilon_{13}(x,y,z) dA= \theta_2 A + \frac{\partial u_3(x)}{\partial x} A + \frac{\partial \theta_1(x)}{\partial x} A_y
 \end{equation}
 
 where $A$ is the cross-sectional area, $A_y = \int_A y dA$ and $A_z = \int_A z dA$. $\epsilon_{1}(x)$, $\epsilon_{2}(x)$ and $\epsilon_{3}(x)$ are the axial and shear increments.
@@ -102,7 +102,7 @@ Apart from the translational strain increments, rotational strain increments als
 \end{equation}
 
 \begin{equation}
-\kappa_3(x) = \int_A \epsilon_{11}(x,y,z) y dA = \frac{\partial u_1(x)}{\partial x} A_y - \frac{\partial \theta_3(x)}{\partial x} I_y + \frac{\partial \theta_2(x)}{\partial x} Iyz
+\kappa_3(x) = -\int_A \epsilon_{11}(x,y,z) y dA = -\frac{\partial u_1(x)}{\partial x} A_y + \frac{\partial \theta_3(x)}{\partial x} I_y - \frac{\partial \theta_2(x)}{\partial x} Iyz
 \end{equation}
 
 where $I_y = \int_A y^2 dA$, $I_z = \int_A z^2 dA$, $I_x = \int_A (y^2 + z^2) dA$ and $Iyz = \int_A yz dA$. Note that $Iyz$ is assumed to be zero for simplicity and this assumption is valid for symmetric cross-sections such as square, rectangular and circular. $I_x$ is automatically calculated from $I_y$ and $I_z$ unless $I_x$ is provided as input by the user.
@@ -144,7 +144,7 @@ The axial and shear strain increments, and the rotational strain increments (aft
 \Delta M_2(x) = E \; \kappa_2(x)
 \end{equation}
 \begin{equation}
-\Delta M_3(x) = G \; \kappa_3(x)
+\Delta M_3(x) = E \; \kappa_3(x)
 \end{equation}
 where $E$ and $G$ are the Young's and shear modulus, respectively. $k$ is the shear correction factor that depends on the shape of the cross-section.
 

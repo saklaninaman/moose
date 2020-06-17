@@ -12,12 +12,8 @@
 #include "ElementAverageValue.h"
 
 // Forward Declarations
-class HomogenizedElasticConstants;
 class SymmElasticityTensor;
 class SymmTensor;
-
-template <>
-InputParameters validParams<HomogenizedElasticConstants>();
 
 /**
  * This postprocessor computes the average grain area in a polycrystal
@@ -25,6 +21,8 @@ InputParameters validParams<HomogenizedElasticConstants>();
 class HomogenizedElasticConstants : public ElementAverageValue
 {
 public:
+  static InputParameters validParams();
+
   HomogenizedElasticConstants(const InputParameters & parameters);
 
   virtual void initialize();
@@ -68,4 +66,3 @@ private:
   Real _volume;
   Real _integral_value;
 };
-

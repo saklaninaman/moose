@@ -24,7 +24,7 @@
 
 [AuxKernels]
   [./stress_11]
-    type = RankTwoAux
+    type = ADRankTwoAux
     variable = stress_11
     rank_two_tensor = stress
     index_j = 1
@@ -34,25 +34,25 @@
 
 [BCs]
   [./bottom]
-    type = ADPresetBC
+    type = ADDirichletBC
     variable = disp_y
     boundary = bottom
     value = 0
   [../]
   [./left]
-    type = ADPresetBC
+    type = ADDirichletBC
     variable = disp_x
     boundary = left
     value = 0
   [../]
   [./back]
-    type = ADPresetBC
+    type = ADDirichletBC
     variable = disp_z
     boundary = back
     value = 0
   [../]
   [./top]
-    type = ADPresetBC
+    type = ADDirichletBC
     variable = disp_y
     boundary = top
     value = 0.001
@@ -64,7 +64,7 @@
     type = ADComputeLinearElasticStress
   [../]
   [./elasticity_tensor]
-    type = ComputeIsotropicElasticityTensor
+    type = ADComputeIsotropicElasticityTensor
     bulk_modulus = 416666
     shear_modulus = 454545
   [../]

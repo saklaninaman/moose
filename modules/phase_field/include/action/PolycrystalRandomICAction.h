@@ -19,6 +19,8 @@
 class PolycrystalRandomICAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   PolycrystalRandomICAction(const InputParameters & params);
 
   virtual void act();
@@ -28,7 +30,3 @@ private:
   const std::string _var_name_base;
   const MooseEnum _random_type;
 };
-
-template <>
-InputParameters validParams<PolycrystalRandomICAction>();
-

@@ -11,17 +11,14 @@
 
 #include "Kernel.h"
 
-class CoupledDiffusionReactionSub;
-
-template <>
-InputParameters validParams<CoupledDiffusionReactionSub>();
-
 /**
  * Diffusion of primary species in given equilibrium species
  */
 class CoupledDiffusionReactionSub : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   CoupledDiffusionReactionSub(const InputParameters & parameters);
 
 protected:
@@ -53,4 +50,3 @@ private:
   /// Activity coefficient of equilibrium species
   const VariableValue & _gamma_eq;
 };
-

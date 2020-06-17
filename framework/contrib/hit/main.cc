@@ -1,10 +1,10 @@
-
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <fstream>
 #include <map>
 #include <set>
+#include <memory>
 
 #include "parse.h"
 #include "braceexpr.h"
@@ -39,7 +39,7 @@ main(int argc, char ** argv)
     for (std::string line; std::getline(std::cin, line);)
       ss << line << std::endl;
 
-    hit::BraceExpander expander;
+    hit::BraceExpander expander("STDIN");
     hit::EnvEvaler env;
     hit::RawEvaler raw;
     expander.registerEvaler("env", env);
@@ -103,6 +103,8 @@ parseOpts(int argc, char ** argv, Flags & flags)
     std::string arg = argv[i];
     if (arg[0] != '-')
       break;
+    else if (arg.length() == 1)
+      return std::vector<std::string>(1, "-");
 
     std::string flagname = arg.substr(1);
     if (flagname[0] == '-')
@@ -160,7 +162,8 @@ private:
 int
 findParam(int argc, char ** argv)
 {
-  Flags flags("hit find [flags] <parameter-path> <file>...");
+  Flags flags("hit find [flags] <parameter-path> <file>...\n  Specify '-' as a file name to accept "
+              "input from stdin.");
   flags.add("f", "only show file name");
   auto positional = parseOpts(argc, argv, flags);
 
@@ -176,7 +179,8 @@ findParam(int argc, char ** argv)
   for (int i = 1; i < positional.size(); i++)
   {
     std::string fname(positional[i]);
-    std::ifstream f(fname);
+    std::istream && f =
+        (fname == "-" ? (std::istream &&) std::cin : (std::istream &&) std::ifstream(fname));
     std::string input((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
 
     hit::Node * root = nullptr;
@@ -229,7 +233,8 @@ findParam(int argc, char ** argv)
 int
 format(int argc, char ** argv)
 {
-  Flags flags("hit format [flags] <file>...");
+  Flags flags(
+      "hit format [flags] <file>...\n  Specify '-' as a file name to accept input from stdin.");
   flags.add("h", "print help");
   flags.add("help", "print help");
   flags.add("i", "modify file(s) inplace");
@@ -271,16 +276,17 @@ format(int argc, char ** argv)
   for (int i = 0; i < positional.size(); i++)
   {
     std::string fname(positional[i]);
-    std::ifstream f(fname);
+    std::istream && f =
+        (fname == "-" ? (std::istream &&) std::cin : (std::istream &&) std::ifstream(fname));
     std::string input(std::istreambuf_iterator<char>(f), {});
 
     try
     {
       auto fmted = fmt.format(fname, input);
-      if (flags.have("i"))
+      if (flags.have("i") && fname != "-")
       {
         std::ofstream output(fname);
-        output << fmted;
+        output << fmted << "\n";
       }
       else
         std::cout << fmted;
@@ -301,7 +307,7 @@ validate(int argc, char ** argv)
 {
   if (argc < 1)
   {
-    std::cerr << "please pass in an input file argument\n";
+    std::cerr << "please pass in an input file argument (or pass '-' to validate stdin).\n";
     return 1;
   }
 
@@ -309,7 +315,8 @@ validate(int argc, char ** argv)
   for (int i = 0; i < argc; i++)
   {
     std::string fname(argv[i]);
-    std::ifstream f(fname);
+    std::istream && f =
+        (fname == "-" ? (std::istream &&) std::cin : (std::istream &&) std::ifstream(fname));
     std::string input((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
 
     std::unique_ptr<hit::Node> root;

@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from PyQt5 import QtCore, QtWidgets
 
-from PostprocessorPlugin import PostprocessorPlugin
+from .PostprocessorPlugin import PostprocessorPlugin
 
 class FigurePlugin(QtWidgets.QWidget, PostprocessorPlugin):
     """
@@ -130,6 +130,10 @@ def main():
     """
     from peacock.PostprocessorViewer.PostprocessorViewer import PostprocessorViewer
     import mooseutils
+
+    import matplotlib
+    matplotlib.rcParams["figure.figsize"] = (3.75, 3.75)
+    matplotlib.rcParams["figure.dpi"] = (100)
 
     widget = PostprocessorViewer(mooseutils.VectorPostprocessorReader, plugins=[FigurePlugin])
     widget.onSetFilenames([])

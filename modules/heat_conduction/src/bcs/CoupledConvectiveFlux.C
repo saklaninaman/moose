@@ -13,11 +13,10 @@
 
 registerMooseObject("HeatConductionApp", CoupledConvectiveFlux);
 
-template <>
 InputParameters
-validParams<CoupledConvectiveFlux>()
+CoupledConvectiveFlux::validParams()
 {
-  InputParameters params = validParams<IntegratedBC>();
+  InputParameters params = IntegratedBC::validParams();
   params.addRequiredCoupledVar("T_infinity", "Field holding far-field temperature");
   params.addRequiredParam<Real>("coefficient", "Heat transfer coefficient");
 

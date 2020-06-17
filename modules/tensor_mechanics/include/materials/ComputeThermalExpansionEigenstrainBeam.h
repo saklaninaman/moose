@@ -12,11 +12,6 @@
 #include "ComputeThermalExpansionEigenstrainBeamBase.h"
 #include "DerivativeMaterialInterface.h"
 
-class ComputeThermalExpansionEigenstrainBeam;
-
-template <>
-InputParameters validParams<ComputeThermalExpansionEigenstrainBeam>();
-
 /**
  * ComputeThermalExpansionEigenstrainBeam computes an eigenstrain for thermal expansion
  * with a constant expansion coefficient.
@@ -24,6 +19,8 @@ InputParameters validParams<ComputeThermalExpansionEigenstrainBeam>();
 class ComputeThermalExpansionEigenstrainBeam : public ComputeThermalExpansionEigenstrainBeamBase
 {
 public:
+  static InputParameters validParams();
+
   ComputeThermalExpansionEigenstrainBeam(const InputParameters & parameters);
 
 protected:
@@ -32,4 +29,3 @@ protected:
   /// Constant thermal expansion coefficient
   const Real & _thermal_expansion_coeff;
 };
-

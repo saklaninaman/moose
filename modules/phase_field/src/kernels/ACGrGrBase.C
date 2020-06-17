@@ -9,9 +9,8 @@
 
 #include "ACGrGrBase.h"
 
-template <>
 InputParameters
-validParams<ACGrGrBase>()
+ACGrGrBase::validParams()
 {
   InputParameters params = ACBulk<Real>::validParams();
   params.addRequiredCoupledVar("v",

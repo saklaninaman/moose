@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", SplitCHParsed);
 
-template <>
 InputParameters
-validParams<SplitCHParsed>()
+SplitCHParsed::validParams()
 {
-  InputParameters params = validParams<SplitCHCRes>();
+  InputParameters params = SplitCHCRes::validParams();
   params.addClassDescription(
       "Split formulation Cahn-Hilliard Kernel that uses a DerivativeMaterial Free Energy");
   params.addRequiredParam<MaterialPropertyName>(
@@ -26,17 +25,13 @@ validParams<SplitCHParsed>()
 
 SplitCHParsed::SplitCHParsed(const InputParameters & parameters)
   : DerivativeMaterialInterface<JvarMapKernelInterface<SplitCHCRes>>(parameters),
-    _nvar(_coupled_moose_vars.size()),
     _dFdc(getMaterialPropertyDerivative<Real>("f_name", _var.name())),
-    _d2Fdc2(getMaterialPropertyDerivative<Real>("f_name", _var.name(), _var.name()))
+    _d2Fdc2(getMaterialPropertyDerivative<Real>("f_name", _var.name(), _var.name())),
+    _d2Fdcdarg(_n_args)
 {
-  // reserve space for derivatives
-  _d2Fdcdarg.resize(_nvar);
-
   // Iterate over all coupled variables
-  for (unsigned int i = 0; i < _nvar; ++i)
-    _d2Fdcdarg[i] =
-        &getMaterialPropertyDerivative<Real>("f_name", _var.name(), _coupled_moose_vars[i]->name());
+  for (unsigned int i = 0; i < _n_args; ++i)
+    _d2Fdcdarg[i] = &getMaterialPropertyDerivative<Real>("f_name", _var.name(), i);
 }
 
 void

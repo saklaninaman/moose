@@ -15,17 +15,14 @@
 #include "RotationTensor.h"
 #include "DerivativeMaterialInterface.h"
 
-class ComputeDeformGradBasedStress;
-
-template <>
-InputParameters validParams<ComputeDeformGradBasedStress>();
-
 /**
  * ComputeDeformGradBasedStress computes stress based on lagrangian strain definition
- **/
+ */
 class ComputeDeformGradBasedStress : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   ComputeDeformGradBasedStress(const InputParameters & parameters);
 
 protected:
@@ -36,7 +33,8 @@ protected:
   const MaterialProperty<RankTwoTensor> & _deformation_gradient;
   const MaterialProperty<RankFourTensor> & _elasticity_tensor;
 
+  /// The stress tensor to be calculated
   MaterialProperty<RankTwoTensor> & _stress;
+
   MaterialProperty<RankFourTensor> & _Jacobian_mult;
 };
-

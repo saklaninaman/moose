@@ -11,9 +11,8 @@
 
 registerMooseObject("TensorMechanicsApp", CompositeElasticityTensor);
 
-template <>
 InputParameters
-validParams<CompositeElasticityTensor>()
+CompositeElasticityTensor::validParams()
 {
   InputParameters params = CompositeTensorBase<RankFourTensor, Material>::validParams();
   params.addClassDescription("Assemble an elasticity tensor from multiple tensor contributions "

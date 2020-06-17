@@ -13,10 +13,6 @@
 #include <vector>
 
 // Forward declaration
-class EulerAngleFileReader;
-
-template <>
-InputParameters validParams<EulerAngleFileReader>();
 
 /**
  * Read a set of Euler angles from a file
@@ -24,6 +20,8 @@ InputParameters validParams<EulerAngleFileReader>();
 class EulerAngleFileReader : public EulerAngleProvider
 {
 public:
+  static InputParameters validParams();
+
   EulerAngleFileReader(const InputParameters & parameters);
 
   virtual const EulerAngles & getEulerAngles(unsigned int) const;
@@ -39,4 +37,3 @@ protected:
   FileName _file_name;
   std::vector<EulerAngles> _angles;
 };
-

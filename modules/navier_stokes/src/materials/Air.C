@@ -13,11 +13,10 @@
 
 registerMooseObject("NavierStokesApp", Air);
 
-template <>
 InputParameters
-validParams<Air>()
+Air::validParams()
 {
-  InputParameters params = validParams<NavierStokesMaterial>();
+  InputParameters params = NavierStokesMaterial::validParams();
 
   params.addClassDescription("Air.");
   // Allow the user to specify the dynamic viscosity from the input file,

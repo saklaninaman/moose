@@ -11,11 +11,10 @@
 
 registerMooseObject("TensorMechanicsApp", HEVPLinearHardening);
 
-template <>
 InputParameters
-validParams<HEVPLinearHardening>()
+HEVPLinearHardening::validParams()
 {
-  InputParameters params = validParams<HEVPStrengthUOBase>();
+  InputParameters params = HEVPStrengthUOBase::validParams();
   params.addParam<Real>("yield_stress", "Yield strength");
   params.addParam<Real>("slope", "Linear hardening slope");
   params.addClassDescription("User Object for linear hardening");

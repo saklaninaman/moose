@@ -11,11 +11,6 @@
 
 #include "PorousFlowSinglePhaseBase.h"
 
-class PorousFlowBasicTHM;
-
-template <>
-InputParameters validParams<PorousFlowBasicTHM>();
-
 /**
  * Action for simulation involving a single phase, single component,
  * fully saturated fluid, using no upwinding, no mass lumping of the
@@ -25,6 +20,8 @@ InputParameters validParams<PorousFlowBasicTHM>();
 class PorousFlowBasicTHM : public PorousFlowSinglePhaseBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowBasicTHM(const InputParameters & params);
 
 protected:
@@ -35,4 +32,3 @@ protected:
   // Whether to multiply the fluid kernels by the fluid density
   const bool _multiply_by_density;
 };
-

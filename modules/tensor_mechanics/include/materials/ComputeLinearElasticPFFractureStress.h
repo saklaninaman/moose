@@ -13,11 +13,6 @@
 #include "MooseEnum.h"
 #include "GuaranteeConsumer.h"
 
-class ComputeLinearElasticPFFractureStress;
-
-template <>
-InputParameters validParams<ComputeLinearElasticPFFractureStress>();
-
 /**
  * Phase-field fracture
  * This class computes the stress and energy contribution for the
@@ -27,6 +22,8 @@ class ComputeLinearElasticPFFractureStress : public ComputePFFractureStressBase,
                                              public GuaranteeConsumer
 {
 public:
+  static InputParameters validParams();
+
   ComputeLinearElasticPFFractureStress(const InputParameters & parameters);
 
   void initialSetup() override;
@@ -64,4 +61,3 @@ protected:
     none
   } _decomposition_type;
 };
-

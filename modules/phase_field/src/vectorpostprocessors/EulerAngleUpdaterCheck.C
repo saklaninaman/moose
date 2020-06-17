@@ -16,13 +16,12 @@
 
 registerMooseObject("PhaseFieldApp", EulerAngleUpdaterCheck);
 
-template <>
 InputParameters
-validParams<EulerAngleUpdaterCheck>()
+EulerAngleUpdaterCheck::validParams()
 {
-  InputParameters params = validParams<GeneralVectorPostprocessor>();
+  InputParameters params = GeneralVectorPostprocessor::validParams();
   params.addClassDescription(
-      "Provide updated euler angles after rigid body rotation of the grains.");
+      "Provide updated Euler angles after rigid body rotation of the grains.");
   params.addRequiredParam<UserObjectName>("grain_tracker_object",
                                           "The FeatureFloodCount UserObject to get values from.");
   params.addParam<UserObjectName>("euler_angle_updater",

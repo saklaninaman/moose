@@ -10,12 +10,11 @@
 #include "GrainCentersPostprocessor.h"
 #include "ComputeGrainCenterUserObject.h"
 
-template <>
 InputParameters
-validParams<GrainCentersPostprocessor>()
+GrainCentersPostprocessor::validParams()
 {
-  InputParameters params = validParams<VectorPostprocessor>();
-  params.addClassDescription("Outputs the values from GrainCentersPostprocessor");
+  InputParameters params = VectorPostprocessor::validParams();
+  params.addClassDescription("Outputs the values from ComputeGrainCenterUserObject");
   params.addParam<UserObjectName>(
       "grain_data", "Specify user object that gives center of mass and volume of grains");
   return params;

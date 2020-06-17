@@ -12,11 +12,10 @@
 
 registerMooseObject("FunctionalExpansionToolsApp", FXFluxBC);
 
-template <>
 InputParameters
-validParams<FXFluxBC>()
+FXFluxBC::validParams()
 {
-  InputParameters params = validParams<FunctionNeumannBC>();
+  InputParameters params = FunctionNeumannBC::validParams();
 
   params.addClassDescription(
       "Sets a flux boundary condition, evaluated using a FunctionSeries instance. This does not "

@@ -16,11 +16,10 @@
 
 registerMooseObject("NavierStokesApp", NSStagnationTemperatureBC);
 
-template <>
 InputParameters
-validParams<NSStagnationTemperatureBC>()
+NSStagnationTemperatureBC::validParams()
 {
-  InputParameters params = validParams<NSStagnationBC>();
+  InputParameters params = NSStagnationBC::validParams();
   params.addClassDescription("This Dirichlet condition imposes the condition T_0 = T_0_desired.");
   params.addRequiredCoupledVar(NS::temperature, "temperature");
   params.addRequiredParam<Real>("desired_stagnation_temperature", "");

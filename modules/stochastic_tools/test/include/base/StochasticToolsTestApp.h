@@ -11,14 +11,11 @@
 
 #include "MooseApp.h"
 
-class StochasticToolsTestApp;
-
-template <>
-InputParameters validParams<StochasticToolsTestApp>();
-
 class StochasticToolsTestApp : public MooseApp
 {
 public:
+  static InputParameters validParams();
+
   StochasticToolsTestApp(InputParameters parameters);
   virtual ~StochasticToolsTestApp();
 
@@ -28,4 +25,3 @@ public:
   static void associateSyntax(Syntax & syntax, ActionFactory & action_factory);
   static void registerExecFlags(Factory & factory);
 };
-

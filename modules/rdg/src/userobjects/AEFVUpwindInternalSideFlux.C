@@ -11,11 +11,10 @@
 
 registerMooseObject("RdgApp", AEFVUpwindInternalSideFlux);
 
-template <>
 InputParameters
-validParams<AEFVUpwindInternalSideFlux>()
+AEFVUpwindInternalSideFlux::validParams()
 {
-  InputParameters params = validParams<InternalSideFluxBase>();
+  InputParameters params = InternalSideFluxBase::validParams();
   params.addClassDescription("Upwind numerical flux scheme for the advection equation using a "
                              "cell-centered finite volume method.");
   params.addParam<Real>("velocity", 1.0, "Advective velocity");

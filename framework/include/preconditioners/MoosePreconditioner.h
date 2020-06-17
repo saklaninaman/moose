@@ -14,6 +14,10 @@
 #include "Restartable.h"
 #include "PerfGraphInterface.h"
 
+// Libmesh include
+#include "libmesh/preconditioner.h"
+#include "libmesh/linear_solver.h"
+
 // Forward declarations
 class FEProblemBase;
 class MoosePreconditioner;
@@ -34,6 +38,8 @@ InputParameters validParams<MoosePreconditioner>();
 class MoosePreconditioner : public MooseObject, public Restartable, public PerfGraphInterface
 {
 public:
+  static InputParameters validParams();
+
   MoosePreconditioner(const InputParameters & params);
   virtual ~MoosePreconditioner() = default;
 

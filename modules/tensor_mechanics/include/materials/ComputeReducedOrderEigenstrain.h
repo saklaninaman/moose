@@ -8,11 +8,11 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #pragma once
+#include "DenseMatrix.h"
 #include "ComputeEigenstrainBase.h"
 #include "RankTwoTensor.h"
 
 // libmesh includes
-#include "libmesh/dense_matrix.h"
 #include "libmesh/dense_vector.h"
 
 class Assembly;
@@ -20,14 +20,11 @@ class InputParameters;
 class MooseObject;
 class SubProblem;
 
-class ComputeReducedOrderEigenstrain;
-
-template <>
-InputParameters validParams<ComputeReducedOrderEigenstrain>();
-
 class ComputeReducedOrderEigenstrain : public ComputeEigenstrainBase
 {
 public:
+  static InputParameters validParams();
+
   ComputeReducedOrderEigenstrain(const InputParameters & parameters);
 
   void initQpStatefulProperties();
@@ -69,6 +66,3 @@ private:
   /// Filled with _vals and subracted from strain
   RankTwoTensor _adjusted_eigenstrain;
 };
-
-template <>
-InputParameters validParams<ComputeReducedOrderEigenstrain>();

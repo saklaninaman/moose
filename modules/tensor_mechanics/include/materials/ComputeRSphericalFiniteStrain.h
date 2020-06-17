@@ -11,11 +11,6 @@
 
 #include "ComputeFiniteStrain.h"
 
-class ComputeRSphericalFiniteStrain;
-
-template <>
-InputParameters validParams<ComputeRSphericalFiniteStrain>();
-
 /**
  * ComputeRSphericalFiniteStrain defines a strain increment and a rotation increment
  * for finite strains in 1D spherical symmetry geometries.  The strains in the
@@ -25,6 +20,8 @@ InputParameters validParams<ComputeRSphericalFiniteStrain>();
 class ComputeRSphericalFiniteStrain : public ComputeFiniteStrain
 {
 public:
+  static InputParameters validParams();
+
   ComputeRSphericalFiniteStrain(const InputParameters & parameters);
 
   virtual void initialSetup();
@@ -37,4 +34,3 @@ protected:
   /// the old value of the first component of the displacements vector
   const VariableValue & _disp_old_0;
 };
-

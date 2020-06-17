@@ -14,11 +14,10 @@
 
 registerMooseObject("SolidMechanicsApp", HomogenizedElasticConstants);
 
-template <>
 InputParameters
-validParams<HomogenizedElasticConstants>()
+HomogenizedElasticConstants::validParams()
 {
-  InputParameters params = validParams<ElementAverageValue>();
+  InputParameters params = ElementAverageValue::validParams();
   params.addRequiredCoupledVar("dx_xx", "solution in xx");
   params.addRequiredCoupledVar("dy_xx", "solution in xx");
   params.addCoupledVar("dz_xx", "solution in xx");

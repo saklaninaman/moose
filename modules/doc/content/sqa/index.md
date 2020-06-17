@@ -1,9 +1,4 @@
-# Software Quality
-
-!alert construction
-The software quality documents as well as the system to create them is under heavy development, this
-page will be expanding shortly to include more information about the software quality standards
-employed by MOOSE.
+# MOOSE Software Quality
 
 Within MOOSE, code reliability is paramount, so MOOSE employs a rigorous and well-documented
 development strategy.  In order to accomplish this task, a comprehensive set of tools for testing and
@@ -22,12 +17,22 @@ collaborators throughout the world.
 
 The software quality documents for MOOSE are listed below:
 
+- [Software Test Plan (STP)](sqa/moose_stp.md)
 - [System Requirement Specification (SRS)](sqa/moose_srs.md)
-- [System Design Description (SDD)](sqa/moose_sdd.md)
 - [Requirements Traceability Matrix (RTM)](sqa/moose_rtm.md)
-- [Verification and Validation Report](sqa/moose_v_and_v.md)
+- [System Design Description (SDD)](sqa/moose_sdd.md)
+- [Verification and Validation Report](sqa/moose_vvr.md)
 
 The following link(s) may also be of interest when creating documentation related to software
 quality.
 
 - [what_is_a_requirement.md]
+
+MOOSE employs a continuous integration strategy using [!ac](CIVET); the testing results for
+this version of the documentation is available at the following links:
+
++Test Results+:
+
+!civet mergeresults
+
++Releases+: [v1.0.0](https://mooseframework.org/releases/moose/v1.0.0)

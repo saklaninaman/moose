@@ -15,14 +15,17 @@
 #include "libmesh/fparser_ad.hh"
 #include "libmesh/elem.h"
 
-registerMooseObject("MooseApp", ParsedSubdomainMeshModifier);
+registerMooseObjectReplaced("MooseApp",
+                            ParsedSubdomainMeshModifier,
+                            "11/30/2019 00:00",
+                            ParsedSubdomainMeshGenerator);
 
 template <>
 InputParameters
 validParams<ParsedSubdomainMeshModifier>()
 {
   InputParameters params = validParams<MeshModifier>();
-  params += validParams<FunctionParserUtils>();
+  params += FunctionParserUtils<false>::validParams();
   params.addRequiredParam<std::string>("combinatorial_geometry",
                                        "Function expression encoding a combinatorial geometry");
   params.addRequiredParam<SubdomainID>("block_id",
@@ -52,7 +55,7 @@ ParsedSubdomainMeshModifier::ParsedSubdomainMeshModifier(const InputParameters &
     _excluded_ids(parameters.get<std::vector<SubdomainID>>("excluded_subdomain_ids"))
 {
   // base function object
-  _func_F = ADFunctionPtr(new ADFunction());
+  _func_F = std::make_shared<SymFunction>();
 
   // set FParser internal feature flags
   setParserFeatureFlags(_func_F);

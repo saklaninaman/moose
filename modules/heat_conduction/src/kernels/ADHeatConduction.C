@@ -9,26 +9,27 @@
 
 #include "ADHeatConduction.h"
 
-registerADMooseObject("HeatConductionApp", ADHeatConduction);
+registerMooseObject("HeatConductionApp", ADHeatConduction);
 
-defineADValidParams(
-    ADHeatConduction,
-    ADDiffusion,
-    params.addParam<MaterialPropertyName>("thermal_conductivity",
-                                          "thermal_conductivity",
-                                          "the name of the thermal conductivity material property");
-    params.set<bool>("use_displaced_mesh") = true;);
+InputParameters
+ADHeatConduction::validParams()
+{
+  InputParameters params = ADDiffusion::validParams();
+  params.addParam<MaterialPropertyName>("thermal_conductivity",
+                                        "thermal_conductivity",
+                                        "the name of the thermal conductivity material property");
+  params.set<bool>("use_displaced_mesh") = true;
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADHeatConduction<compute_stage>::ADHeatConduction(const InputParameters & parameters)
-  : ADDiffusion<compute_stage>(parameters),
+ADHeatConduction::ADHeatConduction(const InputParameters & parameters)
+  : ADDiffusion(parameters),
     _thermal_conductivity(getADMaterialProperty<Real>("thermal_conductivity"))
 {
 }
 
-template <ComputeStage compute_stage>
-ADVectorResidual
-ADHeatConduction<compute_stage>::precomputeQpResidual()
+ADRealVectorValue
+ADHeatConduction::precomputeQpResidual()
 {
-  return _thermal_conductivity[_qp] * ADDiffusion<compute_stage>::precomputeQpResidual();
+  return _thermal_conductivity[_qp] * ADDiffusion::precomputeQpResidual();
 }

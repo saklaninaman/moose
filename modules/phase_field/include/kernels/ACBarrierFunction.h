@@ -11,11 +11,6 @@
 
 #include "ACGrGrBase.h"
 
-class ACBarrierFunction;
-
-template <>
-InputParameters validParams<ACBarrierFunction>();
-
 /**
  * Several kernels use a material property called mu. If mu is not a constant,
  * then this kernel will calculate the bulk AC term where mu is the derivative term.
@@ -24,6 +19,8 @@ InputParameters validParams<ACBarrierFunction>();
 class ACBarrierFunction : public ACGrGrBase
 {
 public:
+  static InputParameters validParams();
+
   ACBarrierFunction(const InputParameters & parameters);
 
 protected:
@@ -43,4 +40,3 @@ protected:
 private:
   Real calculateF0(); /// calculates the free energy function
 };
-

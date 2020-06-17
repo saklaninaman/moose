@@ -13,11 +13,7 @@
 #include "MaterialTensorCalculator.h"
 
 // Forward Declarations
-class MaterialTensorIntegralSM;
 class SymmTensor;
-
-template <>
-InputParameters validParams<MaterialTensorIntegralSM>();
 
 /**
  * This postprocessor computes an element integral of a
@@ -26,6 +22,8 @@ InputParameters validParams<MaterialTensorIntegralSM>();
 class MaterialTensorIntegralSM : public ElementIntegralPostprocessor
 {
 public:
+  static InputParameters validParams();
+
   MaterialTensorIntegralSM(const InputParameters & parameters);
 
 protected:
@@ -34,4 +32,3 @@ protected:
   MaterialTensorCalculator _material_tensor_calculator;
   const MaterialProperty<SymmTensor> & _tensor;
 };
-

@@ -11,25 +11,26 @@
 #include "Function.h"
 #include "MooseError.h"
 
-registerADMooseObject("TensorMechanicsApp", ADPressure);
+registerMooseObject("TensorMechanicsApp", ADPressure);
 
-defineADValidParams(
-    ADPressure,
-    ADIntegratedBC,
-    params.addClassDescription("Applies a pressure on a given boundary in a given direction");
-    params.addRequiredRangeCheckedParam<unsigned int>("component",
-                                                      "component <= 2",
-                                                      "The component for the pressure");
-    params.addParam<Real>("constant", 1.0, "The magnitude to use in computing the pressure");
-    params.addParam<FunctionName>("function", "The function that describes the pressure");
-    params.addParam<PostprocessorName>("postprocessor",
-                                       "Postprocessor that will supply the pressure value");
-    params.addParam<Real>("alpha", 0.0, "alpha parameter required for HHT time integration scheme");
-    params.set<bool>("use_displaced_mesh") = true;);
+InputParameters
+ADPressure::validParams()
+{
+  InputParameters params = ADIntegratedBC::validParams();
+  params.addClassDescription("Applies a pressure on a given boundary in a given direction");
+  params.addRequiredRangeCheckedParam<unsigned int>(
+      "component", "component <= 2", "The component for the pressure");
+  params.addParam<Real>("constant", 1.0, "The magnitude to use in computing the pressure");
+  params.addParam<FunctionName>("function", "The function that describes the pressure");
+  params.addParam<PostprocessorName>("postprocessor",
+                                     "Postprocessor that will supply the pressure value");
+  params.addParam<Real>("alpha", 0.0, "alpha parameter required for HHT time integration scheme");
+  params.set<bool>("use_displaced_mesh") = true;
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADPressure<compute_stage>::ADPressure(const InputParameters & parameters)
-  : ADIntegratedBC<compute_stage>(parameters),
+ADPressure::ADPressure(const InputParameters & parameters)
+  : ADIntegratedBC(parameters),
     _component(getParam<unsigned int>("component")),
     _constant(getParam<Real>("constant")),
     _function(isParamValid("function") ? &this->getFunction("function") : nullptr),
@@ -39,9 +40,8 @@ ADPressure<compute_stage>::ADPressure(const InputParameters & parameters)
 {
 }
 
-template <ComputeStage compute_stage>
-ADResidual
-ADPressure<compute_stage>::computeQpResidual()
+ADReal
+ADPressure::computeQpResidual()
 {
   ADReal factor = _constant;
 

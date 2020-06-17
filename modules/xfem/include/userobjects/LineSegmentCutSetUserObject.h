@@ -12,14 +12,12 @@
 #include "GeometricCut2DUserObject.h"
 
 // Forward declarations
-class LineSegmentCutSetUserObject;
-
-template <>
-InputParameters validParams<LineSegmentCutSetUserObject>();
 
 class LineSegmentCutSetUserObject : public GeometricCut2DUserObject
 {
 public:
+  static InputParameters validParams();
+
   LineSegmentCutSetUserObject(const InputParameters & parameters);
 
   virtual const std::vector<Point>
@@ -34,4 +32,3 @@ public:
 protected:
   std::vector<Real> _cut_data;
 };
-

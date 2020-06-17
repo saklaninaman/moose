@@ -32,16 +32,13 @@ public:
   virtual bool converged() override { return true; }
   virtual NumericVector<Number> & RHS() override { return *_dummy; }
 
-  NumericVector<Number> & solutionOld() override { return *_dummy; }
-  NumericVector<Number> & solutionOlder() override { return *_dummy; }
-
-  const NumericVector<Number> & solutionOld() const override { return *_dummy; }
-  const NumericVector<Number> & solutionOlder() const override { return *_dummy; }
-
   virtual unsigned int getCurrentNonlinearIterationNumber() override { return 0; }
   virtual void setupFiniteDifferencedPreconditioner() override {}
+  virtual void attachPreconditioner(Preconditioner<Number> * /* preconditioner */) override {}
 
 protected:
+  NumericVector<Number> & solutionOldInternal() const override { return *_dummy; }
+  NumericVector<Number> & solutionOlderInternal() const override { return *_dummy; }
+
   NumericVector<Number> * _dummy;
 };
-

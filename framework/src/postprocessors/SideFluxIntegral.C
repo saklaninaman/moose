@@ -9,13 +9,18 @@
 
 #include "SideFluxIntegral.h"
 
-registerMooseObject("MooseApp", SideFluxIntegral);
+#include "metaphysicl/raw_type.h"
 
-template <>
+registerMooseObject("MooseApp", SideFluxIntegral);
+registerMooseObject("MooseApp", ADSideFluxIntegral);
+
+defineLegacyParams(SideFluxIntegral);
+
+template <bool is_ad>
 InputParameters
-validParams<SideFluxIntegral>()
+SideFluxIntegralTempl<is_ad>::validParams()
 {
-  InputParameters params = validParams<SideIntegralVariablePostprocessor>();
+  InputParameters params = SideIntegralVariablePostprocessor::validParams();
   params.addRequiredParam<MaterialPropertyName>(
       "diffusivity",
       "The name of the diffusivity material property that will be used in the flux computation.");
@@ -23,15 +28,20 @@ validParams<SideFluxIntegral>()
   return params;
 }
 
-SideFluxIntegral::SideFluxIntegral(const InputParameters & parameters)
+template <bool is_ad>
+SideFluxIntegralTempl<is_ad>::SideFluxIntegralTempl(const InputParameters & parameters)
   : SideIntegralVariablePostprocessor(parameters),
     _diffusivity(parameters.get<MaterialPropertyName>("diffusivity")),
-    _diffusion_coef(getMaterialProperty<Real>(_diffusivity))
+    _diffusion_coef(getGenericMaterialProperty<Real, is_ad>(_diffusivity))
 {
 }
 
+template <bool is_ad>
 Real
-SideFluxIntegral::computeQpIntegral()
+SideFluxIntegralTempl<is_ad>::computeQpIntegral()
 {
-  return -_diffusion_coef[_qp] * _grad_u[_qp] * _normals[_qp];
+  return -MetaPhysicL::raw_value(_diffusion_coef[_qp]) * _grad_u[_qp] * _normals[_qp];
 }
+
+template class SideFluxIntegralTempl<false>;
+template class SideFluxIntegralTempl<true>;

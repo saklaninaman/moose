@@ -9,9 +9,8 @@
 
 #include "EulerAngleProvider.h"
 
-template <>
 InputParameters
-validParams<EulerAngleProvider>()
+EulerAngleProvider::validParams()
 {
-  return validParams<GeneralUserObject>();
+  return GeneralUserObject::validParams();
 }

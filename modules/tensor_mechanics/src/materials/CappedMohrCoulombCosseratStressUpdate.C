@@ -12,11 +12,10 @@
 
 registerMooseObject("TensorMechanicsApp", CappedMohrCoulombCosseratStressUpdate);
 
-template <>
 InputParameters
-validParams<CappedMohrCoulombCosseratStressUpdate>()
+CappedMohrCoulombCosseratStressUpdate::validParams()
 {
-  InputParameters params = validParams<CappedMohrCoulombStressUpdate>();
+  InputParameters params = CappedMohrCoulombStressUpdate::validParams();
   params.addClassDescription("Capped Mohr-Coulomb plasticity stress calculator for the Cosserat "
                              "situation where the host medium (ie, the limit where all Cosserat "
                              "effects are zero) is isotropic.  Note that the return-map flow rule "

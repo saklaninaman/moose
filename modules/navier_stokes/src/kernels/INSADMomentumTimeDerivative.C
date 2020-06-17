@@ -8,31 +8,37 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "INSADMomentumTimeDerivative.h"
+#include "INSADObjectTracker.h"
+#include "FEProblemBase.h"
 
-registerADMooseObject("NavierStokesApp", INSADMomentumTimeDerivative);
+registerMooseObject("NavierStokesApp", INSADMomentumTimeDerivative);
 
-defineADValidParams(
-    INSADMomentumTimeDerivative,
-    ADTimeKernelValue,
-    params.addClassDescription("This class computes the time derivative for the incompressible "
-                               "Navier-Stokes momentum equation.");
-    params.addCoupledVar("temperature",
-                         "The temperature on which material properties may depend. If properties "
-                         "do depend on temperature, this variable must be coupled in in order to "
-                         "correctly resize the element matrix");
-    params.addParam<MaterialPropertyName>("rho_name", "rho", "density name"););
-
-template <ComputeStage compute_stage>
-INSADMomentumTimeDerivative<compute_stage>::INSADMomentumTimeDerivative(
-    const InputParameters & parameters)
-  : ADVectorTimeKernelValue<compute_stage>(parameters),
-    _rho(getADMaterialProperty<Real>("rho_name"))
+InputParameters
+INSADMomentumTimeDerivative::validParams()
 {
+  InputParameters params = ADTimeKernelValue::validParams();
+  params.addClassDescription("This class computes the time derivative for the incompressible "
+                             "Navier-Stokes momentum equation.");
+  params.addCoupledVar("temperature",
+                       "The temperature on which material properties may depend. If properties "
+                       "do depend on temperature, this variable must be coupled in in order to "
+                       "correctly resize the element matrix");
+  return params;
 }
 
-template <ComputeStage compute_stage>
-ADRealVectorValue
-INSADMomentumTimeDerivative<compute_stage>::precomputeQpResidual()
+INSADMomentumTimeDerivative::INSADMomentumTimeDerivative(const InputParameters & parameters)
+  : ADVectorTimeKernelValue(parameters),
+    _td_strong_residual(getADMaterialProperty<RealVectorValue>("td_strong_residual"))
 {
-  return _rho[_qp] * _u_dot[_qp];
+  // Bypass the UserObjectInterface method because it requires a UserObjectName param which we
+  // don't need
+  auto & obj_tracker = const_cast<INSADObjectTracker &>(
+      _fe_problem.getUserObject<INSADObjectTracker>("ins_ad_object_tracker"));
+  obj_tracker.setHasTransient(true);
+}
+
+ADRealVectorValue
+INSADMomentumTimeDerivative::precomputeQpResidual()
+{
+  return _td_strong_residual[_qp];
 }

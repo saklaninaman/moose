@@ -11,11 +11,6 @@
 
 #include "ComputeIncrementalStrainBase.h"
 
-class ComputeCosseratIncrementalSmallStrain;
-
-template <>
-InputParameters validParams<ComputeCosseratIncrementalSmallStrain>();
-
 /**
  * ComputeCosseratIncrementalSmallStrain defines various incremental versions
  * of the Cossserat strain tensor, assuming small strains.
@@ -23,6 +18,8 @@ InputParameters validParams<ComputeCosseratIncrementalSmallStrain>();
 class ComputeCosseratIncrementalSmallStrain : public ComputeIncrementalStrainBase
 {
 public:
+  static InputParameters validParams();
+
   ComputeCosseratIncrementalSmallStrain(const InputParameters & parameters);
 
 protected:
@@ -54,4 +51,3 @@ protected:
   /// _curvature_increment = (curvature - _curvature_old)
   MaterialProperty<RankTwoTensor> & _curvature_increment;
 };
-

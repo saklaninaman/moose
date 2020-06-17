@@ -1,18 +1,12 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # VariableGradientMaterial
 
-!alert construction title=Undocumented Class
-The VariableGradientMaterial has not been documented. The content contained on this page
-includes the basic documentation associated with a MooseObject; however, what is contained is
-ultimately determined by what is necessary to make the documentation clear for users.
-
 !syntax description /Materials/VariableGradientMaterial
+
+The material creates a material property with the name given by the parameter
+`prop` that contains the L2 norm of the gradient of a coupled `variable`.
 
 !syntax parameters /Materials/VariableGradientMaterial
 
 !syntax inputs /Materials/VariableGradientMaterial
 
 !syntax children /Materials/VariableGradientMaterial
-
-!bibtex bibliography

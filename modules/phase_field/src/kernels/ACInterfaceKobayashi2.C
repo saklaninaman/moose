@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", ACInterfaceKobayashi2);
 
-template <>
 InputParameters
-validParams<ACInterfaceKobayashi2>()
+ACInterfaceKobayashi2::validParams()
 {
-  InputParameters params = validParams<KernelGrad>();
+  InputParameters params = JvarMapKernelInterface<KernelGrad>::validParams();
   params.addClassDescription("Anisotropic Gradient energy Allen-Cahn Kernel Part 2");
   params.addParam<MaterialPropertyName>("mob_name", "L", "The mobility used with the kernel");
   params.addParam<MaterialPropertyName>("eps_name", "eps", "The anisotropic parameter");
@@ -23,7 +22,6 @@ validParams<ACInterfaceKobayashi2>()
       "depsdgrad_op_name",
       "depsdgrad_op",
       "The derivative of the anisotropic interface parameter eps with respect to grad_op");
-  params.addCoupledVar("args", "Vector of nonlinear variable arguments this object depends on");
   return params;
 }
 
@@ -32,21 +30,15 @@ ACInterfaceKobayashi2::ACInterfaceKobayashi2(const InputParameters & parameters)
     _L(getMaterialProperty<Real>("mob_name")),
     _dLdop(getMaterialPropertyDerivative<Real>("mob_name", _var.name())),
     _eps(getMaterialProperty<Real>("eps_name")),
-    _depsdgrad_op(getMaterialProperty<RealGradient>("depsdgrad_op_name"))
+    _depsdgrad_op(getMaterialProperty<RealGradient>("depsdgrad_op_name")),
+    _dLdarg(_n_args),
+    _depsdarg(_n_args)
 {
-  // Get number of coupled variables
-  unsigned int nvar = _coupled_moose_vars.size();
-
-  // reserve space for derivatives
-  _dLdarg.resize(nvar);
-  _depsdarg.resize(nvar);
-
   // Iterate over all coupled variables
-  for (unsigned int i = 0; i < nvar; ++i)
+  for (unsigned int i = 0; i < _n_args; ++i)
   {
-    const VariableName iname = _coupled_moose_vars[i]->name();
-    _dLdarg[i] = &getMaterialPropertyDerivative<Real>("mob_name", iname);
-    _depsdarg[i] = &getMaterialPropertyDerivative<Real>("eps_name", iname);
+    _dLdarg[i] = &getMaterialPropertyDerivative<Real>("mob_name", i);
+    _depsdarg[i] = &getMaterialPropertyDerivative<Real>("eps_name", i);
   }
 }
 

@@ -12,11 +12,7 @@
 #include "Material.h"
 
 // Forward Declarations
-class DeformedGrainMaterial;
 class GrainTrackerInterface;
-
-template <>
-InputParameters validParams<DeformedGrainMaterial>();
 
 /**
  * Calculates The Deformation Energy associated with a specific dislocation density.
@@ -25,6 +21,8 @@ InputParameters validParams<DeformedGrainMaterial>();
 class DeformedGrainMaterial : public Material
 {
 public:
+  static InputParameters validParams();
+
   DeformedGrainMaterial(const InputParameters & parameters);
 
 protected:
@@ -81,4 +79,3 @@ protected:
   const Real _kb;
   const Real _JtoeV;
 };
-

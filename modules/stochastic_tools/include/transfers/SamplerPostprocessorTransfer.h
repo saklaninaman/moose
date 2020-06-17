@@ -11,25 +11,29 @@
 
 // MOOSE includes
 #include "StochasticToolsTransfer.h"
-#include "Sampler.h"
 
 // Forward declarations
-class SamplerPostprocessorTransfer;
 class SamplerReceiver;
 class SamplerFullSolveMultiApp;
 class StochasticResults;
 
-template <>
-InputParameters validParams<SamplerPostprocessorTransfer>();
-
 /**
- * Transfer Postprocessor from sub-applications to the master application.
+ * Transfer Postprocessor from sub-applications to a VectorPostprocessor on the master application.
+ *
+ * This object transfers the distributed data to a StochasticResults object.
  */
 class SamplerPostprocessorTransfer : public StochasticToolsTransfer
 {
 public:
+  static InputParameters validParams();
   SamplerPostprocessorTransfer(const InputParameters & parameters);
   virtual void initialSetup() override;
+
+  /**
+   * The name of the vector to be created on the StochasticResults object,
+   * see StochasticResultsAction)
+   */
+  const std::vector<VectorPostprocessorName> & vectorNames() const;
 
 protected:
   /**
@@ -46,18 +50,18 @@ protected:
   virtual void finalizeFromMultiapp() override;
   ///@}
 
-  /// Sampler object that is retrieved from the SamplerTransientMultiApp or SamplerFullSolveMultiApp
-  Sampler * _sampler;
-
   /// Storage for StochasticResults object that data will be transferred to/from
   StochasticResults * _results;
 
-  /// Local values of compute PP values
-  std::vector<PostprocessorValue> _local_values;
-
   /// Name of postprocessor on the sub-applications
-  const PostprocessorName & _sub_pp_name;
+  const std::vector<PostprocessorName> & _sub_pp_names;
 
   /// Name of vector-postprocessor on the master
   const VectorPostprocessorName & _master_vpp_name;
+
+  /// Storage vector names
+  const std::vector<VectorPostprocessorName> _vpp_names;
+
+  /// Temporary storage for batch mode execution
+  std::vector<VectorPostprocessorValue> _current_data;
 };

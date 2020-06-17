@@ -11,17 +11,13 @@
 
 #include "TensorMechanicsAction.h"
 
-class DynamicTensorMechanicsAction;
-
-template <>
-InputParameters validParams<DynamicTensorMechanicsAction>();
-
 class DynamicTensorMechanicsAction : public TensorMechanicsAction
 {
 public:
+  static InputParameters validParams();
+
   DynamicTensorMechanicsAction(const InputParameters & params);
 
 protected:
   virtual std::string getKernelType();
 };
-

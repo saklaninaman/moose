@@ -13,11 +13,10 @@
 #include "AppFactory.h"
 #include "MooseSyntax.h"
 
-template <>
 InputParameters
-validParams<MiscTestApp>()
+MiscTestApp::validParams()
 {
-  InputParameters params = validParams<MiscApp>();
+  InputParameters params = MiscApp::validParams();
   return params;
 }
 

@@ -11,11 +11,6 @@
 
 #include "AuxKernel.h"
 
-class EulerAngleVariables2RGBAux;
-
-template <>
-InputParameters validParams<EulerAngleVariables2RGBAux>();
-
 /**
  * Create an encoded RGB triplet from Euler angle data.
  * The color value is encoded as (R*256+G)*256+B with R,G, and B ranging
@@ -24,6 +19,8 @@ InputParameters validParams<EulerAngleVariables2RGBAux>();
 class EulerAngleVariables2RGBAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   EulerAngleVariables2RGBAux(const InputParameters & parameters);
 
 protected:
@@ -48,4 +45,3 @@ private:
   /// EBSD Crystal symmetry identifier
   const VariableValue & _sym;
 };
-

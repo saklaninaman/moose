@@ -1,7 +1,8 @@
 [GlobalParams]
   order = FIRST
   family = LAGRANGE
-  volumetric_locking_correction = False
+  displacements = 'disp_x disp_y'
+  volumetric_locking_correction = false
 []
 
 [XFEM]
@@ -19,7 +20,6 @@
   ymin = 0.0
   ymax = 1.0
   elem_type = QUAD4
-  displacements = 'disp_x disp_y'
 []
 
 [UserObjects]
@@ -36,39 +36,12 @@
   [../]
 []
 
-[AuxVariables]
-  [./stress_xx]      # stress aux variables are defined for output; this is a way to get integration point variables to the output file
-    order = CONSTANT
-    family = MONOMIAL
-  [../]
-  [./stress_yy]
-    order = CONSTANT
-    family = MONOMIAL
-  [../]
-[]
-
-[AuxKernels]
-  [./stress_xx]               # computes stress components for output
-    type = MaterialTensorAux
-    tensor = stress
-    variable = stress_xx
-    index = 0
-    execute_on = timestep_end     # for efficiency, only compute at the end of a timestep
-  [../]
-  [./stress_yy]
-    type = MaterialTensorAux
-    tensor = stress
-    variable = stress_yy
-    index = 1
-    execute_on = timestep_end
-  [../]
-[]
-
-[SolidMechanics]
-  [./solid]
-    disp_x = disp_x
-    disp_y = disp_y
-    use_displaced_mesh = true
+[Modules/TensorMechanics/Master]
+  [./all]
+    strain = FINITE
+    add_variables = true
+    planar_formulation = PLANE_STRAIN
+    generate_output = 'stress_xx stress_yy'
   [../]
 []
 
@@ -90,26 +63,30 @@
 
 [BCs]
   [./bottom_y]
-    type = PresetBC
+    type = DirichletBC
     boundary = 0
+    preset = false
     variable = disp_y
     value = 0.0
   [../]
   [./bottom_x]
-    type = PresetBC
+    type = DirichletBC
     boundary = 0
+    preset = false
     variable = disp_x
     value = 0.0
   [../]
   [./top_right_y]
     type = FunctionDirichletBC
     boundary = 2
+    preset = false
     variable = disp_y
     function = bc_func_ty
   [../]
   [./top_right_x]
     type = FunctionDirichletBC
     boundary = 2
+    preset = false
     variable = disp_x
     function = bc_func_tx
   [../]
@@ -133,14 +110,13 @@
 []
 
 [Materials]
-  [./elast]
-    type = Elastic
-    block = 0
-    disp_x = disp_x
-    disp_y = disp_y
-    poissons_ratio = 0.3
+  [./elasticity_tensor]
+    type = ComputeIsotropicElasticityTensor
     youngs_modulus = 1e6
-    formulation = NonlinearPlaneStrain
+    poissons_ratio = 0.3
+  [../]
+  [./stress]
+    type = ComputeFiniteStrainElasticStress
   [../]
 []
 

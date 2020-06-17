@@ -12,10 +12,6 @@
 #include "Kernel.h"
 
 // Forward Declarations
-class INSProjection;
-
-template <>
-InputParameters validParams<INSProjection>();
 
 /**
  * This class computes the "projection" part of the "split" method for
@@ -27,6 +23,8 @@ InputParameters validParams<INSProjection>();
 class INSProjection : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   INSProjection(const InputParameters & parameters);
 
   virtual ~INSProjection() {}
@@ -56,4 +54,3 @@ protected:
   // Material properties
   const MaterialProperty<Real> & _rho;
 };
-

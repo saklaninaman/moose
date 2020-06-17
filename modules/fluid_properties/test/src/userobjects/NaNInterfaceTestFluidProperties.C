@@ -11,12 +11,11 @@
 
 registerMooseObject("FluidPropertiesTestApp", NaNInterfaceTestFluidProperties);
 
-template <>
 InputParameters
-validParams<NaNInterfaceTestFluidProperties>()
+NaNInterfaceTestFluidProperties::validParams()
 {
-  InputParameters params = validParams<SinglePhaseFluidProperties>();
-  params += validParams<NaNInterface>();
+  InputParameters params = SinglePhaseFluidProperties::validParams();
+  params += NaNInterface::validParams();
 
   params.addClassDescription("Fluid properties for testing NaNInterface");
 
@@ -28,13 +27,15 @@ NaNInterfaceTestFluidProperties::NaNInterfaceTestFluidProperties(const InputPara
 {
 }
 
-Real
-NaNInterfaceTestFluidProperties::p_from_v_e(Real, Real) const
-{
-  return getNaN();
-}
+Real NaNInterfaceTestFluidProperties::p_from_v_e(Real, Real) const { return getNaN(); }
 
 void
 NaNInterfaceTestFluidProperties::p_from_v_e(Real, Real, Real &, Real &, Real &) const
 {
+}
+
+std::vector<Real>
+NaNInterfaceTestFluidProperties::returnNaNVector() const
+{
+  return getNaNVector(2);
 }

@@ -13,10 +13,6 @@
 #include "Material.h"
 
 // Forward Declarations
-class NSTemperatureL2;
-
-template <>
-InputParameters validParams<NSTemperatureL2>();
 
 /**
  * This class was originally used to solve for the temperature
@@ -26,6 +22,8 @@ InputParameters validParams<NSTemperatureL2>();
 class NSTemperatureL2 : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   NSTemperatureL2(const InputParameters & parameters);
 
 protected:
@@ -50,4 +48,3 @@ protected:
 
   const MaterialProperty<Real> & _c_v;
 };
-

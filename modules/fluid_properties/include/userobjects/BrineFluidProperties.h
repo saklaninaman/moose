@@ -12,11 +12,6 @@
 #include "MultiComponentFluidProperties.h"
 #include "Water97FluidProperties.h"
 
-class BrineFluidProperties;
-
-template <>
-InputParameters validParams<BrineFluidProperties>();
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Woverloaded-virtual"
 
@@ -38,6 +33,8 @@ InputParameters validParams<BrineFluidProperties>();
 class BrineFluidProperties : public MultiComponentFluidProperties
 {
 public:
+  static InputParameters validParams();
+
   BrineFluidProperties(const InputParameters & parameters);
   virtual ~BrineFluidProperties();
 
@@ -68,10 +65,11 @@ public:
   Real molarMassH2O() const;
 
   virtual Real rho_from_p_T_X(Real pressure, Real temperature, Real xnacl) const override;
+  using MultiComponentFluidProperties::rho_from_p_T_X;
 
   FPDualReal rho_from_p_T_X(const FPDualReal & pressure,
                             const FPDualReal & temperature,
-                            const FPDualReal & xnacl) const override;
+                            const FPDualReal & xnacl) const;
 
   virtual void rho_from_p_T_X(Real pressure,
                               Real temperature,
@@ -82,6 +80,7 @@ public:
                               Real & drho_dx) const override;
 
   virtual Real mu_from_p_T_X(Real pressure, Real temperature, Real xnacl) const override;
+  using MultiComponentFluidProperties::mu_from_p_T_X;
 
   virtual void mu_from_p_T_X(Real pressure,
                              Real temperature,
@@ -93,9 +92,10 @@ public:
 
   FPDualReal h_from_p_T_X(const FPDualReal & pressure,
                           const FPDualReal & temperature,
-                          const FPDualReal & xnacl) const override;
+                          const FPDualReal & xnacl) const;
 
   virtual Real h_from_p_T_X(Real pressure, Real temperature, Real xnacl) const override;
+  using MultiComponentFluidProperties::h_from_p_T_X;
 
   virtual void h_from_p_T_X(Real pressure,
                             Real temperature,
@@ -109,7 +109,7 @@ public:
 
   FPDualReal e_from_p_T_X(const FPDualReal & pressure,
                           const FPDualReal & temperature,
-                          const FPDualReal & xnacl) const override;
+                          const FPDualReal & xnacl) const;
 
   virtual Real e_from_p_T_X(Real pressure, Real temperature, Real xnacl) const override;
 
@@ -151,6 +151,19 @@ public:
    */
   Real haliteSolubility(Real temperature) const;
 
+  /**
+   * IAPWS formulation of Henry's law constant for dissolution in water
+   * (implemented in water FluidProperties userobject)
+   * @param T fluid temperature (K)
+   * @param coeffs Henry's constant coefficients of gas
+   * @param[out] Kh Henry's constant
+   * @param[out] dKh_dT derivative of Kh wrt temperature
+   */
+  Real henryConstant(Real temperature, const std::vector<Real> & coeffs) const;
+  void
+  henryConstant(Real temperature, const std::vector<Real> & coeffs, Real & Kh, Real & dKh_dT) const;
+  DualReal henryConstant(const DualReal & temperature, const std::vector<Real> & coeffs) const;
+
   /// Fluid component numbers for water and NaCl
   static const unsigned int WATER = 0;
   static const unsigned int NACL = 1;
@@ -173,6 +186,8 @@ protected:
   Real massFractionToMoleFraction(Real xnacl) const;
   FPDualReal massFractionToMoleFraction(const FPDualReal & xnacl) const;
 
+  /// Water97FluidProperties UserObject (for Henry's law)
+  const Water97FluidProperties * _water97_fp;
   /// Water97FluidProperties UserObject
   const SinglePhaseFluidProperties * _water_fp;
   /// NaClFluidProperties UserObject
@@ -187,4 +202,3 @@ protected:
 };
 
 #pragma GCC diagnostic pop
-

@@ -11,17 +11,14 @@
 
 #include "FluxBC.h"
 
-class HeatConductionBC;
-
-template <>
-InputParameters validParams<HeatConductionBC>();
-
 /**
  *
  */
 class HeatConductionBC : public FluxBC
 {
 public:
+  static InputParameters validParams();
+
   HeatConductionBC(const InputParameters & parameters);
   virtual ~HeatConductionBC();
 
@@ -31,4 +28,3 @@ protected:
 
   const MaterialProperty<Real> & _k;
 };
-

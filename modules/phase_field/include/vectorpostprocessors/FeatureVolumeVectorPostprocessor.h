@@ -14,11 +14,7 @@
 #include "BoundaryRestrictable.h"
 
 // Forward Declarations
-class FeatureVolumeVectorPostprocessor;
 class FeatureFloodCount;
-
-template <>
-InputParameters validParams<FeatureVolumeVectorPostprocessor>();
 
 /**
  * This VectorPostprocessor is intended to be used to calculate
@@ -35,6 +31,8 @@ class FeatureVolumeVectorPostprocessor : public GeneralVectorPostprocessor,
                                          public BoundaryRestrictable
 {
 public:
+  static InputParameters validParams();
+
   FeatureVolumeVectorPostprocessor(const InputParameters & parameters);
 
   virtual void initialize() override;
@@ -57,6 +55,7 @@ protected:
   VectorPostprocessorValue & _var_num;
   VectorPostprocessorValue & _feature_volumes;
   VectorPostprocessorValue & _intersects_bounds;
+  VectorPostprocessorValue & _intersects_specified_bounds;
   VectorPostprocessorValue & _percolated;
 
   /// Indicates whether the calculation should be run on volumes or area of a boundary

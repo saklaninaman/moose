@@ -11,11 +11,10 @@
 
 registerMooseObject("FluidPropertiesApp", FluidPropertiesMaterialPT);
 
-template <>
 InputParameters
-validParams<FluidPropertiesMaterialPT>()
+FluidPropertiesMaterialPT::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   params.addRequiredCoupledVar("pressure", "Fluid pressure (Pa)");
   params.addRequiredCoupledVar("temperature", "Fluid temperature (K)");
   params.addRequiredParam<UserObjectName>("fp", "The name of the user object for fluid properties");

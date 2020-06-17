@@ -11,17 +11,14 @@
 
 #include "IntegratedBC.h"
 
-class CoupledPressureBC;
-
-template <>
-InputParameters validParams<CoupledPressureBC>();
-
 /**
  * Pressure boundary condition using coupled variable to apply pressure in a given direction
  */
 class CoupledPressureBC : public IntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   CoupledPressureBC(const InputParameters & parameters);
 
 protected:
@@ -32,4 +29,3 @@ protected:
   /// The values of pressure to be imposed
   const VariableValue & _pressure;
 };
-

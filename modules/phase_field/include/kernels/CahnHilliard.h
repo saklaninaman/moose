@@ -18,9 +18,7 @@
 class CahnHilliard : public CahnHilliardBase<Real>
 {
 public:
+  static InputParameters validParams();
+
   CahnHilliard(const InputParameters & parameters);
 };
-
-template <>
-InputParameters validParams<CahnHilliard>();
-

@@ -13,11 +13,10 @@
 
 registerMooseObject("RichardsApp", RichardsSUPGnone);
 
-template <>
 InputParameters
-validParams<RichardsSUPGnone>()
+RichardsSUPGnone::validParams()
 {
-  InputParameters params = validParams<RichardsSUPG>();
+  InputParameters params = RichardsSUPG::validParams();
   params.addClassDescription("User object for no SUPG");
   return params;
 }

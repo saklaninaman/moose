@@ -17,11 +17,10 @@
 
 registerMooseAction("PhaseFieldApp", CHPFCRFFSplitVariablesAction, "add_variable");
 
-template <>
 InputParameters
-validParams<CHPFCRFFSplitVariablesAction>()
+CHPFCRFFSplitVariablesAction::validParams()
 {
-  InputParameters params = validParams<Action>();
+  InputParameters params = Action::validParams();
   MooseEnum familyEnum = AddVariableAction::getNonlinearVariableFamilies();
   params.addParam<MooseEnum>(
       "family",
@@ -68,7 +67,7 @@ CHPFCRFFSplitVariablesAction::act()
   _problem->addMultiApp("TransientMultiApp", "HHEquationSolver", poly_params);
 
   poly_params = _factory.getValidParams("MultiAppNearestNodeTransfer");
-  poly_params.set<MooseEnum>("direction") = "to_multiapp";
+  poly_params.set<MultiMooseEnum>("direction") = "to_multiapp";
   poly_params.set<ExecFlagEnum>("execute_on") = execute_options;
   poly_params.set<std::vector<AuxVariableName>>("variable") = {_n_name};
   poly_params.set<std::vector<VariableName>>("source_variable") = {_n_name};
@@ -90,7 +89,7 @@ CHPFCRFFSplitVariablesAction::act()
                Utility::string_to_enum<FEFamily>(getParam<MooseEnum>("family"))));
 
     poly_params = _factory.getValidParams("MultiAppNearestNodeTransfer");
-    poly_params.set<MooseEnum>("direction") = "from_multiapp";
+    poly_params.set<MultiMooseEnum>("direction") = "from_multiapp";
     poly_params.set<std::vector<AuxVariableName>>("variable") = {real_name};
     poly_params.set<std::vector<VariableName>>("source_variable") = {real_name};
     poly_params.set<MultiAppName>("multi_app") = "HHEquationSolver";
@@ -107,7 +106,7 @@ CHPFCRFFSplitVariablesAction::act()
                  Utility::string_to_enum<FEFamily>(getParam<MooseEnum>("family"))));
 
       poly_params = _factory.getValidParams("MultiAppNearestNodeTransfer");
-      poly_params.set<MooseEnum>("direction") = "from_multiapp";
+      poly_params.set<MultiMooseEnum>("direction") = "from_multiapp";
       poly_params.set<std::vector<AuxVariableName>>("variable") = {imag_name};
       poly_params.set<std::vector<VariableName>>("source_variable") = {imag_name};
       poly_params.set<MultiAppName>("multi_app") = "HHEquationSolver";

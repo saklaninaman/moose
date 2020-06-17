@@ -10,14 +10,15 @@
 #include "InternalSideUserObject.h"
 #include "Assembly.h"
 
-template <>
+defineLegacyParams(InternalSideUserObject);
+
 InputParameters
-validParams<InternalSideUserObject>()
+InternalSideUserObject::validParams()
 {
-  InputParameters params = validParams<UserObject>();
-  params += validParams<BlockRestrictable>();
-  params += validParams<TwoMaterialPropertyInterface>();
-  params += validParams<TransientInterface>();
+  InputParameters params = UserObject::validParams();
+  params += BlockRestrictable::validParams();
+  params += TwoMaterialPropertyInterface::validParams();
+  params += TransientInterface::validParams();
 
   // Need one layer of ghosting
   params.addRelationshipManager("ElementSideNeighborLayers",
@@ -33,9 +34,7 @@ InternalSideUserObject::InternalSideUserObject(const InputParameters & parameter
     TwoMaterialPropertyInterface(this, blockIDs(), Moose::EMPTY_BOUNDARY_IDS),
     NeighborCoupleable(this, false, false),
     MooseVariableDependencyInterface(),
-    UserObjectInterface(this),
     TransientInterface(this),
-    PostprocessorInterface(this),
     _mesh(_subproblem.mesh()),
     _q_point(_assembly.qPointsFace()),
     _qrule(_assembly.qRuleFace()),
@@ -43,10 +42,12 @@ InternalSideUserObject::InternalSideUserObject(const InputParameters & parameter
     _coord(_assembly.coordTransformation()),
     _normals(_assembly.normals()),
     _current_elem(_assembly.elem()),
+    _current_elem_volume(_assembly.elemVolume()),
     _current_side(_assembly.side()),
     _current_side_elem(_assembly.sideElem()),
     _current_side_volume(_assembly.sideElemVolume()),
-    _neighbor_elem(_assembly.neighbor())
+    _neighbor_elem(_assembly.neighbor()),
+    _current_neighbor_volume(_assembly.neighborVolume())
 {
   // Keep track of which variables are coupled so we know what we depend on
   const std::vector<MooseVariableFEBase *> & coupled_vars = getCoupledMooseVars();

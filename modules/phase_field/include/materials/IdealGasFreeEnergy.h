@@ -12,10 +12,6 @@
 #include "GasFreeEnergyBase.h"
 
 // Forward Declarations
-class IdealGasFreeEnergy;
-
-template <>
-InputParameters validParams<IdealGasFreeEnergy>();
 
 /**
  * Material class that provides the free energy of an ideal gas with the expression builder
@@ -24,6 +20,7 @@ InputParameters validParams<IdealGasFreeEnergy>();
 class IdealGasFreeEnergy : public GasFreeEnergyBase
 {
 public:
+  static InputParameters validParams();
+
   IdealGasFreeEnergy(const InputParameters & parameters);
 };
-

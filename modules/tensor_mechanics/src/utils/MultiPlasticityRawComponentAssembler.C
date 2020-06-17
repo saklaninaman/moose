@@ -10,9 +10,8 @@
 #include "MultiPlasticityRawComponentAssembler.h"
 #include "RankFourTensor.h"
 
-template <>
 InputParameters
-validParams<MultiPlasticityRawComponentAssembler>()
+MultiPlasticityRawComponentAssembler::validParams()
 {
   InputParameters params = emptyInputParameters();
   MooseEnum specialIC("none rock joint", "none");

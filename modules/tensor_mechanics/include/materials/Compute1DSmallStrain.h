@@ -11,11 +11,6 @@
 
 #include "ComputeSmallStrain.h"
 
-class Compute1DSmallStrain;
-
-template <>
-InputParameters validParams<Compute1DSmallStrain>();
-
 /**
  * Compute1DSmallStrain defines a strain tensor, assuming small strains,
  * in 1D problems, handling strains in other two directions.
@@ -25,6 +20,8 @@ InputParameters validParams<Compute1DSmallStrain>();
 class Compute1DSmallStrain : public ComputeSmallStrain
 {
 public:
+  static InputParameters validParams();
+
   Compute1DSmallStrain(const InputParameters & parameters);
 
   void computeProperties() override;
@@ -40,4 +37,3 @@ protected:
    */
   virtual Real computeStrainZZ() = 0;
 };
-

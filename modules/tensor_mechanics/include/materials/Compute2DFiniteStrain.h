@@ -11,11 +11,6 @@
 
 #include "ComputeFiniteStrain.h"
 
-class Compute2DFiniteStrain;
-
-template <>
-InputParameters validParams<Compute2DFiniteStrain>();
-
 /**
  * Compute2DFiniteStrain defines a strain increment and a rotation increment
  * for finite strains in 2D geometries, handling the out of plane strains.
@@ -26,7 +21,10 @@ InputParameters validParams<Compute2DFiniteStrain>();
 class Compute2DFiniteStrain : public ComputeFiniteStrain
 {
 public:
+  static InputParameters validParams();
+
   Compute2DFiniteStrain(const InputParameters & parameters);
+
   void initialSetup() override;
 
   virtual void computeProperties() override;
@@ -48,4 +46,3 @@ protected:
 
   const unsigned int _out_of_plane_direction;
 };
-

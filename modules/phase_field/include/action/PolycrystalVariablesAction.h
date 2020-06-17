@@ -13,7 +13,6 @@
 #include "Action.h"
 
 // Forward declaration
-class PolycrystalVariablesAction;
 
 /**
  * Automatically generates all variables to model a polycrystal with op_num orderparameters
@@ -21,6 +20,8 @@ class PolycrystalVariablesAction;
 class PolycrystalVariablesAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   PolycrystalVariablesAction(const InputParameters & params);
 
   virtual void act();
@@ -29,7 +30,3 @@ private:
   const unsigned int _op_num;
   const std::string _var_name_base;
 };
-
-template <>
-InputParameters validParams<PolycrystalVariablesAction>();
-

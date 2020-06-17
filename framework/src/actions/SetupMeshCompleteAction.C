@@ -26,11 +26,12 @@ registerMooseAction("MooseApp", SetupMeshCompleteAction, "uniform_refine_mesh");
 
 registerMooseAction("MooseApp", SetupMeshCompleteAction, "setup_mesh_complete");
 
-template <>
+defineLegacyParams(SetupMeshCompleteAction);
+
 InputParameters
-validParams<SetupMeshCompleteAction>()
+SetupMeshCompleteAction::validParams()
 {
-  InputParameters params = validParams<Action>();
+  InputParameters params = Action::validParams();
   return params;
 }
 
@@ -75,6 +76,10 @@ SetupMeshCompleteAction::act()
     if (_app.isUseSplit())
       return;
 
+    // uniform refinement has been done on master, so skip
+    if (_app.masterMesh())
+      return;
+
     /**
      * If possible we'd like to refine the mesh here before the equation systems
      * are setup to avoid doing expensive projections. If however we are doing a
@@ -83,20 +88,33 @@ SetupMeshCompleteAction::act()
      */
     if (_app.setFileRestart() == false && _app.isRecovering() == false)
     {
+      TIME_SECTION(_uniform_refine_timer);
+
+      auto & _communicator = *_app.getCommunicator();
+      CONSOLE_TIMED_PRINT("Uniformly refining mesh");
+
       if (_mesh->uniformRefineLevel())
       {
-        TIME_SECTION(_uniform_refine_timer);
-        CONSOLE_TIMED_PRINT("Uniformly refining mesh");
-
         Adaptivity::uniformRefine(_mesh.get());
+        // After refinement we need to make sure that all of our MOOSE-specific containers are
+        // up-to-date
+        _mesh->update();
 
         if (_displaced_mesh)
+        {
           Adaptivity::uniformRefine(_displaced_mesh.get());
+          // After refinement we need to make sure that all of our MOOSE-specific containers are
+          // up-to-date
+          _displaced_mesh->update();
+        }
       }
     }
   }
   else if (_current_task == "delete_remote_elements_post_equation_systems_init")
   {
+    // We currently only trigger the needsRemoteDeletion flag if somebody has requested a late
+    // geometric ghosting functor and/or we have a displaced mesh. In other words, we almost never
+    // trigger this.
     if (_mesh->needsRemoteElemDeletion())
     {
       _mesh->getMesh().delete_remote_elements();

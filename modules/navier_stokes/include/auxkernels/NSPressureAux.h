@@ -12,11 +12,7 @@
 #include "AuxKernel.h"
 
 // Forward Declarations
-class NSPressureAux;
 class IdealGasFluidProperties;
-
-template <>
-InputParameters validParams<NSPressureAux>();
 
 /**
  * Nodal auxiliary variable, for computing pressure at the nodes
@@ -24,6 +20,8 @@ InputParameters validParams<NSPressureAux>();
 class NSPressureAux : public AuxKernel
 {
 public:
+  static InputParameters validParams();
+
   NSPressureAux(const InputParameters & parameters);
 
   virtual ~NSPressureAux() {}
@@ -37,4 +35,3 @@ protected:
   // Fluid properties
   const IdealGasFluidProperties & _fp;
 };
-

@@ -13,10 +13,6 @@
 #include "ElementLoopUserObject.h"
 
 // Forward Declarations
-class SlopeReconstructionBase;
-
-template <>
-InputParameters validParams<SlopeReconstructionBase>();
 
 /**
  * Base class for piecewise linear slope reconstruction
@@ -25,6 +21,8 @@ InputParameters validParams<SlopeReconstructionBase>();
 class SlopeReconstructionBase : public ElementLoopUserObject
 {
 public:
+  static InputParameters validParams();
+
   SlopeReconstructionBase(const InputParameters & parameters);
 
   virtual void initialize();

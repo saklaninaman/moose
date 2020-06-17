@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -82,7 +82,7 @@ class ImageDiffer(object):
 
         # Print the output
         if kwargs.pop('output', False):
-            print '\n'.join(output)
+            print('\n'.join(output))
 
         # Return the text, as a single string
         return '\n'.join(output)
@@ -98,7 +98,7 @@ class ImageDiffer(object):
 
         # Print the output
         if kwargs.pop('output', False):
-            print '\n'.join(output)
+            print('\n'.join(output))
 
         # Return the text, as a single string
         return '\n'.join(output)
@@ -122,9 +122,16 @@ class ImageDiffer(object):
             self.__addError(err, msg)
             return
 
-        # Compute the error
-        import skimage.measure
-        self.__error = skimage.measure.compare_ssim(self.__data[0], self.__data[1], multichannel=True)
+        # Compute the error using "Structural Similarity Index"
+        try:
+            # skimage version >= 0.17
+            import skimage.metrics
+            self.__error = skimage.metrics.structural_similarity(self.__data[0], self.__data[1], multichannel=True)
+        except:
+            # legacy support
+            import skimage.measure
+            self.__error = skimage.measure.compare_ssim(self.__data[0], self.__data[1], multichannel=True)
+
 
         # Report the error
         if self.__error < self.__allowed:
@@ -176,7 +183,7 @@ if __name__ == '__main__':
         file0 = args.files[0]
         file1 = args.files[1]
     else:
-        print "You must specify one or two files for comparison, see -h"
+        print("You must specify one or two files for comparison, see -h")
 
     d = ImageDiffer(file0, file1)
-    print '\n\n' + d.message()
+    print('\n\n' + d.message())

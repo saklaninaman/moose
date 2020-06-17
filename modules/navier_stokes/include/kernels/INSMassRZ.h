@@ -12,10 +12,6 @@
 #include "INSMass.h"
 
 // Forward Declarations
-class INSMassRZ;
-
-template <>
-InputParameters validParams<INSMassRZ>();
 
 /**
  * This class computes the mass equation residual and Jacobian
@@ -27,6 +23,8 @@ InputParameters validParams<INSMassRZ>();
 class INSMassRZ : public INSMass
 {
 public:
+  static InputParameters validParams();
+
   INSMassRZ(const InputParameters & parameters);
   virtual ~INSMassRZ() {}
 
@@ -38,4 +36,3 @@ protected:
   virtual Real computeQpResidual() override;
   virtual Real computeQpOffDiagJacobian(unsigned jvar) override;
 };
-

@@ -1,5 +1,3 @@
-- /AuxKernels
-- /AuxKernels/BndsCalcAux
 - /AuxKernels/CrossTermGradientFreeEnergy
 - /AuxKernels/EBSDReaderAvgDataAux
 - /AuxKernels/EBSDReaderPointDataAux
@@ -19,12 +17,10 @@
 - /AuxKernels/MaterialVectorAuxKernel/MaterialVectorAuxKernelAction
 - /AuxKernels/MaterialVectorGradAuxKernel
 - /AuxKernels/MaterialVectorGradAuxKernel/MaterialVectorGradAuxKernelAction
-- /AuxVariables
 - /AuxVariables/MultiAuxVariables
 - /AuxVariables/MultiAuxVariables/MultiAuxVariablesAction
 - /BCs/CahnHilliardAnisoFluxBC
 - /BCs/CahnHilliardFluxBC
-- /ICs
 - /ICs/BimodalInverseSuperellipsoidsIC
 - /ICs/BimodalSuperellipsoidsIC
 - /ICs/ClosePackIC
@@ -35,7 +31,6 @@
 - /ICs/PFCFreezingIC
 - /ICs/PolycrystalColoringIC
 - /ICs/PolycrystalRandomIC
-- /ICs/PolycrystalVoronoiVoidIC
 - /ICs/RampIC
 - /ICs/ReconPhaseVarIC
 - /ICs/RndBoundingBoxIC
@@ -64,7 +59,6 @@
 - /InterfaceKernels/EqualGradientLagrangeMultiplier
 - /InterfaceKernels/InterfaceDiffusionBoundaryTerm
 - /InterfaceKernels/InterfaceDiffusionFluxMatch
-- /Kernels/ACGBPoly
 - /Kernels/ACGrGrElasticDrivingForce
 - /Kernels/ACInterfaceKobayashi2
 - /Kernels/ACSEDGPoly
@@ -73,14 +67,8 @@
 - /Kernels/CHSplitConcentration
 - /Kernels/CHSplitFlux
 - /Kernels/CoupledSwitchingTimeDerivative
-- /Kernels/MaskedBodyForce
 - /Kernels/MultiGrainRigidBodyMotion
 - /Kernels/SingleGrainRigidBodyMotion
-- /Kernels/SoretDiffusion
-- /Kernels/SplitCHMath
-- /Kernels/SwitchingFunctionConstraintEta
-- /Kernels/SwitchingFunctionConstraintLagrange
-- /Kernels/SwitchingFunctionPenalty
 - /Kernels/CHPFCRFFSplitKernel
 - /Kernels/CHPFCRFFSplitKernel/CHPFCRFFSplitKernelAction
 - /Kernels/HHPFCRFFSplitKernel
@@ -95,6 +83,8 @@
 - /Kernels/PolycrystalStoredEnergy/PolycrystalStoredEnergyAction
 - /Kernels/RigidBodyMultiKernel
 - /Kernels/RigidBodyMultiKernel/RigidBodyMultiKernelAction
+- /Materials/ADConstantAnisotropicMobility
+- /Materials/ADGBEvolution
 - /Materials/AsymmetricCrossTermBarrierFunctionMaterial
 - /Materials/CompositeMobilityTensor
 - /Materials/ComputePolycrystalElasticityTensor
@@ -111,12 +101,10 @@
 - /Materials/GrainAdvectionVelocity
 - /Materials/InterfaceOrientationMaterial
 - /Materials/KKSXeVacSolidMaterial
-- /Materials/MathEBFreeEnergy
 - /Materials/PFCRFFMaterial
 - /Materials/PFCTradMaterial
 - /Materials/PFFracBulkRateMaterial
 - /Materials/PFParamsPolyFreeEnergy
-- /Materials/PhaseNormalTensor
 - /Materials/PolynomialFreeEnergy
 - /Materials/RegularSolutionFreeEnergy
 - /Materials/StrainGradDispDerivatives
@@ -124,8 +112,6 @@
 - /Materials/SwitchingFunctionMaterial
 - /Materials/SwitchingFunctionMultiPhaseMaterial
 - /Materials/ThirdPhaseSuppressionMaterial
-- /Materials/TimeStepMaterial
-- /Materials/VariableGradientMaterial
 - /Modules/PhaseField
 - /Modules/PhaseField/Conserved
 - /Modules/PhaseField/DisplacementGradients
@@ -149,7 +135,6 @@
 - /UserObjects/GrainForceAndTorqueSum
 - /UserObjects/MaskedGrainForceAndTorque
 - /UserObjects/RandomEulerAngleProvider
-- /Variables
 - /Variables/CHPFCRFFSplitVariables
 - /Variables/CHPFCRFFSplitVariables/CHPFCRFFSplitVariablesAction
 - /Variables/HHPFCRFFSplitVariables

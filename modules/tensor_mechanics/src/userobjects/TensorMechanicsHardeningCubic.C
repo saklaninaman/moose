@@ -12,11 +12,10 @@
 
 registerMooseObject("TensorMechanicsApp", TensorMechanicsHardeningCubic);
 
-template <>
 InputParameters
-validParams<TensorMechanicsHardeningCubic>()
+TensorMechanicsHardeningCubic::validParams()
 {
-  InputParameters params = validParams<TensorMechanicsHardeningModel>();
+  InputParameters params = TensorMechanicsHardeningModel::validParams();
   params.addRequiredParam<Real>(
       "value_0", "The value of the parameter for all internal_parameter <= internal_0");
   params.addParam<Real>("value_residual",

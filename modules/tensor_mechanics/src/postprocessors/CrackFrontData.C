@@ -18,11 +18,11 @@
 
 registerMooseObject("TensorMechanicsApp", CrackFrontData);
 
-template <>
 InputParameters
-validParams<CrackFrontData>()
+CrackFrontData::validParams()
 {
-  InputParameters params = validParams<GeneralPostprocessor>();
+  InputParameters params = GeneralPostprocessor::validParams();
+  params.addClassDescription("Determines which nodes are along the crack front");
   params.addRequiredParam<VariableName>(
       "variable", "The name of a variable whose value at the crack front is to be reported");
   params.addRequiredParam<UserObjectName>("crack_front_definition",
@@ -44,8 +44,7 @@ CrackFrontData::CrackFrontData(const InputParameters & parameters)
     _mesh(_subproblem.mesh()),
     _var_name(parameters.get<VariableName>("variable")),
     _scale_factor(getParam<Real>("scale_factor")),
-    _field_var(_subproblem.getVariable(
-        _tid, _var_name, Moose::VarKindType::VAR_ANY, Moose::VarFieldType::VAR_FIELD_ANY))
+    _field_var(_subproblem.getStandardVariable(_tid, _var_name))
 {
   if (!_field_var.isNodal())
     mooseError("CrackFrontData can be output only for nodal variables, variable '",

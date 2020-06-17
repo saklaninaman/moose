@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", EBSDReaderPointDataAux);
 
-template <>
 InputParameters
-validParams<EBSDReaderPointDataAux>()
+EBSDReaderPointDataAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   params.addRequiredParam<UserObjectName>("ebsd_reader", "The EBSDReader GeneralUserObject");
   MooseEnum field_types = EBSDAccessFunctors::getPointDataFieldType();
   params.addRequiredParam<MooseEnum>(

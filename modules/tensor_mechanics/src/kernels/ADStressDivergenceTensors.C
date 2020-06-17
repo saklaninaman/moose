@@ -11,35 +11,42 @@
 #include "RankTwoTensor.h"
 #include "libmesh/quadrature.h"
 
-registerADMooseObject("TensorMechanicsApp", ADStressDivergenceTensors);
+registerMooseObject("TensorMechanicsApp", ADStressDivergenceTensors);
 
-defineADValidParams(
-    ADStressDivergenceTensors,
-    ADKernel,
-    params.addClassDescription("Stress divergence kernel with automatic differentiation for the "
-                               "Cartesian coordinate system");
-    params.addRequiredParam<unsigned int>("component",
-                                          "An integer corresponding to the direction "
-                                          "the variable this kernel acts in. (0 for x, "
-                                          "1 for y, 2 for z)");
-    params.addRequiredCoupledVar("displacements",
-                                 "The string of displacements suitable for the problem statement");
-    params.addParam<std::string>("base_name", "Material property base name");
-    params.set<bool>("use_displaced_mesh") = false;
-    params.addParam<bool>("volumetric_locking_correction",
-                          false,
-                          "Set to false to turn off volumetric locking correction"););
+InputParameters
+ADStressDivergenceTensors::validParams()
+{
+  InputParameters params = ADKernel::validParams();
+  params.addClassDescription("Stress divergence kernel with automatic differentiation for the "
+                             "Cartesian coordinate system");
+  params.addRequiredParam<unsigned int>("component",
+                                        "An integer corresponding to the direction "
+                                        "the variable this kernel acts in. (0 for x, "
+                                        "1 for y, 2 for z)");
+  params.addRequiredCoupledVar("displacements",
+                               "The string of displacements suitable for the problem statement");
+  params.addParam<std::string>("base_name", "Material property base name");
+  params.addCoupledVar("out_of_plane_strain",
+                       "The name of the out_of_plane_strain variable used in the "
+                       "WeakPlaneStress kernel.");
+  params.set<bool>("use_displaced_mesh") = false;
+  params.addParam<bool>("volumetric_locking_correction",
+                        false,
+                        "Set to false to turn off volumetric locking correction");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADStressDivergenceTensors<compute_stage>::ADStressDivergenceTensors(
-    const InputParameters & parameters)
-  : ADKernel<compute_stage>(parameters),
+ADStressDivergenceTensors::ADStressDivergenceTensors(const InputParameters & parameters)
+  : ADKernel(parameters),
     _base_name(isParamValid("base_name") ? getParam<std::string>("base_name") + "_" : ""),
     _stress(getADMaterialProperty<RankTwoTensor>(_base_name + "stress")),
     _component(getParam<unsigned int>("component")),
     _ndisp(coupledComponents("displacements")),
     _disp_var(_ndisp),
     _avg_grad_test(),
+    _out_of_plane_strain_coupled(isCoupled("out_of_plane_strain")),
+    _out_of_plane_strain(_out_of_plane_strain_coupled ? &adCoupledValue("out_of_plane_strain")
+                                                      : nullptr),
     _volumetric_locking_correction(getParam<bool>("volumetric_locking_correction"))
 {
   for (unsigned int i = 0; i < _ndisp; ++i)
@@ -52,31 +59,34 @@ ADStressDivergenceTensors<compute_stage>::ADStressDivergenceTensors(
     mooseError("Volumetric locking correction should be set to false for 1-D problems.");
 }
 
-template <ComputeStage compute_stage>
 void
-ADStressDivergenceTensors<compute_stage>::initialSetup()
+ADStressDivergenceTensors::initialSetup()
 {
   if (getBlockCoordSystem() != Moose::COORD_XYZ)
     mooseError(
         "The coordinate system in the Problem block must be set to XYZ for cartesian geometries.");
 }
 
-template <ComputeStage compute_stage>
-ADResidual
-ADStressDivergenceTensors<compute_stage>::computeQpResidual()
+ADReal
+ADStressDivergenceTensors::computeQpResidual()
 {
-  ADResidual residual = _stress[_qp].row(_component) * _grad_test[_i][_qp];
+  ADReal residual = _stress[_qp].row(_component) * _grad_test[_i][_qp];
 
   // volumetric locking correction
   if (_volumetric_locking_correction)
     residual += (_avg_grad_test[_i] - _grad_test[_i][_qp](_component)) / 3.0 * _stress[_qp].trace();
 
+  if (_ndisp != 3 && _out_of_plane_strain_coupled && _use_displaced_mesh)
+  {
+    const ADReal out_of_plane_thickness = std::exp((*_out_of_plane_strain)[_qp]);
+    residual *= out_of_plane_thickness;
+  }
+
   return residual;
 }
 
-template <ComputeStage compute_stage>
 void
-ADStressDivergenceTensors<compute_stage>::precalculateResidual()
+ADStressDivergenceTensors::precalculateResidual()
 {
   if (!_volumetric_locking_correction)
     return;
@@ -96,6 +106,3 @@ ADStressDivergenceTensors<compute_stage>::precalculateResidual()
     _avg_grad_test[_i] /= ad_current_elem_volume;
   }
 }
-
-// explicit instantiation is required for AD base classes
-adBaseClass(ADStressDivergenceTensors);

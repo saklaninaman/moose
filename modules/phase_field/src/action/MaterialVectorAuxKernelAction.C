@@ -14,11 +14,10 @@
 
 registerMooseAction("PhaseFieldApp", MaterialVectorAuxKernelAction, "add_aux_kernel");
 
-template <>
 InputParameters
-validParams<MaterialVectorAuxKernelAction>()
+MaterialVectorAuxKernelAction::validParams()
 {
-  InputParameters params = validParams<Action>();
+  InputParameters params = Action::validParams();
   params.addRequiredParam<unsigned int>(
       "grain_num", "Value that specifies the number of grains to create aux kernels for.");
   params.addRequiredParam<std::vector<std::string>>(

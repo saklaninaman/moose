@@ -11,17 +11,14 @@
 
 #include "ComputeStressBase.h"
 
-class ComputeCosseratStressBase;
-
-template <>
-InputParameters validParams<ComputeCosseratStressBase>();
-
 /**
  * ComputeCosseratStressBase is the base class for stress tensors
  */
 class ComputeCosseratStressBase : public ComputeStressBase
 {
 public:
+  static InputParameters validParams();
+
   ComputeCosseratStressBase(const InputParameters & parameters);
 
 protected:
@@ -40,4 +37,3 @@ protected:
   /// derivative of couple-stress w.r.t. curvature
   MaterialProperty<RankFourTensor> & _Jacobian_mult_couple;
 };
-

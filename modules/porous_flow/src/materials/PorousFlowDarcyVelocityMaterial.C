@@ -11,11 +11,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowDarcyVelocityMaterial);
 
-template <>
 InputParameters
-validParams<PorousFlowDarcyVelocityMaterial>()
+PorousFlowDarcyVelocityMaterial::validParams()
 {
-  InputParameters params = validParams<PorousFlowMaterial>();
+  InputParameters params = PorousFlowMaterial::validParams();
   params.addRequiredParam<RealVectorValue>("gravity",
                                            "Gravitational acceleration vector downwards (m/s^2)");
   params.addClassDescription("This Material calculates the Darcy velocity for all phases");

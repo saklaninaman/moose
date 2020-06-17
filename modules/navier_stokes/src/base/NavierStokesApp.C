@@ -15,12 +15,18 @@
 #include "FluidPropertiesApp.h"
 #include "HeatConductionApp.h"
 
-template <>
 InputParameters
-validParams<NavierStokesApp>()
+NavierStokesApp::validParams()
 {
-  InputParameters params = validParams<MooseApp>();
+  InputParameters params = MooseApp::validParams();
+
   params.set<bool>("automatic_automatic_scaling") = false;
+
+  // Do not use legacy DirichletBC, that is, set DirichletBC default for preset = true
+  params.set<bool>("use_legacy_dirichlet_bc") = false;
+
+  params.set<bool>("use_legacy_material_output") = false;
+
   return params;
 }
 
@@ -43,10 +49,8 @@ static void
 associateSyntaxInner(Syntax & syntax, ActionFactory & /*action_factory*/)
 {
   // Create the syntax
-  registerSyntax("AddNavierStokesVariablesAction", "Modules/NavierStokes/Variables");
-  registerSyntax("AddNavierStokesICsAction", "Modules/NavierStokes/ICs");
-  registerSyntax("AddNavierStokesKernelsAction", "Modules/NavierStokes/Kernels");
-  registerSyntax("AddNavierStokesBCsAction", "Modules/NavierStokes/BCs/*");
+  registerSyntax("CNSAction", "Modules/CompressibleNavierStokes");
+  registerSyntax("INSAction", "Modules/IncompressibleNavierStokes");
 
   // add variables action
   registerTask("add_navier_stokes_variables", /*is_required=*/false);
@@ -61,9 +65,7 @@ associateSyntaxInner(Syntax & syntax, ActionFactory & /*action_factory*/)
   addTaskDependency("add_navier_stokes_kernels", "add_kernel");
 
   // add BCs actions
-  registerMooseObjectTask("add_navier_stokes_bcs", NSWeakStagnationInletBC, /*is_required=*/false);
-  appendMooseObjectTask("add_navier_stokes_bcs", NSNoPenetrationBC);
-  appendMooseObjectTask("add_navier_stokes_bcs", NSStaticPressureOutletBC);
+  registerTask("add_navier_stokes_bcs", /*is_required=*/false);
   addTaskDependency("add_navier_stokes_bcs", "add_bc");
 }
 

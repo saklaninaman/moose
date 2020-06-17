@@ -13,11 +13,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowDarcyVelocityComponentLowerDimensional);
 
-template <>
 InputParameters
-validParams<PorousFlowDarcyVelocityComponentLowerDimensional>()
+PorousFlowDarcyVelocityComponentLowerDimensional::validParams()
 {
-  InputParameters params = validParams<PorousFlowDarcyVelocityComponent>();
+  InputParameters params = PorousFlowDarcyVelocityComponent::validParams();
   params.addCoupledVar("aperture", 1.0, "Aperture of the fracture");
   params.addClassDescription(
       "Darcy velocity on a lower-dimensional element embedded in a higher-dimensional mesh.  Units "

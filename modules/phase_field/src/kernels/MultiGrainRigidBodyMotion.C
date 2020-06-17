@@ -15,12 +15,11 @@
 
 registerMooseObject("PhaseFieldApp", MultiGrainRigidBodyMotion);
 
-template <>
 InputParameters
-validParams<MultiGrainRigidBodyMotion>()
+MultiGrainRigidBodyMotion::validParams()
 {
-  InputParameters params = validParams<GrainRigidBodyMotionBase>();
-  params.addClassDescription("Adds rigid mody motion to grains");
+  InputParameters params = GrainRigidBodyMotionBase::validParams();
+  params.addClassDescription("Adds rigid body motion to grains");
   return params;
 }
 

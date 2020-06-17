@@ -11,10 +11,8 @@
 
 #include "TwoPhaseFluidProperties.h"
 
-class TwoPhaseFluidPropertiesIndependent;
-
-template <>
-InputParameters validParams<TwoPhaseFluidPropertiesIndependent>();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
 
 /**
  * 2-phase fluid properties for 2 independent single-phase fluid properties.
@@ -24,6 +22,8 @@ InputParameters validParams<TwoPhaseFluidPropertiesIndependent>();
 class TwoPhaseFluidPropertiesIndependent : public TwoPhaseFluidProperties
 {
 public:
+  static InputParameters validParams();
+
   TwoPhaseFluidPropertiesIndependent(const InputParameters & parameters);
 
   virtual Real p_critical() const override;
@@ -40,3 +40,4 @@ public:
   [[noreturn]] void throwNotImplementedError() const;
 };
 
+#pragma GCC diagnostic pop

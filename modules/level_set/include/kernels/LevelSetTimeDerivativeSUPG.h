@@ -9,30 +9,21 @@
 
 #pragma once
 
-// MOOSE includes
 #include "ADTimeKernelGrad.h"
-#include "LevelSetVelocityInterface.h"
-
-// Forward declarations
-template <ComputeStage>
-class LevelSetTimeDerivativeSUPG;
-
-declareADValidParams(LevelSetTimeDerivativeSUPG);
 
 /**
  * Applies SUPG stabilization to the time derivative.
  */
-template <ComputeStage compute_stage>
-class LevelSetTimeDerivativeSUPG : public LevelSetVelocityInterface<ADTimeKernelGrad<compute_stage>>
+class LevelSetTimeDerivativeSUPG : public ADTimeKernelGrad
 {
 public:
+  static InputParameters validParams();
+
   LevelSetTimeDerivativeSUPG(const InputParameters & parameters);
 
 protected:
-  virtual ADVectorResidual precomputeQpResidual() override;
+  virtual ADRealVectorValue precomputeQpResidual() override;
 
-  usingTimeKernelGradMembers;
-  using LevelSetVelocityInterface<ADTimeKernelGrad<compute_stage>>::computeQpVelocity;
-  using LevelSetVelocityInterface<ADTimeKernelGrad<compute_stage>>::_velocity;
+  /// Velocity vector variable
+  const ADVectorVariableValue & _velocity;
 };
-

@@ -13,11 +13,6 @@
 #include "RankTwoTensor.h"
 #include "DerivativeMaterialInterface.h"
 
-class GBRelaxationStrainIncrement;
-
-template <>
-InputParameters validParams<GBRelaxationStrainIncrement>();
-
 /**
  * GBRelaxationStrainIncrement computes strain increment due to lattice relaxation at GB
  * Forest et. al. MSMSE 2015
@@ -25,6 +20,8 @@ InputParameters validParams<GBRelaxationStrainIncrement>();
 class GBRelaxationStrainIncrement : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   GBRelaxationStrainIncrement(const InputParameters & parameters);
 
 protected:
@@ -35,4 +32,3 @@ protected:
   const MaterialProperty<RankTwoTensor> & _gb_normal_tensor;
   MaterialProperty<RankTwoTensor> & _strain_increment;
 };
-

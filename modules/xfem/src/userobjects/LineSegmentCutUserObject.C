@@ -11,12 +11,11 @@
 
 registerMooseObject("XFEMApp", LineSegmentCutUserObject);
 
-template <>
 InputParameters
-validParams<LineSegmentCutUserObject>()
+LineSegmentCutUserObject::validParams()
 {
   // Get input parameters from parent class
-  InputParameters params = validParams<GeometricCut2DUserObject>();
+  InputParameters params = GeometricCut2DUserObject::validParams();
 
   // Add required parameters
   params.addRequiredParam<std::vector<Real>>("cut_data",

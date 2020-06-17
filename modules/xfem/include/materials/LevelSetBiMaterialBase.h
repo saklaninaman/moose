@@ -12,11 +12,7 @@
 #include "Material.h"
 
 // Forward Declarations
-class LevelSetBiMaterialBase;
 class XFEM;
-
-template <>
-InputParameters validParams<LevelSetBiMaterialBase>();
 
 /**
  * Base class for switching between materials in a bi-material system where the interface is defined
@@ -25,6 +21,8 @@ InputParameters validParams<LevelSetBiMaterialBase>();
 class LevelSetBiMaterialBase : public Material
 {
 public:
+  static InputParameters validParams();
+
   LevelSetBiMaterialBase(const InputParameters & parameters);
 
 protected:
@@ -62,4 +60,3 @@ protected:
   /// use the positive level set region's material properties
   bool _use_positive_property;
 };
-

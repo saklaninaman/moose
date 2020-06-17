@@ -11,15 +11,11 @@
 
 #include "ADMaterial.h"
 
-template <ComputeStage>
-class ADSoretCoeffTest;
-
-declareADValidParams(ADSoretCoeffTest);
-
-template <ComputeStage compute_stage>
-class ADSoretCoeffTest : public ADMaterial<compute_stage>
+class ADSoretCoeffTest : public ADMaterial
 {
 public:
+  static InputParameters validParams();
+
   ADSoretCoeffTest(const InputParameters & parameters);
 
 protected:
@@ -28,8 +24,5 @@ protected:
   const ADVariableValue & _coupled_var;
   const ADVariableValue & _temp;
 
-  ADMaterialProperty(Real) & _soret_coeff;
-
-  usingMaterialMembers;
+  ADMaterialProperty<Real> & _soret_coeff;
 };
-

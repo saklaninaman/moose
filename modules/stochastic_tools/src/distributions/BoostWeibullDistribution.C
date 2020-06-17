@@ -9,22 +9,18 @@
 
 #include "BoostWeibullDistribution.h"
 
-registerMooseObject("StochasticToolsApp", BoostWeibullDistribution);
+registerMooseObjectReplaced("StochasticToolsApp",
+                            BoostWeibullDistribution,
+                            "07/01/2020 00:00",
+                            Weibull);
 
-template <>
 InputParameters
-validParams<BoostWeibullDistribution>()
+BoostWeibullDistribution::validParams()
 {
-  InputParameters params = validParams<Distribution>();
-  params.addClassDescription("Boost Weibull distribution.");
-  params.addRequiredParam<Real>("shape", "The Weibull shape parameter.");
-  params.addParam<Real>("scale", 1, "The Weibull scale parameter.");
-  return params;
+  return BoostWeibull::validParams();
 }
 
 BoostWeibullDistribution::BoostWeibullDistribution(const InputParameters & parameters)
-  : BoostDistribution<boost::math::weibull_distribution<Real>>(parameters)
+  : BoostWeibull(parameters)
 {
-  _distribution_unique_ptr = libmesh_make_unique<boost::math::weibull_distribution<Real>>(
-      getParam<Real>("shape"), getParam<Real>("scale"));
 }

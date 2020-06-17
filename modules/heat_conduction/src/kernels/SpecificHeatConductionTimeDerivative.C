@@ -11,11 +11,10 @@
 
 registerMooseObject("HeatConductionApp", SpecificHeatConductionTimeDerivative);
 
-template <>
 InputParameters
-validParams<SpecificHeatConductionTimeDerivative>()
+SpecificHeatConductionTimeDerivative::validParams()
 {
-  InputParameters params = validParams<TimeDerivative>();
+  InputParameters params = JvarMapKernelInterface<TimeDerivative>::validParams();
   params.addClassDescription(
       "Time derivative term $\\rho c_p \\frac{\\partial T}{\\partial t}$ of "
       "the heat equation with the specific heat $c_p$ and the density $\\rho$ as arguments.");
@@ -28,7 +27,6 @@ validParams<SpecificHeatConductionTimeDerivative>()
       "specific_heat", "specific_heat", "Property name of the specific heat material property");
   params.addParam<MaterialPropertyName>(
       "density", "density", "Property name of the density material property");
-  params.addCoupledVar("args", "Vector of additional arguments of the specific heat and density");
   return params;
 }
 

@@ -13,11 +13,10 @@
 
 registerMooseObject("PhaseFieldApp", GrainTrackerElasticity);
 
-template <>
 InputParameters
-validParams<GrainTrackerElasticity>()
+GrainTrackerElasticity::validParams()
 {
-  InputParameters params = validParams<GrainTracker>();
+  InputParameters params = GrainTracker::validParams();
   params.addParam<bool>("random_rotations",
                         true,
                         "Generate random rotations when the Euler Angle "

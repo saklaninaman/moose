@@ -11,10 +11,11 @@
 
 // MOOSE includes
 #include "Constraint.h"
-#include "CoupleableMooseVariableDependencyIntermediateInterface.h"
+#include "NeighborCoupleableMooseVariableDependencyIntermediateInterface.h"
 #include "MooseMesh.h"
 #include "MooseVariableInterface.h"
-#include "TaggingInterface.h"
+#include "MortarInterface.h"
+#include "TwoMaterialPropertyInterface.h"
 
 // Forward Declarations
 class MortarConstraintBase;
@@ -43,10 +44,14 @@ InputParameters validParams<MortarConstraintBase>();
  *
  */
 class MortarConstraintBase : public Constraint,
-                             public CoupleableMooseVariableDependencyIntermediateInterface,
+                             public NeighborCoupleableMooseVariableDependencyIntermediateInterface,
+                             public MortarInterface,
+                             public TwoMaterialPropertyInterface,
                              public MooseVariableInterface<Real>
 {
 public:
+  static InputParameters validParams();
+
   MortarConstraintBase(const InputParameters & parameters);
 
   /**
@@ -72,30 +77,18 @@ public:
   virtual void computeJacobian(Moose::MortarType mortar_type) = 0;
 
   /**
-   * Returns the master lower dimensional subdomain id
-   */
-  SubdomainID masterSubdomain() const { return _master_subdomain_id; }
-
-  /**
    * The variable number that this object operates on.
    */
   const MooseVariable * variable() const { return _var; }
 
+  /**
+   * Whether to use dual mortar
+   */
+  bool useDual() const { return _use_dual; }
+
 private:
   /// Reference to the finite element problem
   FEProblemBase & _fe_problem;
-
-  /// Boundary ID for the slave surface
-  const BoundaryID _slave_id;
-
-  /// Boundary ID for the master surface
-  const BoundaryID _master_id;
-
-  /// Subdomain ID for the slave surface
-  const SubdomainID _slave_subdomain_id;
-
-  /// Subdomain ID for the master surface
-  const SubdomainID _master_subdomain_id;
 
 protected:
   /// Pointer to the lagrange multipler variable. nullptr if none
@@ -121,8 +114,14 @@ protected:
   /// Whether the current mortar segment projects onto a face on the master side
   bool _has_master;
 
+  /// Whether to use the dual motar approach
+  const bool _use_dual;
+
   /// the normals along the slave face
   const MooseArray<Point> & _normals;
+
+  /// the tangents along the slave face
+  const MooseArray<std::vector<Point>> & _tangents;
 
   /// The element Jacobian times weights
   const std::vector<Real> & _JxW_msm;
@@ -157,12 +156,16 @@ protected:
 
 #define usingMortarConstraintBaseMembers                                                           \
   usingConstraintMembers;                                                                          \
-  using ADMortarConstraint<compute_stage>::_phys_points_slave;                                     \
-  using ADMortarConstraint<compute_stage>::_phys_points_master;                                    \
-  using ADMortarConstraint<compute_stage>::_has_master;                                            \
-  using ADMortarConstraint<compute_stage>::_test;                                                  \
-  using ADMortarConstraint<compute_stage>::_test_slave;                                            \
-  using ADMortarConstraint<compute_stage>::_test_master;                                           \
-  using ADMortarConstraint<compute_stage>::_grad_test_slave;                                       \
-  using ADMortarConstraint<compute_stage>::_grad_test_master;                                      \
-  using ADMortarConstraint<compute_stage>::_normals
+  using ADMortarConstraint::_phys_points_slave;                                                    \
+  using ADMortarConstraint::_phys_points_master;                                                   \
+  using ADMortarConstraint::_has_master;                                                           \
+  using ADMortarConstraint::_use_dual;                                                             \
+  using ADMortarConstraint::_test;                                                                 \
+  using ADMortarConstraint::_test_slave;                                                           \
+  using ADMortarConstraint::_test_master;                                                          \
+  using ADMortarConstraint::_grad_test_slave;                                                      \
+  using ADMortarConstraint::_grad_test_master;                                                     \
+  using ADMortarConstraint::_normals;                                                              \
+  using ADMortarConstraint::_tangents;                                                             \
+  using ADMortarConstraint::_slave_var;                                                            \
+  using ADMortarConstraint::_master_var

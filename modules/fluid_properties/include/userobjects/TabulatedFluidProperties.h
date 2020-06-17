@@ -14,10 +14,6 @@
 
 class SinglePhaseFluidPropertiesPT;
 class BicubicInterpolation;
-class TabulatedFluidProperties;
-
-template <>
-InputParameters validParams<TabulatedFluidProperties>();
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Woverloaded-virtual"
@@ -92,6 +88,8 @@ InputParameters validParams<TabulatedFluidProperties>();
 class TabulatedFluidProperties : public SinglePhaseFluidProperties
 {
 public:
+  static InputParameters validParams();
+
   TabulatedFluidProperties(const InputParameters & parameters);
   virtual ~TabulatedFluidProperties();
 
@@ -138,9 +136,7 @@ public:
 
   virtual void s_from_p_T(Real p, Real T, Real & s, Real & ds_dp, Real & ds_dT) const override;
 
-  virtual Real henryConstant(Real temperature) const override;
-
-  virtual void henryConstant(Real temperature, Real & Kh, Real & dKh_dT) const override;
+  virtual std::vector<Real> henryCoefficients() const override;
 
   virtual Real vaporPressure(Real temperature) const override;
 
@@ -243,4 +239,3 @@ protected:
 };
 
 #pragma GCC diagnostic pop
-

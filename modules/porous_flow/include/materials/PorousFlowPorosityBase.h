@@ -11,17 +11,14 @@
 
 #include "PorousFlowMaterialVectorBase.h"
 
-class PorousFlowPorosityBase;
-
-template <>
-InputParameters validParams<PorousFlowPorosityBase>();
-
 /**
  * Base class Material designed to provide the porosity.
  */
 class PorousFlowPorosityBase : public PorousFlowMaterialVectorBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowPorosityBase(const InputParameters & parameters);
 
 protected:
@@ -34,4 +31,3 @@ protected:
   /// d(porosity)/d(grad PorousFlow variable)
   MaterialProperty<std::vector<RealGradient>> & _dporosity_dgradvar;
 };
-

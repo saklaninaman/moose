@@ -9,28 +9,29 @@
 
 #include "ADSplitCHParsed.h"
 
-registerADMooseObject("PhaseFieldApp", ADSplitCHParsed);
+registerMooseObject("PhaseFieldApp", ADSplitCHParsed);
 
-defineADValidParams(
-    ADSplitCHParsed,
-    ADSplitCHCRes,
-    params.addClassDescription(
-        "Split formulation Cahn-Hilliard Kernel that uses a DerivativeMaterial Free Energy");
-    params.addRequiredParam<MaterialPropertyName>(
-        "f_name", "Base name of the free energy function F defined in a DerivativeParsedMaterial");
-    params.addCoupledVar("args", "Vector of additional arguments to F"););
+InputParameters
+ADSplitCHParsed::validParams()
+{
+  InputParameters params = ADSplitCHCRes::validParams();
+  params.addClassDescription(
+      "Split formulation Cahn-Hilliard Kernel that uses a DerivativeMaterial Free Energy");
+  params.addRequiredParam<MaterialPropertyName>(
+      "f_name", "Base name of the free energy function F defined in a DerivativeParsedMaterial");
+  params.addCoupledVar("args", "Vector of additional arguments to F");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADSplitCHParsed<compute_stage>::ADSplitCHParsed(const InputParameters & parameters)
-  : ADSplitCHCRes<compute_stage>(parameters),
+ADSplitCHParsed::ADSplitCHParsed(const InputParameters & parameters)
+  : ADSplitCHCRes(parameters),
     _f_name(getParam<MaterialPropertyName>("f_name")),
     _dFdc(getADMaterialProperty<Real>(derivativePropertyNameFirst(_f_name, _var.name())))
 {
 }
 
-template <ComputeStage compute_stage>
 ADReal
-ADSplitCHParsed<compute_stage>::computeDFDC()
+ADSplitCHParsed::computeDFDC()
 {
   return _dFdc[_qp];
 }

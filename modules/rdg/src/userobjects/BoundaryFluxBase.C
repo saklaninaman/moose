@@ -9,11 +9,10 @@
 
 #include "BoundaryFluxBase.h"
 
-template <>
 InputParameters
-validParams<BoundaryFluxBase>()
+BoundaryFluxBase::validParams()
 {
-  InputParameters params = validParams<GeneralUserObject>();
+  InputParameters params = GeneralUserObject::validParams();
   return params;
 }
 

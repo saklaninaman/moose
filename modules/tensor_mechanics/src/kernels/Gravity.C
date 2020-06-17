@@ -12,11 +12,10 @@
 
 registerMooseObject("TensorMechanicsApp", Gravity);
 
-template <>
 InputParameters
-validParams<Gravity>()
+Gravity::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addClassDescription("Apply gravity. Value is in units of acceleration.");
   params.addParam<bool>("use_displaced_mesh", true, "Displaced mesh defaults to true");
   params.addRequiredParam<Real>(
@@ -24,6 +23,7 @@ validParams<Gravity>()
   params.addParam<FunctionName>(
       "function", "1", "A function that describes the gravitational force");
   params.addParam<Real>("alpha", 0.0, "alpha parameter required for HHT time integration scheme");
+  params.addParam<MaterialPropertyName>("density", "density", "The density");
   return params;
 }
 

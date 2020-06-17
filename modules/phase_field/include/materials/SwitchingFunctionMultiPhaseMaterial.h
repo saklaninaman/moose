@@ -13,10 +13,6 @@
 #include "DerivativeMaterialInterface.h"
 
 // Forward Declarations
-class SwitchingFunctionMultiPhaseMaterial;
-
-template <>
-InputParameters validParams<SwitchingFunctionMultiPhaseMaterial>();
 
 /**
  * SwitchingFunctionMultiPhaseMaterial is a switching function for a multi-phase,
@@ -28,6 +24,8 @@ InputParameters validParams<SwitchingFunctionMultiPhaseMaterial>();
 class SwitchingFunctionMultiPhaseMaterial : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   SwitchingFunctionMultiPhaseMaterial(const InputParameters & parameters);
 
 protected:
@@ -54,4 +52,3 @@ protected:
   std::vector<MaterialProperty<Real> *> _prop_dh;
   std::vector<std::vector<MaterialProperty<Real> *>> _prop_d2h;
 };
-

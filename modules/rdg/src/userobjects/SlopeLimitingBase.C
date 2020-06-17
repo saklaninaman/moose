@@ -15,12 +15,11 @@
 // Static mutex definition
 Threads::spin_mutex SlopeLimitingBase::_mutex;
 
-template <>
 InputParameters
-validParams<SlopeLimitingBase>()
+SlopeLimitingBase::validParams()
 {
-  InputParameters params = validParams<ElementLoopUserObject>();
-  params += validParams<TransientInterface>();
+  InputParameters params = ElementLoopUserObject::validParams();
+  params += TransientInterface::validParams();
 
   params.addClassDescription(
       "Base class for slope limiting to limit the slopes of cell average variables.");

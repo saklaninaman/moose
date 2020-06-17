@@ -9,9 +9,6 @@
 
 #include "libmesh/petsc_macro.h"
 #include "libmesh/libmesh_config.h"
-#include "libmesh/petsc_vector.h"
-#include "libmesh/petsc_matrix.h"
-#include <petscsnes.h>
 
 #include "Moose.h"
 #include "MooseApp.h"
@@ -46,20 +43,6 @@ const ExecFlagType EXEC_PRE_DISPLACE("PRE_DISPLACE");
 const ExecFlagType EXEC_SAME_AS_MULTIAPP("SAME_AS_MULTIAPP");
 const ExecFlagType EXEC_PRE_MULTIAPP_SETUP("PRE_MULTIAPP_SETUP");
 const ExecFlagType EXEC_TRANSFER("TRANSFER");
-
-void
-MooseVecView(NumericVector<Number> & vector)
-{
-  PetscVector<Number> & petsc_vec = static_cast<PetscVector<Number> &>(vector);
-  VecView(petsc_vec.vec(), 0);
-}
-
-void
-MooseMatView(SparseMatrix<Number> & mat)
-{
-  PetscMatrix<Number> & petsc_mat = static_cast<PetscMatrix<Number> &>(mat);
-  MatView(petsc_mat.mat(), 0);
-}
 
 namespace Moose
 {
@@ -119,14 +102,20 @@ addActionTypes(Syntax & syntax)
   registerMooseObjectTask("init_mesh",                    MooseMesh,              false);
   registerMooseObjectTask("add_mesh_modifier",            MeshModifier,           false);
   registerMooseObjectTask("add_mesh_generator",           MeshGenerator,          false);
+  registerMooseObjectTask("append_mesh_generator",        MeshGenerator,          false);
 
   registerMooseObjectTask("add_kernel",                   Kernel,                 false);
   appendMooseObjectTask  ("add_kernel",                   EigenKernel);
   appendMooseObjectTask  ("add_kernel",                   VectorKernel);
+  appendMooseObjectTask  ("add_kernel",                   ArrayKernel);
+
+  registerMooseObjectTask("add_variable",                 MooseVariableBase,      false);
+  registerMooseObjectTask("add_aux_variable",             MooseVariableBase,      false);
+  registerMooseObjectTask("add_elemental_field_variable", MooseVariableBase,      false);
 
   registerMooseObjectTask("add_nodal_kernel",             NodalKernel,            false);
 
-  registerMooseObjectTask("add_material",                 Material,               false);
+  registerMooseObjectTask("add_material",                 MaterialBase,           false);
   registerMooseObjectTask("add_bc",                       BoundaryCondition,      false);
 
   registerMooseObjectTask("add_function",                 Function,               false);
@@ -135,12 +124,13 @@ addActionTypes(Syntax & syntax)
 
   registerMooseObjectTask("add_aux_kernel",               AuxKernel,              false);
   appendMooseObjectTask  ("add_aux_kernel",               VectorAuxKernel);
-  registerMooseObjectTask("add_elemental_field_variable", AuxKernel,              false);
 
   registerMooseObjectTask("add_scalar_kernel",            ScalarKernel,           false);
   registerMooseObjectTask("add_aux_scalar_kernel",        AuxScalarKernel,        false);
   registerMooseObjectTask("add_dirac_kernel",             DiracKernel,            false);
   registerMooseObjectTask("add_dg_kernel",                DGKernel,               false);
+  registerMooseObjectTask("add_fv_kernel",                FVKernel,               false);
+  registerMooseObjectTask("add_fv_bc",                    FVBoundaryCondition,    false);
   registerMooseObjectTask("add_interface_kernel",         InterfaceKernel,        false);
   appendMooseObjectTask  ("add_interface_kernel",         VectorInterfaceKernel);
   registerMooseObjectTask("add_constraint",               Constraint,             false);
@@ -178,12 +168,14 @@ addActionTypes(Syntax & syntax)
   registerTask("dynamic_object_registration", false);
   registerTask("common_output", true);
   registerTask("setup_recover_file_base", true);
+  registerTask("recover_meta_data", true);
 
   registerTask("add_bounds_vectors", false);
   registerTask("add_periodic_bc", false);
   registerTask("add_aux_variable", false);
   registerTask("add_external_aux_variables", true);
   registerTask("add_variable", false);
+  registerTask("add_mortar_variable", false);
 
   registerTask("execute_mesh_modifiers", false);
   registerTask("execute_mesh_generators", true);
@@ -198,6 +190,8 @@ addActionTypes(Syntax & syntax)
 
   registerTask("add_algebraic_rm", false);
   registerTask("attach_algebraic_rm", true);
+  registerTask("add_coupling_rm", false);
+  registerTask("attach_coupling_rm", true);
   registerTask("init_problem", true);
   registerTask("check_copy_nodal_vars", true);
   registerTask("copy_nodal_vars", true);
@@ -219,14 +213,12 @@ addActionTypes(Syntax & syntax)
   registerTask("deprecated_block", false);
   registerTask("set_adaptivity_options", false);
   registerTask("add_mortar_interface", false);
+  registerTask("coupling_functor_check", true);
 
   // Dummy Actions (useful for sync points in the dependencies)
   registerTask("setup_function_complete", false);
   registerTask("setup_variable_complete", false);
   registerTask("ready_to_init", true);
-  appendMooseObjectTask("ready_to_init", InterfaceKernel);
-  appendMooseObjectTask("ready_to_init", VectorInterfaceKernel);
-  appendMooseObjectTask("ready_to_init", DGKernel);
 
   // Output related actions
   registerTask("add_output_aux_variables", true);
@@ -248,6 +240,8 @@ addActionTypes(Syntax & syntax)
    * Additional dependencies can be inserted later inside of user applications with calls to
    * ActionWarehouse::addDependency("task", "pre_req")
    */
+
+  // clang-format off
   syntax.addDependencySets("(meta_action)"
                            "(dynamic_object_registration)"
                            "(common_output)"
@@ -255,7 +249,9 @@ addActionTypes(Syntax & syntax)
                            "(setup_recover_file_base)"
                            "(setup_mesh)"
                            "(add_mesh_generator)"
+                           "(append_mesh_generator)"
                            "(execute_mesh_generators)"
+                           "(recover_meta_data)"
                            "(set_mesh_base)"
                            "(check_copy_nodal_vars)"
                            "(add_partitioner)"
@@ -281,13 +277,14 @@ addActionTypes(Syntax & syntax)
                            "(init_displaced_problem)"
                            "(add_aux_variable, add_variable, add_elemental_field_variable,"
                            " add_external_aux_variables)"
+                           "(add_mortar_variable)"
                            "(setup_variable_complete)"
                            "(setup_quadrature)"
                            "(add_function)"
-                           "(add_distribution)"
-                           "(add_sampler)"
                            "(add_periodic_bc)"
                            "(add_user_object)"
+                           "(add_distribution)"
+                           "(add_sampler)"
                            "(setup_function_complete)"
                            "(setup_adaptivity)"
                            "(set_adaptivity_options)"
@@ -305,7 +302,9 @@ addActionTypes(Syntax & syntax)
                            "(add_material)"
                            "(add_output_aux_variables)"
                            "(add_algebraic_rm)"
+                           "(add_coupling_rm)"
                            "(attach_algebraic_rm)"
+                           "(attach_coupling_rm)"
                            "(init_problem)"
                            "(delete_remote_elements_post_equation_systems_init)"
                            "(add_output)"
@@ -313,11 +312,13 @@ addActionTypes(Syntax & syntax)
                            "(add_vector_postprocessor)" // MaterialVectorPostprocessor requires this
                                                         // to be after material objects are created.
                            "(add_aux_kernel, add_bc, add_damper, add_dirac_kernel, add_kernel,"
-                           " add_nodal_kernel, add_dg_kernel, add_interface_kernel,"
+                           " add_nodal_kernel, add_dg_kernel, add_fv_kernel, add_fv_bc, add_interface_kernel,"
                            " add_scalar_kernel, add_aux_scalar_kernel, add_indicator, add_marker)"
+                           "(coupling_functor_check)"
                            "(add_control)"
                            "(check_output)"
                            "(check_integrity)");
+  // clang-format on
 }
 
 /**
@@ -418,7 +419,14 @@ associateSyntaxInner(Syntax & syntax, ActionFactory & /*action_factory*/)
   registerSyntax("DisplayGhostingAction", "Mesh");
 
   registerSyntax("AddMeshModifierAction", "MeshModifiers/*");
+
+  // Deprecated MeshGeneratorSyntax
   registerSyntax("AddMeshGeneratorAction", "MeshGenerators/*");
+  syntax.deprecateActionSyntax("MeshGenerators/*",
+                               "The top-level [MeshGenerators] syntax is deprecated, please nest "
+                               "your generators under [Mesh]");
+
+  registerSyntax("AddMeshGeneratorAction", "Mesh/*");
 
   registerSyntax("AddFunctionAction", "Functions/*");
   syntax.registerSyntaxType("Functions/*", "FunctionName");
@@ -484,6 +492,9 @@ associateSyntaxInner(Syntax & syntax, ActionFactory & /*action_factory*/)
   registerSyntax("AddDiracKernelAction", "DiracKernels/*");
 
   registerSyntax("AddDGKernelAction", "DGKernels/*");
+  registerSyntax("AddFVKernelAction", "FVKernels/*");
+  registerSyntax("AddFVBCAction", "FVBCs/*");
+  registerSyntax("CheckFVBCAction", "FVBCs");
 
   registerSyntax("AddInterfaceKernelAction", "InterfaceKernels/*");
 
@@ -568,9 +579,9 @@ setColorConsole(bool use_color, bool force)
 }
 
 bool _warnings_are_errors = false;
-
 bool _deprecated_is_error = false;
-
 bool _throw_on_error = false;
+bool show_trace = true;
+bool show_multiple = false;
 
 } // namespace Moose

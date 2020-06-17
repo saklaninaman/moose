@@ -21,11 +21,10 @@
 
 registerMooseObject("RichardsApp", Q2PPorepressureFlux);
 
-template <>
 InputParameters
-validParams<Q2PPorepressureFlux>()
+Q2PPorepressureFlux::validParams()
 {
-  InputParameters params = validParams<Kernel>();
+  InputParameters params = Kernel::validParams();
   params.addRequiredParam<UserObjectName>(
       "fluid_density",
       "A RichardsDensity UserObject that defines the fluid density as a function of pressure.");

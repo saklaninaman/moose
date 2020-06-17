@@ -11,11 +11,6 @@
 
 #include "StressDivergenceTensors.h"
 
-class DynamicStressDivergenceTensors;
-
-template <>
-InputParameters validParams<DynamicStressDivergenceTensors>();
-
 /**
  * DynamicStressDivergenceTensors derives from StressDivergenceTensors and adds stress related
  * Rayleigh and HHT time integration terms.
@@ -23,6 +18,8 @@ InputParameters validParams<DynamicStressDivergenceTensors>();
 class DynamicStressDivergenceTensors : public StressDivergenceTensors
 {
 public:
+  static InputParameters validParams();
+
   DynamicStressDivergenceTensors(const InputParameters & parameters);
 
 protected:
@@ -30,12 +27,13 @@ protected:
   virtual Real computeQpJacobian();
   virtual Real computeQpOffDiagJacobian(unsigned int jvar);
 
+  ///{@ The old and older states of the stress tensor that the divergence operator operates on
   const MaterialProperty<RankTwoTensor> & _stress_older;
   const MaterialProperty<RankTwoTensor> & _stress_old;
+  ///@}
 
   // Rayleigh damping parameter _zeta and HHT time integration parameter _alpha
   const MaterialProperty<Real> & _zeta;
   const Real _alpha;
   const bool _static_initialization;
 };
-

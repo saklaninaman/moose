@@ -12,7 +12,10 @@
 #include "MaterialAuxBase.h"
 #include "RankTwoTensor.h"
 
-class MaterialRankTwoTensorAux;
+template <bool>
+class MaterialRankTwoTensorAuxTempl;
+typedef MaterialRankTwoTensorAuxTempl<false> MaterialRankTwoTensorAux;
+typedef MaterialRankTwoTensorAuxTempl<true> ADMaterialRankTwoTensorAux;
 
 /**
  * MaterialRankTwoTensorAux is designed to take the data in the RankTwoTensor material
@@ -23,10 +26,13 @@ class MaterialRankTwoTensorAux;
 template <>
 InputParameters validParams<MaterialRankTwoTensorAux>();
 
-class MaterialRankTwoTensorAux : public MaterialAuxBase<RankTwoTensor>
+template <bool is_ad>
+class MaterialRankTwoTensorAuxTempl : public MaterialAuxBaseTempl<RankTwoTensor, is_ad>
 {
 public:
-  MaterialRankTwoTensorAux(const InputParameters & parameters);
+  static InputParameters validParams();
+
+  MaterialRankTwoTensorAuxTempl(const InputParameters & parameters);
 
 protected:
   virtual Real getRealValue() override;
@@ -36,4 +42,3 @@ protected:
   const unsigned int _j;
   ///@}
 };
-

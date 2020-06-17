@@ -12,11 +12,6 @@
 #include "Function.h"
 #include "FunctionInterface.h"
 
-class WedgeFunction;
-
-template <>
-InputParameters validParams<WedgeFunction>();
-
 /**
  * Function object for tests/ins/jeffery_hamel responsible for setting
  * the exact value of the velocity and pressure variables.  Inherits
@@ -30,6 +25,8 @@ InputParameters validParams<WedgeFunction>();
 class WedgeFunction : public Function, protected FunctionInterface
 {
 public:
+  static InputParameters validParams();
+
   WedgeFunction(const InputParameters & parameters);
 
   virtual Real value(Real t, const Point & p) const override;

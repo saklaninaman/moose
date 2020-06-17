@@ -34,10 +34,6 @@
 #include <string>
 
 // Forward Declarations
-class C1ICBase;
-
-template <>
-InputParameters validParams<C1ICBase>();
 
 /**
  * C1ICBase is used by the CrossIC.
@@ -45,6 +41,8 @@ InputParameters validParams<C1ICBase>();
 class C1ICBase : public InitialCondition
 {
 public:
+  static InputParameters validParams();
+
   C1ICBase(const InputParameters & parameters);
 
 protected:
@@ -58,4 +56,3 @@ protected:
   Number interfaceValue(Real r);
   Number interfaceDerivative(Real r);
 };
-

@@ -12,16 +12,16 @@
 
 registerMooseObject("TensorMechanicsApp", DisplacementAboutAxis);
 
-template <>
 InputParameters
-validParams<DisplacementAboutAxis>()
+DisplacementAboutAxis::validParams()
 {
-  InputParameters params = validParams<PresetNodalBC>();
+  InputParameters params = DirichletBCBase::validParams();
   params.addClassDescription("Implements a boundary condition that enforces rotational"
                              "displacement around an axis on a boundary");
   addDisplacementAboutAxisParams(params);
   params.addRequiredParam<int>("component", "The component for the rotational displacement");
-  params.set<bool>("use_displaced_mesh") = true;
+  params.set<bool>("use_displaced_mesh") = false;
+  params.set<bool>("preset") = true;
   return params;
 }
 
@@ -40,7 +40,7 @@ addDisplacementAboutAxisParams(InputParameters & params)
 }
 
 DisplacementAboutAxis::DisplacementAboutAxis(const InputParameters & parameters)
-  : PresetNodalBC(parameters),
+  : DirichletBCBase(parameters),
     _component(getParam<int>("component")),
     _func(getFunction("function")),
     _angle_units(getParam<MooseEnum>("angle_units")),

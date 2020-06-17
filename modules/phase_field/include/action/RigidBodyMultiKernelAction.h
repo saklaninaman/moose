@@ -14,6 +14,8 @@
 class RigidBodyMultiKernelAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   RigidBodyMultiKernelAction(const InputParameters & params);
 
   virtual void act();
@@ -21,7 +23,3 @@ public:
   std::string _var_name_base;
   bool _implicit;
 };
-
-template <>
-InputParameters validParams<RigidBodyMultiKernelAction>();
-

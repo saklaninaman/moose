@@ -12,27 +12,27 @@
 #include "FEProblem.h"
 #include "MooseMesh.h"
 
-registerADMooseObject("TensorMechanicsApp", ADComputeAxisymmetricRZIncrementalStrain);
+registerMooseObject("TensorMechanicsApp", ADComputeAxisymmetricRZIncrementalStrain);
 
-defineADValidParams(ADComputeAxisymmetricRZIncrementalStrain,
-                    ADCompute2DIncrementalStrain,
-                    params.addClassDescription(
-                        "Compute a strain increment and rotation increment for finite strains "
-                        "under axisymmetric assumptions."););
+InputParameters
+ADComputeAxisymmetricRZIncrementalStrain::validParams()
+{
+  InputParameters params = ADCompute2DIncrementalStrain::validParams();
+  params.addClassDescription("Compute a strain increment and rotation increment for finite strains "
+                             "under axisymmetric assumptions.");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADComputeAxisymmetricRZIncrementalStrain<compute_stage>::ADComputeAxisymmetricRZIncrementalStrain(
+ADComputeAxisymmetricRZIncrementalStrain::ADComputeAxisymmetricRZIncrementalStrain(
     const InputParameters & parameters)
-  : ADCompute2DIncrementalStrain<compute_stage>(parameters),
-    _disp_old_0(coupledValueOld("displacements", 0))
+  : ADCompute2DIncrementalStrain(parameters), _disp_old_0(coupledValueOld("displacements", 0))
 {
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeAxisymmetricRZIncrementalStrain<compute_stage>::initialSetup()
+ADComputeAxisymmetricRZIncrementalStrain::initialSetup()
 {
-  ADComputeIncrementalStrainBase<compute_stage>::initialSetup();
+  ADComputeIncrementalStrainBase::initialSetup();
 
   if (getBlockCoordSystem() != Moose::COORD_RZ)
     mooseError("The coordinate system must be set to RZ for Axisymmetric geometries.");
@@ -42,9 +42,8 @@ ADComputeAxisymmetricRZIncrementalStrain<compute_stage>::initialSetup()
                "The out-of-plane direction for axisymmetric systems is currently restricted to z");
 }
 
-template <ComputeStage compute_stage>
 ADReal
-ADComputeAxisymmetricRZIncrementalStrain<compute_stage>::computeOutOfPlaneGradDisp()
+ADComputeAxisymmetricRZIncrementalStrain::computeOutOfPlaneGradDisp()
 {
   if (!MooseUtils::absoluteFuzzyEqual(_q_point[_qp](0), 0.0))
     return (*_disp[0])[_qp] / _q_point[_qp](0);
@@ -52,9 +51,8 @@ ADComputeAxisymmetricRZIncrementalStrain<compute_stage>::computeOutOfPlaneGradDi
     return 0.0;
 }
 
-template <ComputeStage compute_stage>
 Real
-ADComputeAxisymmetricRZIncrementalStrain<compute_stage>::computeOutOfPlaneGradDispOld()
+ADComputeAxisymmetricRZIncrementalStrain::computeOutOfPlaneGradDispOld()
 {
   if (!MooseUtils::absoluteFuzzyEqual(_q_point[_qp](0), 0.0))
     return _disp_old_0[_qp] / _q_point[_qp](0);

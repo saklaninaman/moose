@@ -24,11 +24,10 @@ registerMooseAction("FluidPropertiesApp",
                     AddFluidPropertiesInterrogatorAction,
                     "add_output_aux_variables");
 
-template <>
 InputParameters
-validParams<AddFluidPropertiesInterrogatorAction>()
+AddFluidPropertiesInterrogatorAction::validParams()
 {
-  InputParameters params = validParams<Action>();
+  InputParameters params = Action::validParams();
   params.addRequiredParam<UserObjectName>("fp",
                                           "The name of the fluid properties object to query.");
   params.addParam<Real>("rho", "Density");
@@ -40,6 +39,7 @@ validParams<AddFluidPropertiesInterrogatorAction>()
   params.addParam<Real>("vel", "Velocity");
   params.addParam<std::vector<Real>>("x_ncg", "Mass fractions of NCGs");
   params.addParam<unsigned int>("precision", 10, "Precision for printing values");
+  params.addParam<bool>("json", false, "Output in JSON format");
 
   params.addClassDescription("Action that sets up the fluid properties interrogator");
 
@@ -109,6 +109,7 @@ AddFluidPropertiesInterrogatorAction::act()
     const std::string class_name = "Console";
     InputParameters params = _factory.getValidParams(class_name);
     params.addPrivateParam<FEProblemBase *>("_fe_problem_base", _problem.get());
+    params.set<std::string>("file_base") = _app.getOutputFileBase();
     params.set<ExecFlagEnum>("execute_on") = EXEC_FINAL;
     params.set<MultiMooseEnum>("system_info") = "";
     std::shared_ptr<Output> output = _factory.create<Output>(class_name, "Console", params);
@@ -154,5 +155,6 @@ AddFluidPropertiesInterrogatorAction::addFluidPropertiesInterrogatorObject() con
   if (isParamValid("x_ncg"))
     params.set<std::vector<Real>>("x_ncg") = getParam<std::vector<Real>>("x_ncg");
   params.set<unsigned int>("precision") = getParam<unsigned int>("precision");
+  params.set<bool>("json") = getParam<bool>("json");
   _problem->addUserObject(class_name, "fp_interrogator", params);
 }

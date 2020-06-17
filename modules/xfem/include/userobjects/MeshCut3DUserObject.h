@@ -13,11 +13,7 @@
 
 #include <array>
 
-class MeshCut3DUserObject;
 class Function;
-
-template <>
-InputParameters validParams<MeshCut3DUserObject>();
 
 /**
  * MeshCut3DUserObject: (1) reads in a mesh describing the crack surface,
@@ -28,8 +24,11 @@ InputParameters validParams<MeshCut3DUserObject>();
 class MeshCut3DUserObject : public GeometricCutUserObject
 {
 public:
+  static InputParameters validParams();
+
   MeshCut3DUserObject(const InputParameters & parameters);
 
+  virtual void initialSetup() override;
   virtual void initialize() override;
   virtual const std::vector<Point>
   getCrackFrontPoints(unsigned int num_crack_front_points) const override;

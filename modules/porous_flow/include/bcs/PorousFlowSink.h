@@ -13,11 +13,6 @@
 #include "Function.h"
 #include "PorousFlowDictator.h"
 
-class PorousFlowSink;
-
-template <>
-InputParameters validParams<PorousFlowSink>();
-
 /**
  * Applies a flux sink to a boundary.
  * The strength of the flux is specified by flux_function.
@@ -34,6 +29,8 @@ InputParameters validParams<PorousFlowSink>();
 class PorousFlowSink : public IntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowSink(const InputParameters & parameters);
 
 protected:
@@ -151,4 +148,7 @@ protected:
 
   /// d(multiplier)/d(Porous flow variable pvar)
   virtual Real dmultiplier_dvar(unsigned int pvar) const;
+
+  /// Flag to check whether permeabiity derivatives are non-zero
+  const bool _perm_derivs;
 };

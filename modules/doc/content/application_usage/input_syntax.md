@@ -16,6 +16,11 @@ MOOSE input file syntax basically works like this:
   field6 = 42.42 # floating point number
   field7 = true # boolean (false, on, off - case insensitive)
 
+  field8 = 'item0 item1 item2' # array of items (strings or numbers)
+  field9 = 'item00 item01 ;
+            item10 item11 ;
+            item20' # double indexed array (can even be jagged)
+
   [subsection]
     foo = 42
   [] # close subsection
@@ -40,7 +45,7 @@ ${cmd [arg1] [arg2]...}
 
 where arguments are whitespace delimited and are allowed to be brace expressions themselves.
 Brace expressions can appear as field values either unquoted or quoted (i.e. inside a
-string-value).  MOOSE currently has four built-in brace-expression commands:
+string-value).  MOOSE currently has five built-in brace-expression commands:
 
 - `${replace <var-name>}`: looks up the parameter `var-name` in the input file searching from the
   current scope looking at consecutive parent scopes until one exists, substituting its value
@@ -55,6 +60,12 @@ string-value).  MOOSE currently has four built-in brace-expression commands:
   that can reference fields from the current input file and evaluates it with the function
   parser. Variables referencing input-file fields are looked up using the same procedure as with
   the `replace` command.
+
+- `${units <arg> <unit> [-> <to_unit>]}`: takes an argument `arg` in physical units
+  of `unit` and converts it to the unit `to_unit` using the [MooseUnit](/utils/Units.md)
+  system. For example the expression `${units 1 J/mol -> eV/at}` would evaluate to the value
+  `1.0364269656262e-05`. The `to_unit` argument is optional resulting in a no-op that serves
+  only for documentation purposes (`${units 1 J/mol}` would evaluate to the value `1.0`). 
 
 Examples:
 
@@ -92,3 +103,7 @@ Here are some important details about how brace-expressions are evaluated:
 - If there are no arguments in the brace-expression beyond the "cmd" (e.g. `${foo}`), then the
   `replace` command is implied: e.g. `${foo}` means `${replace foo}`.
 
+## Overridding input parameters from the command line.
+
+See the [CommandLine.md] object for information on how input parameters can be
+changed on the command line.

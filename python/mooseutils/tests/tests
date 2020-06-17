@@ -35,15 +35,11 @@
     input = test_camel_to_space.py
     requirement = "MOOSE python utilities shall include tools for converting camel case text to underscore separated text."
   []
-  [hit]
-    type = PythonUnitTest
-    input = test_hit_load.py
-    requirement = "MOOSE python utilities shall include a tool for reading hit files."
-  []
   [yaml_load]
     type = PythonUnitTest
     input = test_yaml_load.py
     requirement = "MOOSE python utilities shall include a tool for reading YAML files."
+    required_python_packages = yaml
   []
   [AutoPropertyMixin]
     type = PythonUnitTest
@@ -54,5 +50,11 @@
     type = PythonUnitTest
     input = test_make_chunks.py
     requirement = "MOOSE python utilities shall include a tool for breaking a list of items into a specified number of chunks."
+  []
+  [find_moose_executable]
+    type = PythonUnitTest
+    input = test_find_moose_executable.py
+    issues = "#15017"
+    requirement = "The system shall include a utility for locating a MOOSE-based application executable."
   []
 []

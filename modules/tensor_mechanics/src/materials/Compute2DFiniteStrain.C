@@ -11,11 +11,10 @@
 
 #include "libmesh/quadrature.h"
 
-template <>
 InputParameters
-validParams<Compute2DFiniteStrain>()
+Compute2DFiniteStrain::validParams()
 {
-  InputParameters params = validParams<ComputeFiniteStrain>();
+  InputParameters params = ComputeFiniteStrain::validParams();
   params.addClassDescription(
       "Compute a strain increment and rotation increment for finite strains in 2D geometries.");
 

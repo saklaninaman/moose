@@ -12,11 +12,10 @@
 
 registerMooseObject("PhaseFieldApp", SpecifiedSmoothCircleIC);
 
-template <>
 InputParameters
-validParams<SpecifiedSmoothCircleIC>()
+SpecifiedSmoothCircleIC::validParams()
 {
-  InputParameters params = validParams<SmoothCircleBaseIC>();
+  InputParameters params = SmoothCircleBaseIC::validParams();
   params.addClassDescription(
       "Multiple smooth circles with manually specified radii and center points");
   params.addRequiredParam<std::vector<Real>>("x_positions",

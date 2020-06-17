@@ -12,10 +12,6 @@
 #include "RandomICBase.h"
 
 // Forward Declarations
-class PFCFreezingIC;
-
-template <>
-InputParameters validParams<PFCFreezingIC>();
 
 /**
  * PFCFreezingIC creates an initial density for a PFC model that has one area of a set
@@ -27,6 +23,8 @@ InputParameters validParams<PFCFreezingIC>();
 class PFCFreezingIC : public RandomICBase
 {
 public:
+  static InputParameters validParams();
+
   PFCFreezingIC(const InputParameters & parameters);
 
   virtual Real value(const Point & p);

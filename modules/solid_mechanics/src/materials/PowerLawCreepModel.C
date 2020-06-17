@@ -13,11 +13,10 @@
 
 registerMooseObject("SolidMechanicsApp", PowerLawCreepModel);
 
-template <>
 InputParameters
-validParams<PowerLawCreepModel>()
+PowerLawCreepModel::validParams()
 {
-  InputParameters params = validParams<ReturnMappingModel>();
+  InputParameters params = ReturnMappingModel::validParams();
 
   // Power-law creep material parameters
   params.addRequiredParam<Real>("coefficient", "Leading coefficent in power-law equation");

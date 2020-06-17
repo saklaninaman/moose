@@ -1,11 +1,8 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # TimeExtremeValue
 
-!alert construction title=Undocumented Class
-The TimeExtremeValue has not been documented. The content contained on this page includes the
-typical automatic documentation associated with a MooseObject; however, what is contained is
-ultimately determined by what is necessary to make the documentation clear for users.
+The TimeExtremeValue Postprocessor reports the extreme value of coupled Postprocessor seen over time.
+For example, this Postprocessor can be used to record the peak temperature or maximum stress in a
+simulation with an oscillating force.
 
 !syntax description /Postprocessors/TimeExtremeValue
 

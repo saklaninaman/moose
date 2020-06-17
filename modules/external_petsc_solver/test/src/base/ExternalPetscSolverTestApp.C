@@ -13,11 +13,10 @@
 #include "AppFactory.h"
 #include "MooseSyntax.h"
 
-template <>
 InputParameters
-validParams<ExternalPetscSolverTestApp>()
+ExternalPetscSolverTestApp::validParams()
 {
-  InputParameters params = validParams<ExternalPetscSolverApp>();
+  InputParameters params = ExternalPetscSolverApp::validParams();
   return params;
 }
 

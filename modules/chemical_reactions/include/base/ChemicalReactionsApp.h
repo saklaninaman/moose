@@ -11,14 +11,11 @@
 
 #include "MooseApp.h"
 
-class ChemicalReactionsApp;
-
-template <>
-InputParameters validParams<ChemicalReactionsApp>();
-
 class ChemicalReactionsApp : public MooseApp
 {
 public:
+  static InputParameters validParams();
+
   ChemicalReactionsApp(const InputParameters & parameters);
   virtual ~ChemicalReactionsApp();
 
@@ -28,4 +25,3 @@ public:
   static void associateSyntax(Syntax & syntax, ActionFactory & action_factory);
   static void registerExecFlags(Factory & factory);
 };
-

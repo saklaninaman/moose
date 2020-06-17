@@ -13,11 +13,10 @@
 
 registerMooseObject("TensorMechanicsApp", CappedWeakPlaneCosseratStressUpdate);
 
-template <>
 InputParameters
-validParams<CappedWeakPlaneCosseratStressUpdate>()
+CappedWeakPlaneCosseratStressUpdate::validParams()
 {
-  InputParameters params = validParams<CappedWeakPlaneStressUpdate>();
+  InputParameters params = CappedWeakPlaneStressUpdate::validParams();
   params.addClassDescription("Capped weak-plane plasticity Cosserat stress calculator");
   return params;
 }

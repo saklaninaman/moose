@@ -11,11 +11,6 @@
 
 #include "LinearViscoelasticityBase.h"
 
-class GeneralizedMaxwellBase;
-
-template <>
-InputParameters validParams<GeneralizedMaxwellBase>();
-
 /**
  * This class represents an assembly of springs and dashpots following
  * a generalized Maxwell model (an arbitrary number of Maxwell
@@ -35,6 +30,8 @@ InputParameters validParams<GeneralizedMaxwellBase>();
 class GeneralizedMaxwellBase : public LinearViscoelasticityBase
 {
 public:
+  static InputParameters validParams();
+
   GeneralizedMaxwellBase(const InputParameters & parameters);
 
 protected:
@@ -42,4 +39,3 @@ protected:
   virtual void computeQpApparentCreepStrain() final;
   virtual void updateQpViscousStrains() final;
 };
-

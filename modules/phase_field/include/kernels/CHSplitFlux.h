@@ -13,11 +13,6 @@
 #include "DerivativeMaterialInterface.h"
 #include "RankTwoTensor.h"
 
-class CHSplitFlux;
-
-template <>
-InputParameters validParams<CHSplitFlux>();
-
 /**
  * CHSplitFlux computes flux as non-linear variable via
  * residual = flux + mobility * gradient(chemical potential)
@@ -26,6 +21,8 @@ InputParameters validParams<CHSplitFlux>();
 class CHSplitFlux : public DerivativeMaterialInterface<Kernel>
 {
 public:
+  static InputParameters validParams();
+
   CHSplitFlux(const InputParameters & parameters);
 
 protected:
@@ -43,4 +40,3 @@ protected:
 
   const MaterialProperty<RealTensorValue> * _dmobility_dc;
 };
-

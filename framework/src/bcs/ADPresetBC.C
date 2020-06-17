@@ -9,23 +9,24 @@
 
 #include "ADPresetBC.h"
 
-registerADMooseObject("MooseApp", ADPresetBC);
+registerMooseObjectDeprecated("MooseApp", ADPresetBC, "06/30/2020 24:00");
 
-defineADValidParams(
-    ADPresetBC, ADPresetNodalBC, params.addRequiredParam<Real>("value", "Value of the BC");
-    params.declareControllable("value");
-    params.addClassDescription(
-        "Similar to DirichletBC except the value is applied before the solve begins"););
-
-template <ComputeStage compute_stage>
-ADPresetBC<compute_stage>::ADPresetBC(const InputParameters & parameters)
-  : ADPresetNodalBC<compute_stage>(parameters), _value(getParam<Real>("value"))
+InputParameters
+ADPresetBC::validParams()
 {
+  InputParameters params = ADDirichletBC::validParams();
+  params.addClassDescription(
+      "Similar to ADDirichletBC except the value is applied before the solve begins. Deprecated: "
+      "use ADDirichletBC with preset = true instead.");
+
+  // Utilize the new ADDirichletBC with preset, set true and don't let the user change it
+  params.set<bool>("preset") = true;
+  params.suppressParameter<bool>("preset");
+
+  return params;
 }
 
-template <ComputeStage compute_stage>
-ADReal
-ADPresetBC<compute_stage>::computeQpValue()
+ADPresetBC::ADPresetBC(const InputParameters & parameters) : ADDirichletBC(parameters)
 {
-  return _value;
+  mooseDeprecated("Use ADDirichletBC with preset = true instead of ADPresetBC");
 }

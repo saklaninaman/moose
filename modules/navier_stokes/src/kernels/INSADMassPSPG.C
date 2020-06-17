@@ -9,29 +9,29 @@
 
 #include "INSADMassPSPG.h"
 
-registerADMooseObject("NavierStokesApp", INSADMassPSPG);
+registerMooseObject("NavierStokesApp", INSADMassPSPG);
 
-defineADValidParams(INSADMassPSPG,
-                    ADKernelGrad,
-                    params.addClassDescription(
-                        "This class adds PSPG stabilization to the mass equation, enabling use of "
-                        "equal order shape functions for pressure and velocity variables");
-                    params.addParam<MaterialPropertyName>("rho_name",
-                                                          "rho",
-                                                          "The name of the density"););
+InputParameters
+INSADMassPSPG::validParams()
+{
+  InputParameters params = ADKernelGrad::validParams();
+  params.addClassDescription(
+      "This class adds PSPG stabilization to the mass equation, enabling use of "
+      "equal order shape functions for pressure and velocity variables");
+  params.addParam<MaterialPropertyName>("rho_name", "rho", "The name of the density");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-INSADMassPSPG<compute_stage>::INSADMassPSPG(const InputParameters & parameters)
-  : ADKernelGrad<compute_stage>(parameters),
+INSADMassPSPG::INSADMassPSPG(const InputParameters & parameters)
+  : ADKernelGrad(parameters),
     _rho(getADMaterialProperty<Real>("rho_name")),
     _tau(getADMaterialProperty<Real>("tau")),
     _momentum_strong_residual(getADMaterialProperty<RealVectorValue>("momentum_strong_residual"))
 {
 }
 
-template <ComputeStage compute_stage>
-ADVectorResidual
-INSADMassPSPG<compute_stage>::precomputeQpResidual()
+ADRealVectorValue
+INSADMassPSPG::precomputeQpResidual()
 {
   return -_tau[_qp] / _rho[_qp] * _momentum_strong_residual[_qp];
 }

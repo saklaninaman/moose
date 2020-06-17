@@ -9,11 +9,10 @@
 
 #include "NSMomentumInviscidBC.h"
 
-template <>
 InputParameters
-validParams<NSMomentumInviscidBC>()
+NSMomentumInviscidBC::validParams()
 {
-  InputParameters params = validParams<NSIntegratedBC>();
+  InputParameters params = NSIntegratedBC::validParams();
   params.addClassDescription("his class corresponds to the inviscid part of the 'natural' boundary "
                              "condition for the momentum equations.");
   params.addRequiredParam<unsigned>(

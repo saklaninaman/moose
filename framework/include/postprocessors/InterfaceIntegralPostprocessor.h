@@ -11,12 +11,6 @@
 
 #include "InterfacePostprocessor.h"
 
-// Forward Declarations
-class InterfaceIntegralPostprocessor;
-
-template <>
-InputParameters validParams<InterfaceIntegralPostprocessor>();
-
 /**
  * This postprocessor add generel capabilities to the InterfacePostprocessor to compute an
  * integral over an interface. To actually compute an integral one must derive from this class,
@@ -25,6 +19,8 @@ InputParameters validParams<InterfaceIntegralPostprocessor>();
 class InterfaceIntegralPostprocessor : public InterfacePostprocessor
 {
 public:
+  static InputParameters validParams();
+
   InterfaceIntegralPostprocessor(const InputParameters & parameters);
 
   virtual void initialize() override;
@@ -42,4 +38,3 @@ protected:
 
   Real _integral_value;
 };
-

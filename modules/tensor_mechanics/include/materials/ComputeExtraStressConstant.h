@@ -11,11 +11,6 @@
 
 #include "ComputeExtraStressBase.h"
 
-class ComputeExtraStressConstant;
-
-template <>
-InputParameters validParams<ComputeExtraStressConstant>();
-
 /**
  * Computes a constant extra stress that is added to the stress calculated
  * by the constitutive model
@@ -23,6 +18,8 @@ InputParameters validParams<ComputeExtraStressConstant>();
 class ComputeExtraStressConstant : public ComputeExtraStressBase
 {
 public:
+  static InputParameters validParams();
+
   ComputeExtraStressConstant(const InputParameters & parameters);
 
 protected:
@@ -32,4 +29,3 @@ protected:
 
   RankTwoTensor _extra_stress_tensor;
 };
-

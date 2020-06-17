@@ -14,11 +14,10 @@
 
 registerMooseAction("PhaseFieldApp", CHPFCRFFSplitKernelAction, "add_kernel");
 
-template <>
 InputParameters
-validParams<CHPFCRFFSplitKernelAction>()
+CHPFCRFFSplitKernelAction::validParams()
 {
-  InputParameters params = validParams<Action>();
+  InputParameters params = Action::validParams();
   params.addRequiredParam<unsigned int>(
       "num_L", "specifies the number of complex L variables will be solved for");
   params.addRequiredParam<NonlinearVariableName>("n_name", "Variable name used for the n variable");

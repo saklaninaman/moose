@@ -12,11 +12,6 @@
 #include "TensorMechanicsPlasticModel.h"
 #include "TensorMechanicsHardeningModel.h"
 
-class TensorMechanicsPlasticMohrCoulombMulti;
-
-template <>
-InputParameters validParams<TensorMechanicsPlasticMohrCoulombMulti>();
-
 /**
  * FiniteStrainMohrCoulombMulti implements rate-independent non-associative mohr-coulomb
  * with hardening/softening in the finite-strain framework, using planar (non-smoothed) surfaces
@@ -24,6 +19,8 @@ InputParameters validParams<TensorMechanicsPlasticMohrCoulombMulti>();
 class TensorMechanicsPlasticMohrCoulombMulti : public TensorMechanicsPlasticModel
 {
 public:
+  static InputParameters validParams();
+
   TensorMechanicsPlasticMohrCoulombMulti(const InputParameters & parameters);
 
   /// The number of yield surfaces for this plasticity model
@@ -324,4 +321,3 @@ private:
     plane000100 = 4
   };
 };
-

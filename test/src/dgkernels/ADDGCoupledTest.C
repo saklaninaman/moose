@@ -14,24 +14,26 @@
 
 #include "libmesh/utility.h"
 
-registerADMooseObject("MooseTestApp", ADDGCoupledTest);
+registerMooseObject("MooseTestApp", ADDGCoupledTest);
 
-defineADValidParams(ADDGCoupledTest,
-                    ADDGKernel,
-                    params.addRequiredCoupledVar("v", "The coupling variable"););
+InputParameters
+ADDGCoupledTest::validParams()
+{
+  InputParameters params = ADDGKernel::validParams();
+  params.addRequiredCoupledVar("v", "The coupling variable");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADDGCoupledTest<compute_stage>::ADDGCoupledTest(const InputParameters & parameters)
-  : ADDGKernel<compute_stage>(parameters),
+ADDGCoupledTest::ADDGCoupledTest(const InputParameters & parameters)
+  : ADDGKernel(parameters),
     _v_var(dynamic_cast<MooseVariable &>(*getVar("v", 0))),
-    _v(_v_var.adSln<compute_stage>()),
-    _v_neighbor(_v_var.adSlnNeighbor<compute_stage>())
+    _v(_v_var.adSln()),
+    _v_neighbor(_v_var.adSlnNeighbor())
 {
 }
 
-template <ComputeStage compute_stage>
-ADResidual
-ADDGCoupledTest<compute_stage>::computeQpResidual(Moose::DGResidualType type)
+ADReal
+ADDGCoupledTest::computeQpResidual(Moose::DGResidualType type)
 {
   auto fake_flux = 5 * _u[_qp] - 4 * _u_neighbor[_qp] + 3 * _v[_qp] - 2 * _v_neighbor[_qp];
 

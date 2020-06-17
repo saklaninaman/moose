@@ -11,25 +11,19 @@
 
 #include "ADMortarConstraint.h"
 
-template <ComputeStage>
-class EqualGradientConstraint;
-
-declareADValidParams(EqualGradientConstraint);
-
 /**
  * Constrain a specified component of the gradient of a variable to be the same
  * on both sides of an interface.
  */
-template <ComputeStage compute_stage>
-class EqualGradientConstraint : public ADMortarConstraint<compute_stage>
+class EqualGradientConstraint : public ADMortarConstraint
 {
 public:
+  static InputParameters validParams();
+
   EqualGradientConstraint(const InputParameters & parameters);
 
 protected:
   ADReal computeQpResidual(Moose::MortarType mortar_type) final;
 
   const unsigned int _component;
-
-  usingMortarConstraintMembers;
 };

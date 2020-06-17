@@ -12,17 +12,14 @@
 #include "PorousFlowMaterial.h"
 #include "DerivativeMaterialInterface.h"
 
-class PorousFlowMaterialVectorBase;
-
-template <>
-InputParameters validParams<PorousFlowMaterialVectorBase>();
-
 /**
  * Base class for all PorousFlow vector materials
  */
 class PorousFlowMaterialVectorBase : public DerivativeMaterialInterface<PorousFlowMaterial>
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowMaterialVectorBase(const InputParameters & parameters);
 
 protected:
@@ -35,4 +32,3 @@ protected:
   /// Number of PorousFlow variables
   const unsigned int _num_var;
 };
-

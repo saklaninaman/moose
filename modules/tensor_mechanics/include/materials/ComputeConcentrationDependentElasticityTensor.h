@@ -11,11 +11,6 @@
 
 #include "ComputeRotatedElasticityTensorBase.h"
 
-class ComputeConcentrationDependentElasticityTensor;
-
-template <>
-InputParameters validParams<ComputeConcentrationDependentElasticityTensor>();
-
 /**
  * ComputeElasticityTensor defines an elasticity tensor material object as a function of
  * concentration field.
@@ -23,6 +18,8 @@ InputParameters validParams<ComputeConcentrationDependentElasticityTensor>();
 class ComputeConcentrationDependentElasticityTensor : public ComputeRotatedElasticityTensorBase
 {
 public:
+  static InputParameters validParams();
+
   ComputeConcentrationDependentElasticityTensor(const InputParameters & parameters);
 
 protected:
@@ -39,4 +36,3 @@ protected:
   /// Derivative of elasticity tensor with respect to concentration.
   MaterialProperty<RankFourTensor> & _delasticity_tensor_dc;
 };
-

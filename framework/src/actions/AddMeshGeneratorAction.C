@@ -15,11 +15,13 @@
 
 registerMooseAction("MooseApp", AddMeshGeneratorAction, "add_mesh_generator");
 
-template <>
+defineLegacyParams(AddMeshGeneratorAction);
+
 InputParameters
-validParams<AddMeshGeneratorAction>()
+AddMeshGeneratorAction::validParams()
 {
-  InputParameters params = validParams<MooseObjectAction>();
+  InputParameters params = MooseObjectAction::validParams();
+  params.addClassDescription("Action for adding mesh generator objects");
   return params;
 }
 
@@ -30,10 +32,6 @@ AddMeshGeneratorAction::AddMeshGeneratorAction(InputParameters params) : MooseOb
 void
 AddMeshGeneratorAction::act()
 {
-  // Don't do mesh generators when recovering!
-  if (_app.isRecovering())
-    return;
-
   if (!_mesh)
     mooseError("No mesh file was supplied and no generation block was provided");
 

@@ -11,11 +11,10 @@
 
 registerMooseObject("RdgApp", AEFVBC);
 
-template <>
 InputParameters
-validParams<AEFVBC>()
+AEFVBC::validParams()
 {
-  InputParameters params = validParams<IntegratedBC>();
+  InputParameters params = IntegratedBC::validParams();
   params.addClassDescription("A boundary condition kernel for the advection equation using a "
                              "cell-centered finite volume method.");
   MooseEnum component("concentration");

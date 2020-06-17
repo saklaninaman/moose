@@ -11,28 +11,23 @@
 
 #include "RankTwoTensor.h"
 
-defineADValidParams(
-    ADComputeEigenstrainBase,
-    ADMaterial,
-    params.addParam<std::string>("base_name",
-                                 "Optional parameter that allows the user to define "
-                                 "multiple mechanics material systems on the same "
-                                 "block, i.e. for multiple phases");
-    params.addRequiredParam<std::string>(
-        "eigenstrain_name",
-        "Material property name for the eigenstrain tensor computed "
-        "by this model. IMPORTANT: The name of this property must "
-        "also be provided to the strain calculator.");
-    params.addDeprecatedParam<bool>(
-        "incremental_form",
-        false,
-        "Should the eigenstrain be in incremental form (for incremental models)?",
-        "This parameter no longer has any effect. Simply remove it."););
+InputParameters
+ADComputeEigenstrainBase::validParams()
+{
+  InputParameters params = ADMaterial::validParams();
+  params.addParam<std::string>("base_name",
+                               "Optional parameter that allows the user to define "
+                               "multiple mechanics material systems on the same "
+                               "block, i.e. for multiple phases");
+  params.addRequiredParam<std::string>("eigenstrain_name",
+                                       "Material property name for the eigenstrain tensor computed "
+                                       "by this model. IMPORTANT: The name of this property must "
+                                       "also be provided to the strain calculator.");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADComputeEigenstrainBase<compute_stage>::ADComputeEigenstrainBase(
-    const InputParameters & parameters)
-  : ADMaterial<compute_stage>(parameters),
+ADComputeEigenstrainBase::ADComputeEigenstrainBase(const InputParameters & parameters)
+  : ADMaterial(parameters),
     _base_name(isParamValid("base_name") ? getParam<std::string>("base_name") + "_" : ""),
     _eigenstrain_name(_base_name + getParam<std::string>("eigenstrain_name")),
     _eigenstrain(declareADProperty<RankTwoTensor>(_eigenstrain_name)),
@@ -40,18 +35,16 @@ ADComputeEigenstrainBase<compute_stage>::ADComputeEigenstrainBase(
 {
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeEigenstrainBase<compute_stage>::initQpStatefulProperties()
+ADComputeEigenstrainBase::initQpStatefulProperties()
 {
   // This property can be promoted to be stateful by other models that use it,
   // so it needs to be initalized.
   _eigenstrain[_qp].zero();
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeEigenstrainBase<compute_stage>::computeQpProperties()
+ADComputeEigenstrainBase::computeQpProperties()
 {
   if (_t_step >= 1)
     _step_zero = false;
@@ -63,10 +56,8 @@ ADComputeEigenstrainBase<compute_stage>::computeQpProperties()
     computeQpEigenstrain();
 }
 
-template <ComputeStage compute_stage>
 ADReal
-ADComputeEigenstrainBase<compute_stage>::computeVolumetricStrainComponent(
-    const ADReal volumetric_strain) const
+ADComputeEigenstrainBase::computeVolumetricStrainComponent(const ADReal volumetric_strain) const
 {
   // The engineering strain in a given direction is:
   // epsilon_eng = cbrt(volumetric_strain + 1.0) - 1.0
@@ -82,5 +73,3 @@ ADComputeEigenstrainBase<compute_stage>::computeVolumetricStrainComponent(
 
   return std::log(volumetric_strain + 1.0) / 3.0;
 }
-
-adBaseClass(ADComputeEigenstrainBase);

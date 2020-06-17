@@ -9,11 +9,10 @@
 
 #include "SlopeReconstructionOneD.h"
 
-template <>
 InputParameters
-validParams<SlopeReconstructionOneD>()
+SlopeReconstructionOneD::validParams()
 {
-  InputParameters params = validParams<SlopeReconstructionBase>();
+  InputParameters params = SlopeReconstructionBase::validParams();
   return params;
 }
 

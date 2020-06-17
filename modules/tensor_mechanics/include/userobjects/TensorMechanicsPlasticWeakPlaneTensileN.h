@@ -11,11 +11,6 @@
 
 #include "TensorMechanicsPlasticWeakPlaneTensile.h"
 
-class TensorMechanicsPlasticWeakPlaneTensileN;
-
-template <>
-InputParameters validParams<TensorMechanicsPlasticWeakPlaneTensileN>();
-
 /**
  * Rate-independent associative weak-plane tensile failure
  * with hardening/softening, and normal direction specified
@@ -23,6 +18,8 @@ InputParameters validParams<TensorMechanicsPlasticWeakPlaneTensileN>();
 class TensorMechanicsPlasticWeakPlaneTensileN : public TensorMechanicsPlasticWeakPlaneTensile
 {
 public:
+  static InputParameters validParams();
+
   TensorMechanicsPlasticWeakPlaneTensileN(const InputParameters & parameters);
 
   virtual std::string modelName() const override;
@@ -49,4 +46,3 @@ protected:
   /// This rotation matrix rotates _input_n to (0, 0, 1)
   RealTensorValue _rot;
 };
-

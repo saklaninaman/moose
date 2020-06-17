@@ -21,25 +21,25 @@
 
 [BCs]
   [./zmin_zzero]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_z
     boundary = 'zmin'
     value = '0'
   [../]
   [./xmin_xzero]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_x
     boundary = 'xmin'
     value = '0'
   [../]
   [./ymin_yzero]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_y
     boundary = 'ymin'
     value = '0'
   [../]
   [./ymax_disp]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = disp_y
     boundary = 'ymax'
     function = '-1E-4*t'
@@ -240,8 +240,8 @@
   solve_type = NEWTON
   type = Transient
 
-  nl_abs_tol = 1E-5
-  nl_rel_tol = 1E-7
+  nl_abs_tol = 1E-10
+  nl_rel_tol = 1E-12
   l_tol = 1E-2
   l_max_its = 50
   nl_max_its = 400

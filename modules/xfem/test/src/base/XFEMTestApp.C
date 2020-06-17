@@ -14,11 +14,10 @@
 #include "AppFactory.h"
 #include "MooseSyntax.h"
 
-template <>
 InputParameters
-validParams<XFEMTestApp>()
+XFEMTestApp::validParams()
 {
-  InputParameters params = validParams<XFEMApp>();
+  InputParameters params = XFEMApp::validParams();
   return params;
 }
 

@@ -12,11 +12,6 @@
 #include "ComputeEigenstrainBeamBase.h"
 #include "DerivativeMaterialInterface.h"
 
-class ComputeThermalExpansionEigenstrainBeamBase;
-
-template <>
-InputParameters validParams<ComputeThermalExpansionEigenstrainBeamBase>();
-
 /**
  * ComputeThermalExpansionEigenstrainBeamBase is a base class for all models that
  * compute beam eigenstrains due to thermal expansion of a material.
@@ -25,6 +20,8 @@ class ComputeThermalExpansionEigenstrainBeamBase
   : public DerivativeMaterialInterface<ComputeEigenstrainBeamBase>
 {
 public:
+  static InputParameters validParams();
+
   ComputeThermalExpansionEigenstrainBeamBase(const InputParameters & parameters);
 
 protected:
@@ -47,4 +44,3 @@ protected:
   /// Initial orientation of the beam
   RealGradient _initial_axis;
 };
-

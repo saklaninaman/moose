@@ -9,20 +9,25 @@
 
 #include "ComputePFFractureStressBase.h"
 
-template <>
 InputParameters
-validParams<ComputePFFractureStressBase>()
+ComputePFFractureStressBase::validParams()
 {
-  InputParameters params = validParams<ComputeStressBase>();
+  InputParameters params = ComputeStressBase::validParams();
   params.addRequiredCoupledVar("c", "Name of damage variable");
   params.addParam<bool>(
       "use_current_history_variable", false, "Use the current value of the history variable.");
+  params.addParam<bool>("use_snes_vi_solver",
+                        false,
+                        "Use PETSc's SNES variational inequalities solver to enforce damage "
+                        "irreversibility condition and restrict damage value <= 1.");
   params.addParam<MaterialPropertyName>("barrier_energy",
                                         "Name of material property for fracture energy barrier.");
   params.addParam<MaterialPropertyName>(
       "E_name", "elastic_energy", "Name of material property for elastic energy");
   params.addParam<MaterialPropertyName>(
       "D_name", "degradation", "Name of material property for energetic degradation function.");
+  params.addParam<MaterialPropertyName>(
+      "I_name", "indicator", "Name of material property for damage indicator function.");
   params.addParam<MaterialPropertyName>(
       "F_name",
       "local_fracture_energy",
@@ -37,7 +42,9 @@ ComputePFFractureStressBase::ComputePFFractureStressBase(const InputParameters &
     _c(coupledValue("c")),
     _l(getMaterialProperty<Real>("l")),
     _gc(getMaterialProperty<Real>("gc_prop")),
+    _pressure(getDefaultMaterialProperty<Real>("fracture_pressure")),
     _use_current_hist(getParam<bool>("use_current_history_variable")),
+    _use_snes_vi_solver(getParam<bool>("use_snes_vi_solver")),
     _H(declareProperty<Real>("hist")),
     _H_old(getMaterialPropertyOld<Real>("hist")),
     _barrier(getDefaultMaterialProperty<Real>("barrier_energy")),
@@ -52,7 +59,11 @@ ComputePFFractureStressBase::ComputePFFractureStressBase(const InputParameters &
     _D(getMaterialProperty<Real>("D_name")),
     _dDdc(getMaterialPropertyDerivative<Real>("D_name", getVar("c", 0)->name())),
     _d2Dd2c(getMaterialPropertyDerivative<Real>(
-        "D_name", getVar("c", 0)->name(), getVar("c", 0)->name()))
+        "D_name", getVar("c", 0)->name(), getVar("c", 0)->name())),
+    _I(getDefaultMaterialProperty<Real>("I_name")),
+    _dIdc(getMaterialPropertyDerivative<Real>("I_name", getVar("c", 0)->name())),
+    _d2Id2c(getMaterialPropertyDerivative<Real>(
+        "I_name", getVar("c", 0)->name(), getVar("c", 0)->name()))
 {
 }
 

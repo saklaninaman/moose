@@ -9,27 +9,16 @@
 
 #pragma once
 
-#include "ADPresetNodalBC.h"
-
-template <ComputeStage>
-class ADPresetBC;
-
-declareADValidParams(ADPresetBC);
+#include "ADDirichletBC.h"
 
 /**
  * Defines a boundary condition that (pre)sets the solution at the boundary
  * to be a user specified value.
  */
-template <ComputeStage compute_stage>
-class ADPresetBC : public ADPresetNodalBC<compute_stage>
+class ADPresetBC : public ADDirichletBC
 {
 public:
+  static InputParameters validParams();
+
   ADPresetBC(const InputParameters & parameters);
-
-protected:
-  virtual ADReal computeQpValue() override;
-
-  const Real & _value;
-
-  usingPresetNodalBCMembers;
 };

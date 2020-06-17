@@ -11,11 +11,10 @@
 
 registerMooseObject("FluidPropertiesTestApp", MultiComponentFluidPropertiesMaterialPT);
 
-template <>
 InputParameters
-validParams<MultiComponentFluidPropertiesMaterialPT>()
+MultiComponentFluidPropertiesMaterialPT::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   params.addRequiredCoupledVar("pressure", "pressure (Pa)");
   params.addRequiredCoupledVar("temperature", "temperature (K)");
   params.addRequiredCoupledVar("xmass", "Solute mass fraction (-)");

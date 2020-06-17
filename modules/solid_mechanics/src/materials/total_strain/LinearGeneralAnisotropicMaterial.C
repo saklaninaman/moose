@@ -21,11 +21,10 @@
 
 registerMooseObject("SolidMechanicsApp", LinearGeneralAnisotropicMaterial);
 
-template <>
 InputParameters
-validParams<LinearGeneralAnisotropicMaterial>()
+LinearGeneralAnisotropicMaterial::validParams()
 {
-  InputParameters params = validParams<SolidMechanicsMaterial>();
+  InputParameters params = SolidMechanicsMaterial::validParams();
   params.addRequiredParam<std::vector<Real>>("C_matrix", "Stiffness tensor for matrix");
   params.addRequiredParam<bool>("all_21",
                                 "True if all 21 independent values are given; else false "

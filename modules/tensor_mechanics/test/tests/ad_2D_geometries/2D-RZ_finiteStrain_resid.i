@@ -70,7 +70,7 @@
 
 [AuxKernels]
   [./stress_r]
-    type = RankTwoAux
+    type = ADRankTwoAux
     rank_two_tensor = stress
     index_i = 0
     index_j = 0
@@ -78,7 +78,7 @@
     execute_on = timestep_end
   [../]
   [./strain_r]
-    type = RankTwoAux
+    type = ADRankTwoAux
     rank_two_tensor = total_strain
     index_i = 0
     index_j = 0
@@ -86,7 +86,7 @@
     execute_on = timestep_end
   [../]
   [./stress_z]
-    type = RankTwoAux
+    type = ADRankTwoAux
     rank_two_tensor = stress
     index_i = 1
     index_j = 1
@@ -94,7 +94,7 @@
     execute_on = timestep_end
   [../]
   [./strain_z]
-    type = RankTwoAux
+    type = ADRankTwoAux
     rank_two_tensor = total_strain
     index_i = 1
     index_j = 1
@@ -105,7 +105,7 @@
 
 [Materials]
   [./elasticity_tensor]
-    type = ComputeIsotropicElasticityTensor
+    type = ADComputeIsotropicElasticityTensor
     youngs_modulus = 1e6
     poissons_ratio = 0.3
   [../]
@@ -117,25 +117,25 @@
 
 [BCs]
   [./no_disp_r_left]
-    type = ADPresetBC
+    type = ADDirichletBC
     variable = disp_r
     boundary = left
     value = 0.0
   [../]
   [./no_disp_r_right]
-    type = ADPresetBC
+    type = ADDirichletBC
     variable = disp_r
     boundary = right
     value = 0.0
   [../]
   [./no_disp_z_bottom]
-    type = ADPresetBC
+    type = ADDirichletBC
     variable = disp_z
     boundary = bottom
     value = 0.0
   [../]
   [./top]
-    type = ADFunctionPresetBC
+    type = ADFunctionDirichletBC
     variable = disp_z
     boundary = top
     function = 't'

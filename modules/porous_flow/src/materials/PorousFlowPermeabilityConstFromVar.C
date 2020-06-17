@@ -11,11 +11,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowPermeabilityConstFromVar);
 
-template <>
 InputParameters
-validParams<PorousFlowPermeabilityConstFromVar>()
+PorousFlowPermeabilityConstFromVar::validParams()
 {
-  InputParameters params = validParams<PorousFlowPermeabilityBase>();
+  InputParameters params = PorousFlowPermeabilityBase::validParams();
   params.addRequiredCoupledVar("perm_xx", "The xx component of the permeability tensor");
   params.addRequiredCoupledVar("perm_yy", "The yy component of the permeability tensor");
   params.addRequiredCoupledVar("perm_zz", "The zz component of the permeability tensor");

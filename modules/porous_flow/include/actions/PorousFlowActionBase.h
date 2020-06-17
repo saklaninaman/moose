@@ -15,11 +15,6 @@
 
 #include "libmesh/vector_value.h"
 
-class PorousFlowActionBase;
-
-template <>
-InputParameters validParams<PorousFlowActionBase>();
-
 /**
  * Base class for PorousFlow actions.  This act() method makes consistency checks and
  * calls several methods that should be implemented in derived classes. This class also
@@ -35,6 +30,8 @@ InputParameters validParams<PorousFlowActionBase>();
 class PorousFlowActionBase : public Action, public PorousFlowDependencies
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowActionBase(const InputParameters & params);
 
   virtual void act() override;
@@ -252,4 +249,3 @@ protected:
                                                            bool multiply_by_density,
                                                            std::string userobject_name);
 };
-

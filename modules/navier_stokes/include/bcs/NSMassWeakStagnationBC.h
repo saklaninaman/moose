@@ -12,10 +12,6 @@
 #include "NSWeakStagnationBaseBC.h"
 
 // Forward Declarations
-class NSMassWeakStagnationBC;
-
-template <>
-InputParameters validParams<NSMassWeakStagnationBC>();
 
 /**
  * The inviscid energy BC term with specified normal flow.
@@ -23,6 +19,8 @@ InputParameters validParams<NSMassWeakStagnationBC>();
 class NSMassWeakStagnationBC : public NSWeakStagnationBaseBC
 {
 public:
+  static InputParameters validParams();
+
   NSMassWeakStagnationBC(const InputParameters & parameters);
 
 protected:
@@ -30,4 +28,3 @@ protected:
   virtual Real computeQpJacobian();
   virtual Real computeQpOffDiagJacobian(unsigned jvar);
 };
-

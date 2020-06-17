@@ -11,11 +11,10 @@
 
 registerMooseObject("ChemicalReactionsApp", KineticDisPreConcAux);
 
-template <>
 InputParameters
-validParams<KineticDisPreConcAux>()
+KineticDisPreConcAux::validParams()
 {
-  InputParameters params = validParams<KineticDisPreRateAux>();
+  InputParameters params = KineticDisPreRateAux::validParams();
   params.addClassDescription("Concentration of secondary kinetic species");
   return params;
 }

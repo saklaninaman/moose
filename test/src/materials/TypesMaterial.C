@@ -7,16 +7,15 @@
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
+#include "DenseMatrix.h"
 #include "TypesMaterial.h"
-#include "libmesh/dense_matrix.h"
 
 registerMooseObject("MooseTestApp", TypesMaterial);
 
-template <>
 InputParameters
-validParams<TypesMaterial>()
+TypesMaterial::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   return params;
 }
 

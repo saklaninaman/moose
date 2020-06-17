@@ -62,6 +62,7 @@
     variable = u
     boundary = '0 1 2 3'
     function = exact_fn
+    preset = false
   [../]
 []
 
@@ -92,4 +93,5 @@
 [Outputs]
   execute_on = 'initial timestep_end'
   exodus = true
+  csv = true
 []

@@ -11,11 +11,10 @@
 #include "RankFourTensor.h"
 #include "libmesh/utility.h"
 
-template <>
 InputParameters
-validParams<MultiPlasticityDebugger>()
+MultiPlasticityDebugger::validParams()
 {
-  InputParameters params = validParams<MultiPlasticityLinearSystem>();
+  InputParameters params = MultiPlasticityLinearSystem::validParams();
   MooseEnum debug_fspb_type("none crash jacobian jacobian_and_linear_system", "none");
   params.addParam<MooseEnum>("debug_fspb",
                              debug_fspb_type,

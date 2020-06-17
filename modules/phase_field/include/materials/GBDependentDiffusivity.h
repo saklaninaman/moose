@@ -11,20 +11,17 @@
 
 #include "GBDependentTensorBase.h"
 
-class GBDependentDiffusivity;
-
-template <>
-InputParameters validParams<GBDependentDiffusivity>();
 /**
  * GB dependent diffusivity Ref. Forest, MSMSE, 2015
  */
 class GBDependentDiffusivity : public GBDependentTensorBase
 {
 public:
+  static InputParameters validParams();
+
   GBDependentDiffusivity(const InputParameters & parameters);
 
 protected:
   virtual void initQpStatefulProperties();
   virtual void computeQpProperties();
 };
-

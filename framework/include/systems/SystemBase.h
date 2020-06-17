@@ -15,6 +15,9 @@
 #include "MooseTypes.h"
 #include "VariableWarehouse.h"
 #include "InputParameters.h"
+#include "MooseObjectWarehouseBase.h"
+#include "MooseVariableBase.h"
+#include "ConsoleStreamInterface.h"
 
 // libMesh
 #include "libmesh/exodusII_io.h"
@@ -25,7 +28,7 @@
 // Forward declarations
 class Factory;
 class MooseApp;
-class MooseVariableFEBase;
+class MooseVariableFieldBase;
 template <typename>
 class MooseVariableFE;
 typedef MooseVariableFE<Real> MooseVariable;
@@ -34,6 +37,7 @@ class MooseMesh;
 class SubProblem;
 class SystemBase;
 class TimeIntegrator;
+class InputParameters;
 
 // libMesh forward declarations
 namespace libMesh
@@ -89,7 +93,8 @@ struct VarCopyInfo
  * Base class for a system (of equations)
  *
  */
-class SystemBase : public libMesh::ParallelObject
+class SystemBase : public libMesh::ParallelObject, public ConsoleStreamInterface
+
 {
 public:
   SystemBase(SubProblem & subproblem, const std::string & name, Moose::VarKindType var_kind);
@@ -115,7 +120,46 @@ public:
   /**
    * Whether we are computing an initial Jacobian for automatic variable scaling
    */
-  virtual bool computingInitialJacobian() const { return false; }
+  bool computingScalingJacobian() const { return _computing_scaling_jacobian; }
+
+  /**
+   * Setter for whether we're computing the scaling jacobian
+   */
+  void computingScalingJacobian(bool computing_scaling_jacobian)
+  {
+    _computing_scaling_jacobian = computing_scaling_jacobian;
+  }
+
+  /**
+   * Whether we are computing an initial Residual for automatic variable scaling
+   */
+  bool computingScalingResidual() const { return _computing_scaling_residual; }
+
+  /**
+   * Setter for whether we're computing the scaling residual
+   */
+  void computingScalingResidual(bool computing_scaling_residual)
+  {
+    _computing_scaling_residual = computing_scaling_residual;
+  }
+
+  /**
+   * Getter for whether we are performing automatic scaling
+   * @return whether we are performing automatic scaling
+   */
+  bool automaticScaling() const { return _automatic_scaling; }
+
+  /**
+   * Setter for whether we are performing automatic scaling
+   * @param automatic_scaling A boolean representing whether we are performing automatic scaling
+   */
+  void automaticScaling(bool automatic_scaling) { _automatic_scaling = automatic_scaling; }
+
+  /**
+   * Sets the verbose flag
+   * @param[in] verbose   Verbose flag
+   */
+  void setVerboseFlag(const bool & verbose) { _verbose = verbose; }
 
   /**
    * Gets writeable reference to the dof map
@@ -168,14 +212,31 @@ public:
    */
   virtual const NumericVector<Number> * const & currentSolution() const = 0;
 
-  virtual NumericVector<Number> & solution() = 0;
-  virtual NumericVector<Number> & solutionOld() = 0;
-  virtual NumericVector<Number> & solutionOlder() = 0;
-  virtual NumericVector<Number> * solutionPreviousNewton() = 0;
-  virtual const NumericVector<Number> & solution() const = 0;
-  virtual const NumericVector<Number> & solutionOld() const = 0;
-  virtual const NumericVector<Number> & solutionOlder() const = 0;
+  NumericVector<Number> & solution() { return solutionState(0); }
+  NumericVector<Number> & solutionOld() { return solutionState(1); }
+  NumericVector<Number> & solutionOlder() { return solutionState(2); }
+  const NumericVector<Number> & solution() const { return solutionState(0); }
+  const NumericVector<Number> & solutionOld() const { return solutionState(1); }
+  const NumericVector<Number> & solutionOlder() const { return solutionState(2); }
+
   virtual const NumericVector<Number> * solutionPreviousNewton() const = 0;
+  virtual NumericVector<Number> * solutionPreviousNewton() = 0;
+
+  /**
+   * Get a state of the solution (0 = current, 1 = old, 2 = older, etc).
+   *
+   * If the state does not exist, it will be initialized in addition to any newer
+   * states before it that have not been initialized.
+   */
+  NumericVector<Number> & solutionState(const unsigned int state);
+
+  /**
+   * Get a state of the solution (0 = current, 1 = old, 2 = older, etc).
+   *
+   * By default, up to state _default_solution_states is added. Any older states must be
+   * added using the non-const solutionState().
+   */
+  const NumericVector<Number> & solutionState(const unsigned int state) const;
 
   virtual Number & duDotDu() { return _du_dot_du; }
   virtual Number & duDotDotDu() { return _du_dotdot_du; }
@@ -351,17 +412,19 @@ public:
                                std::vector<dof_id_type> & n_oz) = 0;
 
   /**
-   * Adds a variable to the system
-   *
-   * @param var_name name of the variable
-   * @param type FE type of the variable
-   * @param scale_factor the scaling factor for the variable
-   * @param active_subdomains a list of subdomain ids this variable is active on
+   * Canonical method for adding a variable
+   * @param var_type the type of the variable, e.g. MooseVariableScalar
+   * @param var_name the variable name, e.g. 'u'
+   * @param params the InputParameters from which to construct the variable
    */
-  virtual void addVariable(const std::string & var_name,
-                           const FEType & type,
-                           Real scale_factor,
-                           const std::set<SubdomainID> * const active_subdomains = NULL);
+  virtual void addVariable(const std::string & var_type,
+                           const std::string & var_name,
+                           InputParameters & parameters);
+
+  /**
+   * If a variable is an array variable
+   */
+  virtual bool isArrayVariable(const std::string & var_name) const;
 
   ///@{
   /**
@@ -397,6 +460,8 @@ public:
   /**
    * Gets a reference to a variable of with specified name
    *
+   * This excludes and cannot return finite volume variables.
+   *
    * @param tid Thread id
    * @param var_name variable name
    * @return reference the variable (class)
@@ -405,7 +470,15 @@ public:
   MooseVariableFE<T> & getFieldVariable(THREAD_ID tid, const std::string & var_name);
 
   /**
+   * Returns a field variable pointer - this includes finite volume variables.
+   */
+  template <typename T>
+  MooseVariableField<T> & getActualFieldVariable(THREAD_ID tid, const std::string & var_name);
+
+  /**
    * Gets a reference to a variable with specified number
+   *
+   * This excludes and cannot return finite volume variables.
    *
    * @param tid Thread id
    * @param var_number libMesh variable number
@@ -413,6 +486,12 @@ public:
    */
   template <typename T>
   MooseVariableFE<T> & getFieldVariable(THREAD_ID tid, unsigned int var_number);
+
+  /**
+   * Returns a field variable pointer - this includes finite volume variables.
+   */
+  template <typename T>
+  MooseVariableField<T> & getActualFieldVariable(THREAD_ID tid, unsigned int var_number);
 
   /**
    * Gets a reference to a scalar variable with specified number
@@ -451,24 +530,24 @@ public:
    *
    * @return The max
    */
-  size_t getMaxVarNDofsPerElem() const { return _max_var_n_dofs_per_elem; }
+  std::size_t getMaxVarNDofsPerElem() const { return _max_var_n_dofs_per_elem; }
 
   /**
    * Gets the maximum number of dofs used by any one variable on any one node
    *
    * @return The max
    */
-  size_t getMaxVarNDofsPerNode() const { return _max_var_n_dofs_per_node; }
+  std::size_t getMaxVarNDofsPerNode() const { return _max_var_n_dofs_per_node; }
 
   /**
    * assign the maximum element dofs
    */
-  void assignMaxVarNDofsPerElem(const size_t & max_dofs) { _max_var_n_dofs_per_elem = max_dofs; }
+  void assignMaxVarNDofsPerElem(std::size_t max_dofs) { _max_var_n_dofs_per_elem = max_dofs; }
 
   /**
    * assign the maximum node dofs
    */
-  void assignMaxVarNDofsPerNode(const size_t & max_dofs) { _max_var_n_dofs_per_node = max_dofs; }
+  void assignMaxVarNDofsPerNode(std::size_t max_dofs) { _max_var_n_dofs_per_node = max_dofs; }
 
   /**
    * Adds this variable to the list of variables to be zeroed during each residual evaluation.
@@ -602,8 +681,10 @@ public:
   /**
    * Reinit scalar varaibles
    * @param tid Thread ID
+   * @param reinit_for_derivative_reordering A flag indicating whether we are reinitializing for the
+   *        purpose of re-ordering derivative information for ADNodalBCs
    */
-  virtual void reinitScalars(THREAD_ID tid);
+  virtual void reinitScalars(THREAD_ID tid, bool reinit_for_derivative_reordering = false);
 
   /**
    * Add info about variable that will be copied
@@ -708,18 +789,14 @@ public:
 
   virtual const std::string & name() const;
 
-  /**
-   * Adds a scalar variable
-   * @param var_name The name of the variable
-   * @param order The order of the variable
-   * @param scale_factor The scaling factor to be used with this scalar variable
-   */
-  virtual void addScalarVariable(const std::string & var_name,
-                                 Order order,
-                                 Real scale_factor,
-                                 const std::set<SubdomainID> * const active_subdomains = NULL);
-
   const std::vector<VariableName> & getVariableNames() const { return _vars[0].names(); }
+
+  void getStandardFieldVariableNames(std::vector<VariableName> & std_field_variables) const;
+
+  /**
+   * Returns the maximum number of all variables on the system
+   */
+  unsigned int getMaxVariableNumber() const { return _max_var_number; }
 
   virtual void computeVariables(const NumericVector<Number> & /*soln*/) {}
 
@@ -732,7 +809,7 @@ public:
 
   virtual void addTimeIntegrator(const std::string & /*type*/,
                                  const std::string & /*name*/,
-                                 InputParameters /*parameters*/)
+                                 InputParameters & /*parameters*/)
   {
   }
 
@@ -743,7 +820,24 @@ public:
 
   std::shared_ptr<TimeIntegrator> getSharedTimeIntegrator() { return _time_integrator; }
 
+  /// caches the dof indices of provided variables in MooseMesh's FaceInfo data structure
+  void cacheVarIndicesByFace(const std::vector<VariableName> & vars);
+
 protected:
+  /**
+   * Internal getters for the states of the solution as owned by libMesh.
+   *
+   * For the first three states (0 = current, 1 = old, 2 = older), we point directly to the
+   * solutions in libMesh (which is why these virtuals are needed). This allows us to store a more
+   * generalized set of solution states in _solution_states that also enables the addition of older
+   * states if we need them.
+   */
+  ///@{
+  virtual NumericVector<Number> & solutionInternal() const = 0;
+  virtual NumericVector<Number> & solutionOldInternal() const = 0;
+  virtual NumericVector<Number> & solutionOlderInternal() const = 0;
+  ///@}
+
   SubProblem & _subproblem;
 
   MooseApp & _app;
@@ -757,6 +851,8 @@ protected:
   std::vector<VariableWarehouse> _vars;
   /// Map of variables (variable id -> array of subdomains where it lives)
   std::map<unsigned int, std::set<SubdomainID>> _var_map;
+  /// Maximum variable number
+  unsigned int _max_var_number;
 
   std::vector<std::string> _vars_to_be_zeroed_on_residual;
   std::vector<std::string> _vars_to_be_zeroed_on_jacobian;
@@ -792,6 +888,33 @@ protected:
 
   /// Time integrator
   std::shared_ptr<TimeIntegrator> _time_integrator;
+
+  /// Map variable number to its pointer
+  std::vector<std::vector<MooseVariableFEBase *>> _numbered_vars;
+
+  /// Storage for MooseVariable objects
+  MooseObjectWarehouseBase<MooseVariableBase> _variable_warehouse;
+
+  /// Flag used to indicate whether we are computing the scaling Jacobian
+  bool _computing_scaling_jacobian;
+
+  /// Flag used to indicate whether we are computing the scaling Residual
+  bool _computing_scaling_residual;
+
+  /// Whether to automatically scale the variables
+  bool _automatic_scaling;
+
+  /// True if printing out additional information
+  bool _verbose;
+
+  /// The number of default solution states to store
+  unsigned int _default_solution_states;
+
+private:
+  /// The solution states (0 = current, 1 = old, 2 = older, etc)
+  std::vector<NumericVector<Number> *> _solution_states;
+  /// The saved solution states (0 = current, 1 = old, 2 = older, etc)
+  std::vector<NumericVector<Number> *> _saved_solution_states;
 };
 
 #define PARALLEL_TRY

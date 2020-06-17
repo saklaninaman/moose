@@ -31,10 +31,6 @@
 #include "C1ICBase.h"
 
 // Forward Declarations
-class CrossIC;
-
-template <>
-InputParameters validParams<CrossIC>();
 
 /**
  * CrossIC creates a C1 continuous initial condition that looks like a cross in
@@ -43,6 +39,8 @@ InputParameters validParams<CrossIC>();
 class CrossIC : public C1ICBase
 {
 public:
+  static InputParameters validParams();
+
   CrossIC(const InputParameters & parameters);
 
   virtual Real value(const Point & p);
@@ -53,4 +51,3 @@ public:
   const Real _x2;
   const Real _y2;
 };
-

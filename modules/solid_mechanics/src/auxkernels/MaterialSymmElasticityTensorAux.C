@@ -8,24 +8,23 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 /*************************************************************************
-*
-*  Welcome to HYRAX!
-*  Andrea M. Jokisaari
-*  CASL/MOOSE
-*
-*  18 April 2012
-*
-*************************************************************************/
+ *
+ *  Welcome to HYRAX!
+ *  Andrea M. Jokisaari
+ *  CASL/MOOSE
+ *
+ *  18 April 2012
+ *
+ *************************************************************************/
 
 #include "MaterialSymmElasticityTensorAux.h"
 
 registerMooseObject("SolidMechanicsApp", MaterialSymmElasticityTensorAux);
 
-template <>
 InputParameters
-validParams<MaterialSymmElasticityTensorAux>()
+MaterialSymmElasticityTensorAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   // name of the material property of symm elasticity tensor type (probably "elasticity_tensor")
   params.addRequiredParam<std::string>("tensor_matpro",
                                        "The SymmElasticityTensor material property name");

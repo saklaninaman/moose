@@ -12,10 +12,8 @@
 #include "TwoPhaseFluidProperties.h"
 #include "VaporMixtureFluidProperties.h"
 
-class TwoPhaseNCGFluidProperties;
-
-template <>
-InputParameters validParams<TwoPhaseNCGFluidProperties>();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
 
 /**
  * Base class for fluid properties used with 2-phase flow with non-condensable
@@ -24,6 +22,8 @@ InputParameters validParams<TwoPhaseNCGFluidProperties>();
 class TwoPhaseNCGFluidProperties : public TwoPhaseFluidProperties
 {
 public:
+  static InputParameters validParams();
+
   TwoPhaseNCGFluidProperties(const InputParameters & parameters);
 
   const UserObjectName & getLiquidName() const override { return _fp_2phase->getLiquidName(); }
@@ -87,3 +87,4 @@ protected:
   const VaporMixtureFluidProperties * _fp_vapor_mixture;
 };
 
+#pragma GCC diagnostic pop

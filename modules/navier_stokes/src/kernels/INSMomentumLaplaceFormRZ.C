@@ -11,11 +11,10 @@
 
 registerMooseObject("NavierStokesApp", INSMomentumLaplaceFormRZ);
 
-template <>
 InputParameters
-validParams<INSMomentumLaplaceFormRZ>()
+INSMomentumLaplaceFormRZ::validParams()
 {
-  InputParameters params = validParams<INSMomentumLaplaceForm>();
+  InputParameters params = INSMomentumLaplaceForm::validParams();
   params.addClassDescription("This class computes additional momentum equation residual and "
                              "Jacobian contributions for the incompressible Navier-Stokes momentum "
                              "equation in RZ (axisymmetric cylindrical) coordinates, using the "
@@ -33,7 +32,14 @@ INSMomentumLaplaceFormRZ::strongViscousTermLaplace()
 {
   const Real & r = _q_point[_qp](0);
   return INSBase::strongViscousTermLaplace() +
+         // To understand the code below, visit
+         // https://en.wikipedia.org/wiki/Del_in_cylindrical_and_spherical_coordinates.
+         // The u_r / r^2 term comes from the vector Laplacian. The -du_r/dr * 1/r term comes from
+         // the scalar Laplacian. The scalar Laplacian in axisymmetric cylindrical coordinates is
+         // equivalent to the Cartesian Laplacian plus a 1/r * df/dr term. And of course we are
+         // applying a minus sign here because the strong form is -\nabala^2 * \vec{u}
          RealVectorValue(_mu[_qp] * (_u_vel[_qp] / (r * r) - _grad_u_vel[_qp](0) / r),
+                         // Again we need the 1/r * df/dr term
                          -_mu[_qp] * _grad_v_vel[_qp](0) / r,
                          0);
 }

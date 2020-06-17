@@ -14,11 +14,10 @@
 
 registerMooseObject("TensorMechanicsApp", ComputeLayeredCosseratElasticityTensor);
 
-template <>
 InputParameters
-validParams<ComputeLayeredCosseratElasticityTensor>()
+ComputeLayeredCosseratElasticityTensor::validParams()
 {
-  InputParameters params = validParams<ComputeElasticityTensorBase>();
+  InputParameters params = ComputeElasticityTensorBase::validParams();
   params.addClassDescription("Computes Cosserat elasticity and flexural bending rigidity tensors "
                              "relevant for simulations with layered materials.  The layering "
                              "direction is assumed to be perpendicular to the 'z' direction.");

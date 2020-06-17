@@ -12,10 +12,6 @@
 #include "SmoothCircleIC.h"
 
 // Forward Declarations
-class RndSmoothCircleIC;
-
-template <>
-InputParameters validParams<RndSmoothCircleIC>();
 
 /**
  * RndSmoothcircleIC creates a smooth circle with a random distribution
@@ -24,6 +20,8 @@ InputParameters validParams<RndSmoothCircleIC>();
 class RndSmoothCircleIC : public SmoothCircleIC
 {
 public:
+  static InputParameters validParams();
+
   RndSmoothCircleIC(const InputParameters & parameters);
 
 private:
@@ -32,4 +30,3 @@ private:
   const Real _variation_invalue;
   const Real _variation_outvalue;
 };
-

@@ -31,6 +31,8 @@ InputParameters validParams<RelationshipManager>();
 class RelationshipManager : public MooseObject, public libMesh::GhostingFunctor
 {
 public:
+  static InputParameters validParams();
+
   RelationshipManager(const InputParameters & parameters);
 
   /**
@@ -38,8 +40,9 @@ public:
    */
   void init()
   {
+    if (!_inited)
+      internalInit();
     _inited = true;
-    internalInit();
   }
 
   /**
@@ -97,6 +100,11 @@ public:
    */
   bool useDisplacedMesh() const { return _use_displaced_mesh; }
 
+  /**
+   * Set the dof map
+   */
+  void setDofMap(const DofMap & dof_map) { _dof_map = &dof_map; }
+
 protected:
   /**
    * Called before this RM is attached.  Only called once
@@ -108,6 +116,10 @@ protected:
 
   /// Reference to the Mesh object
   MooseMesh & _mesh;
+
+  /// Pointer to DofMap (may be null if this is geometric only). This is useful for setting coupling
+  /// matrices in call-backs from DofMap::reinit
+  const DofMap * _dof_map;
 
   /// Boolean indicating whether this RM can be attached early (e.g. all parameters are known
   /// without the need for inspecting things like variables or other parts of the system that
@@ -123,5 +135,50 @@ protected:
 
   /// Which system this should go to (undisplaced or displaced)
   const bool _use_displaced_mesh;
-};
 
+  /// What type of systems this RM can be applied to
+  const Moose::RMSystemType _system_type;
+
+public:
+  /**
+   * Whether \p input_rm is geometric
+   */
+  static bool isGeometric(Moose::RelationshipManagerType input_rm);
+
+  /**
+   * Whether \p input_rm is algebraic
+   */
+  static bool isAlgebraic(Moose::RelationshipManagerType input_rm);
+
+  /**
+   * Whether \p input_rm is coupling
+   */
+  static bool isCoupling(Moose::RelationshipManagerType input_rm);
+
+  /**
+   * A relationship manager type that is geometric and algebraic
+   */
+  static Moose::RelationshipManagerType geo_and_alg;
+
+  /**
+   * A relationship manager type that is geometric, algebraic, and coupling
+   */
+  static Moose::RelationshipManagerType geo_alg_and_coupl;
+
+  /**
+   * This returns an \p InputParameters object containing an \p ElementSideNeighborLayers
+   * relationship manager with zero layers of ghosting. While zero layers may seem foolish, this is
+   * actually very useful for building the correct sparsity pattern between intra-element degrees of
+   * freedom. Since this object only has meaning for building the sparsity pattern, the relationsip
+   * manager type contained within the returned \p InputParameters object will be COUPLING
+   */
+  static InputParameters zeroLayerGhosting();
+
+  /**
+   * This returns an \p InputParameters object containing an \p ElementSideNeighborLayers
+   * relationship manager with one side layer of ghosting.
+   * @param rm_type The type of relationship manager that should be added. This can be GEOMETRIC,
+   *                ALGEBRAIC, COUPLING or a combination of the three
+   */
+  static InputParameters oneLayerGhosting(Moose::RelationshipManagerType rm_type);
+};

@@ -13,10 +13,6 @@
 #include "NSPressureDerivs.h"
 
 // Forward Declarations
-class NSPressureNeumannBC;
-
-template <>
-InputParameters validParams<NSPressureNeumannBC>();
 
 /**
  * This kernel is appropriate for use with a "zero normal flow"
@@ -32,6 +28,8 @@ InputParameters validParams<NSPressureNeumannBC>();
 class NSPressureNeumannBC : public NSIntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   NSPressureNeumannBC(const InputParameters & parameters);
 
   virtual ~NSPressureNeumannBC() {}
@@ -60,4 +58,3 @@ private:
   // in the canonical ordering.
   Real computeJacobianHelper(unsigned m);
 };
-

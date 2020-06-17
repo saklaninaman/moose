@@ -11,11 +11,6 @@
 
 #include "GeneralUserObject.h"
 
-class RichardsSumQuantity;
-
-template <>
-InputParameters validParams<RichardsSumQuantity>();
-
 /**
  * Sums into _total
  * This is used, for instance, to record the total mass
@@ -26,6 +21,8 @@ InputParameters validParams<RichardsSumQuantity>();
 class RichardsSumQuantity : public GeneralUserObject
 {
 public:
+  static InputParameters validParams();
+
   RichardsSumQuantity(const InputParameters & parameters);
   virtual ~RichardsSumQuantity();
 
@@ -54,4 +51,3 @@ protected:
   /// this holds the sum
   Real _total;
 };
-

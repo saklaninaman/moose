@@ -11,11 +11,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowPermeabilityTensorFromVar);
 
-template <>
 InputParameters
-validParams<PorousFlowPermeabilityTensorFromVar>()
+PorousFlowPermeabilityTensorFromVar::validParams()
 {
-  InputParameters params = validParams<PorousFlowPermeabilityBase>();
+  InputParameters params = PorousFlowPermeabilityBase::validParams();
   params.addRequiredCoupledVar("perm", "The scalar permeability");
   params.addParam<RealTensorValue>("k_anisotropy",
                                    "A tensor to multiply the scalar "

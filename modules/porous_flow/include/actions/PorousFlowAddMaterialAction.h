@@ -12,11 +12,7 @@
 #include "Action.h"
 #include "PorousFlowDependencies.h"
 
-class PorousFlowAddMaterialAction;
 class AddMaterialAction;
-
-template <>
-InputParameters validParams<PorousFlowAddMaterialAction>();
 
 /**
  * Action to automatically ensure that PorousFlowMaterials are correctly evaluated
@@ -37,6 +33,8 @@ class PorousFlowAddMaterialAction : public Action, public PorousFlowDependencies
 {
 
 public:
+  static InputParameters validParams();
+
   PorousFlowAddMaterialAction(const InputParameters & params);
 
   virtual void act() override;
@@ -78,4 +76,3 @@ protected:
   /// List of all materials added in the input file by AddMaterialAction
   std::vector<AddMaterialAction *> _ama_materials;
 };
-

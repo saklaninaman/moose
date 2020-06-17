@@ -11,11 +11,6 @@
 
 #include "HEVPFlowRateUOBase.h"
 
-class HEVPFlowRatePowerLawJ2;
-
-template <>
-InputParameters validParams<HEVPFlowRatePowerLawJ2>();
-
 /**
  * This user object classs
  * Computes flow rate based on power law and
@@ -24,6 +19,8 @@ InputParameters validParams<HEVPFlowRatePowerLawJ2>();
 class HEVPFlowRatePowerLawJ2 : public HEVPFlowRateUOBase
 {
 public:
+  static InputParameters validParams();
+
   HEVPFlowRatePowerLawJ2(const InputParameters & parameters);
 
   virtual bool computeValue(unsigned int, Real &) const;
@@ -39,4 +36,3 @@ protected:
   RankTwoTensor computePK2Deviatoric(const RankTwoTensor &, const RankTwoTensor &) const;
   Real computeEqvStress(const RankTwoTensor &, const RankTwoTensor &) const;
 };
-

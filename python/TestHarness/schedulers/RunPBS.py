@@ -10,6 +10,7 @@
 import os, re
 from QueueManager import QueueManager
 from TestHarness import util # to execute qsub
+import math # to compute node requirement
 
 ## This Class is responsible for maintaining an interface to the PBS scheduling syntax
 class RunPBS(QueueManager):
@@ -62,7 +63,7 @@ class RunPBS(QueueManager):
                 output_file = job_data.json_data.get(job_data.job_dir, {}).get(job_data.plugin, {}).get('QSUB_OUTPUT', "")
                 if os.path.exists(output_file):
                     with open(output_file, 'r') as f:
-                        output_string = util.readOutput(f, None)
+                        output_string = util.readOutput(f, None, job_data.jobs.getJobs()[0].getTester())
                     job_data.jobs.getJobs()[0].setOutput(output_string)
 
                 # Add a caveat to each job, explaining that one of the jobs caused a TestHarness exception
@@ -75,10 +76,17 @@ class RunPBS(QueueManager):
         template = {}
 
         # Launch script location
-        template['launch_script'] = os.path.join(job.getTestDir(), job.getTestNameShort() + '.qsub')
+        template['launch_script'] = os.path.join(job.getTestDir(), os.path.basename(job.getTestNameShort()) + '.qsub')
 
         # NCPUS
         template['mpi_procs'] = job.getMetaData().get('QUEUEING_NCPUS', 1)
+
+        # Compute node requirement
+        if self.options.pbs_node_cpus:
+            nodes = template['mpi_procs']/self.options.pbs_node_cpus
+        else:
+            nodes = 1
+        template['nodes'] = math.ceil(nodes)
 
         # Convert MAX_TIME to hours:minutes for walltime use
         max_time = job.getMetaData().get('QUEUEING_MAXTIME', 1)
@@ -87,7 +95,7 @@ class RunPBS(QueueManager):
         template['walltime'] = '{0:02d}'.format(hours) + ':' + '{0:02d}'.format(minutes) + ':00'
 
         # Job Name
-        template['job_name'] = job.getTestNameShort()
+        template['job_name'] = os.path.basename(job.getTestNameShort())
 
         # PBS Project group
         template['pbs_project'] = '#PBS -P %s' % (self.options.queue_project)
@@ -141,7 +149,6 @@ class RunPBS(QueueManager):
                 other_tester.setStatus(other_tester.fail, 'launch failure')
 
             # This is _only_ to make the failed message more useful
-            tester.specs['test_dir'] = ''
             tester.specs['command'] = command
             tester.setStatus(tester.fail, 'QSUB Group Failure')
             job.setOutput(launch_results)

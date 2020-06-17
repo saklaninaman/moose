@@ -19,6 +19,8 @@
 class HomogenizedThermalConductivity : public ElementAverageValue
 {
 public:
+  static InputParameters validParams();
+
   HomogenizedThermalConductivity(const InputParameters & parameters);
 
   virtual void initialize();
@@ -39,7 +41,3 @@ private:
   Real _integral_value;
   const Real _scale;
 };
-
-template <>
-InputParameters validParams<HomogenizedThermalConductivity>();
-

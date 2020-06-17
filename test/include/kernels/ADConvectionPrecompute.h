@@ -11,23 +11,17 @@
 
 #include "ADKernelValue.h"
 
-template <ComputeStage>
-class ADConvectionPrecompute;
-
-declareADValidParams(ADConvectionPrecompute);
-
-template <ComputeStage compute_stage>
-class ADConvectionPrecompute : public ADKernelValue<compute_stage>
+class ADConvectionPrecompute : public ADKernelValue
 {
 public:
+  static InputParameters validParams();
+
   ADConvectionPrecompute(const InputParameters & parameters);
 
 protected:
-  ADResidual precomputeQpResidual() override;
+  ADReal precomputeQpResidual() override;
 
 private:
   RealVectorValue _velocity;
 
-  usingKernelValueMembers;
 };
-

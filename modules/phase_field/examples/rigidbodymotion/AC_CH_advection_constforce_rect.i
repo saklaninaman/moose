@@ -140,9 +140,14 @@
 
 [VectorPostprocessors]
   [./forces]
-    # VectorPostprocessor for outputing grain forces and torques
+    # VectorPostprocessor for outputting grain forces and torques
     type = GrainForcesPostprocessor
     grain_force = grain_force
+  [../]
+  [./grain_volumes]
+    type = FeatureVolumeVectorPostprocessor
+    flood_counter = grain_center
+    execute_on = 'initial timestep_begin'
   [../]
 []
 

@@ -16,11 +16,12 @@
 
 registerMooseObject("MooseApp", DGDiffusion);
 
-template <>
+defineLegacyParams(DGDiffusion);
+
 InputParameters
-validParams<DGDiffusion>()
+DGDiffusion::validParams()
 {
-  InputParameters params = validParams<DGKernel>();
+  InputParameters params = DGKernel::validParams();
   // See header file for sigma and epsilon
   params.addRequiredParam<Real>("sigma", "sigma");
   params.addRequiredParam<Real>("epsilon", "epsilon");
@@ -45,7 +46,7 @@ DGDiffusion::computeQpResidual(Moose::DGResidualType type)
 
   const unsigned int elem_b_order = _var.order();
   const double h_elem =
-      _current_elem->volume() / _current_side_elem->volume() * 1. / Utility::pow<2>(elem_b_order);
+      _current_elem_volume / _current_side_volume * 1. / Utility::pow<2>(elem_b_order);
 
   switch (type)
   {
@@ -78,7 +79,7 @@ DGDiffusion::computeQpJacobian(Moose::DGJacobianType type)
 
   const unsigned int elem_b_order = _var.order();
   const double h_elem =
-      _current_elem->volume() / _current_side_elem->volume() * 1. / Utility::pow<2>(elem_b_order);
+      _current_elem_volume / _current_side_volume * 1. / Utility::pow<2>(elem_b_order);
 
   switch (type)
   {

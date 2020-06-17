@@ -11,116 +11,113 @@
 #include "Function.h"
 #include "DelimitedFileReader.h"
 
-registerADMooseObject("DarcyThermoMechApp", PackedColumn);
+registerMooseObject("DarcyThermoMechApp", PackedColumn);
 
-defineADValidParams(
-    PackedColumn,
-    ADMaterial,
-    params.addRequiredCoupledVar("temperature", "The temperature (C) of the fluid.");
+InputParameters
+PackedColumn::validParams()
+{
+  InputParameters params = ADMaterial::validParams();
+  params.addRequiredCoupledVar("temperature", "The temperature (C) of the fluid.");
 
-    // Add a parameter to get the radius of the spheres in the column
-    // (used later to interpolate permeability).
-    params.addParam<FunctionName>("radius",
-                                  "1.0",
-                                  "The radius of the steel spheres (mm) that are packed in the "
-                                  "column for computing permeability.");
+  // Add a parameter to get the radius of the spheres in the column
+  // (used later to interpolate permeability).
+  params.addParam<FunctionName>("radius",
+                                "1.0",
+                                "The radius of the steel spheres (mm) that are packed in the "
+                                "column for computing permeability.");
 
-    // http://en.wikipedia.org/wiki/Close-packing_of_equal_spheres
-    params.addParam<FunctionName>(
-        "porosity", 0.25952, "Porosity of porous media, default is for closed packed spheres.");
+  // http://en.wikipedia.org/wiki/Close-packing_of_equal_spheres
+  params.addParam<FunctionName>(
+      "porosity", 0.25952, "Porosity of porous media, default is for closed packed spheres.");
 
-    // Fluid properties
-    params.addParam<Real>("fluid_viscosity",
-                          1.002e-3,
-                          "Fluid viscosity (Pa s); default is for water at 20C).");
-    params.addParam<FileName>(
-        "fluid_viscosity_file",
-        "The name of a file containing the fluid viscosity (Pa-s) as a function of temperature "
-        "(C); if provided the constant value is ignored.");
+  // Fluid properties
+  params.addParam<Real>(
+      "fluid_viscosity", 1.002e-3, "Fluid viscosity (Pa s); default is for water at 20C).");
+  params.addParam<FileName>(
+      "fluid_viscosity_file",
+      "The name of a file containing the fluid viscosity (Pa-s) as a function of temperature "
+      "(C); if provided the constant value is ignored.");
 
-    params.addParam<Real>("fluid_thermal_conductivity",
-                          0.59803,
-                          "Fluid thermal conductivity (W/(mK); default is for water at 20C).");
-    params.addParam<FileName>(
-        "fluid_thermal_conductivity_file",
-        "The name of a file containing fluid thermal conductivity (W/(mK)) as a function of "
-        "temperature (C); if provided the constant value is ignored.");
+  params.addParam<Real>("fluid_thermal_conductivity",
+                        0.59803,
+                        "Fluid thermal conductivity (W/(mK); default is for water at 20C).");
+  params.addParam<FileName>(
+      "fluid_thermal_conductivity_file",
+      "The name of a file containing fluid thermal conductivity (W/(mK)) as a function of "
+      "temperature (C); if provided the constant value is ignored.");
 
-    params.addParam<Real>("fluid_density",
-                          998.21,
-                          "Fluid density (kg/m^3); default is for water at 20C).");
-    params.addParam<FileName>("fluid_density_file",
-                              "The name of a file containing fluid density (kg/m^3) as a function "
-                              "of temperature (C); if provided the constant value is ignored.");
+  params.addParam<Real>(
+      "fluid_density", 998.21, "Fluid density (kg/m^3); default is for water at 20C).");
+  params.addParam<FileName>("fluid_density_file",
+                            "The name of a file containing fluid density (kg/m^3) as a function "
+                            "of temperature (C); if provided the constant value is ignored.");
 
-    params.addParam<Real>("fluid_specific_heat",
-                          4157.0,
-                          "Fluid specific heat (J/(kgK); default is for water at 20C).");
-    params.addParam<FileName>(
-        "fluid_specific_heat_file",
-        "The name of a file containing fluid specific heat (J/(kgK) as a function of temperature "
-        "(C); if provided the constant value is ignored.");
+  params.addParam<Real>(
+      "fluid_specific_heat", 4157.0, "Fluid specific heat (J/(kgK); default is for water at 20C).");
+  params.addParam<FileName>(
+      "fluid_specific_heat_file",
+      "The name of a file containing fluid specific heat (J/(kgK) as a function of temperature "
+      "(C); if provided the constant value is ignored.");
 
-    params.addParam<Real>(
-        "fluid_thermal_expansion",
-        2.07e-4,
-        "Fluid thermal expansion coefficient (1/K); default is for water at 20C).");
-    params.addParam<FileName>("fluid_thermal_expansion_file",
-                              "The name of a file containing fluid thermal expansion coefficient "
-                              "(1/K) as a function of temperature "
-                              "(C); if provided the constant value is ignored.");
+  params.addParam<Real>("fluid_thermal_expansion",
+                        2.07e-4,
+                        "Fluid thermal expansion coefficient (1/K); default is for water at 20C).");
+  params.addParam<FileName>("fluid_thermal_expansion_file",
+                            "The name of a file containing fluid thermal expansion coefficient "
+                            "(1/K) as a function of temperature "
+                            "(C); if provided the constant value is ignored.");
 
-    // Solid properties
-    // https://en.wikipedia.org/wiki/Stainless_steel#Properties
-    params.addParam<Real>("solid_thermal_conductivity",
-                          15.0,
-                          "Solid thermal conductivity (W/(mK); default is for AISI/ASTIM 304 "
-                          "stainless steel at 20C).");
-    params.addParam<FileName>(
-        "solid_thermal_conductivity_file",
-        "The name of a file containing solid thermal conductivity (W/(mK)) as a function of "
-        "temperature (C); if provided the constant value is ignored.");
+  // Solid properties
+  // https://en.wikipedia.org/wiki/Stainless_steel#Properties
+  params.addParam<Real>("solid_thermal_conductivity",
+                        15.0,
+                        "Solid thermal conductivity (W/(mK); default is for AISI/ASTIM 304 "
+                        "stainless steel at 20C).");
+  params.addParam<FileName>(
+      "solid_thermal_conductivity_file",
+      "The name of a file containing solid thermal conductivity (W/(mK)) as a function of "
+      "temperature (C); if provided the constant value is ignored.");
 
-    params.addParam<Real>(
-        "solid_density",
-        7900,
-        "Solid density (kg/m^3); default is for AISI/ASTIM 304 stainless steel at 20C).");
-    params.addParam<FileName>("solid_density_file",
-                              "The name of a file containing solid density (kg/m^3) as a function "
-                              "of temperature (C); if provided the constant value is ignored.");
+  params.addParam<Real>(
+      "solid_density",
+      7900,
+      "Solid density (kg/m^3); default is for AISI/ASTIM 304 stainless steel at 20C).");
+  params.addParam<FileName>("solid_density_file",
+                            "The name of a file containing solid density (kg/m^3) as a function "
+                            "of temperature (C); if provided the constant value is ignored.");
 
-    params.addParam<Real>(
-        "solid_specific_heat",
-        500,
-        "Solid specific heat (J/(kgK); default is for AISI/ASTIM 304 stainless steel at 20C).");
-    params.addParam<FileName>(
-        "solid_specific_heat_file",
-        "The name of a file containing solid specific heat (J/(kgK) as a function of temperature "
-        "(C); if provided the constant value is ignored.");
+  params.addParam<Real>(
+      "solid_specific_heat",
+      500,
+      "Solid specific heat (J/(kgK); default is for AISI/ASTIM 304 stainless steel at 20C).");
+  params.addParam<FileName>(
+      "solid_specific_heat_file",
+      "The name of a file containing solid specific heat (J/(kgK) as a function of temperature "
+      "(C); if provided the constant value is ignored.");
 
-    params.addParam<Real>(
-        "solid_thermal_expansion",
-        17.3e-6,
-        "Solid thermal expansion coefficient (1/K); default is for water at 20C).");
-    params.addParam<FileName>("solid_thermal_expansion_file",
-                              "The name of a file containing solid thermal expansion coefficient "
-                              "(1/K) as a function of temperature "
-                              "(C); if provided the constant value is ignored.");
+  params.addParam<Real>("solid_thermal_expansion",
+                        17.3e-6,
+                        "Solid thermal expansion coefficient (1/K); default is for water at 20C).");
+  params.addParam<FileName>("solid_thermal_expansion_file",
+                            "The name of a file containing solid thermal expansion coefficient "
+                            "(1/K) as a function of temperature "
+                            "(C); if provided the constant value is ignored.");
 
-    // Optional phase variable
-    params.addCoupledVar("phase",
-                         "The variable indicating the phase (steel=1 or water=0). If "
-                         "supplied this is used to compute the porosity instead of the "
-                         "supplied value.");
+  // Optional phase variable
+  params.addCoupledVar("phase",
+                       "The variable indicating the phase (steel=1 or water=0). If "
+                       "supplied this is used to compute the porosity instead of the "
+                       "supplied value.");
 
-    // Optional thermal conductivity variable
-    params.addCoupledVar("thermal_conductivity",
-                         "When supplied the variable be will be used for "
-                         "thermal conductivity rather than being computed."););
+  // Optional thermal conductivity variable
+  params.addCoupledVar("thermal_conductivity",
+                       "When supplied the variable be will be used for "
+                       "thermal conductivity rather than being computed.");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-PackedColumn<compute_stage>::PackedColumn(const InputParameters & parameters)
-  : ADMaterial<compute_stage>(parameters),
+PackedColumn::PackedColumn(const InputParameters & parameters)
+  : ADMaterial(parameters),
     // Get the one parameter from the input file
     _input_radius(getFunction("radius")),
     _input_porosity(getFunction("porosity")),
@@ -140,8 +137,8 @@ PackedColumn<compute_stage>::PackedColumn(const InputParameters & parameters)
     _solid_cte(getParam<Real>("solid_thermal_expansion")),
 
     // Material Properties being produced by this object
-    _permeability(declareProperty<Real>("permeability")),
-    _porosity(declareProperty<Real>("porosity")),
+    _permeability(declareADProperty<Real>("permeability")),
+    _porosity(declareADProperty<Real>("porosity")),
     _viscosity(declareADProperty<Real>("viscosity")),
     _thermal_conductivity(declareADProperty<Real>("thermal_conductivity")),
     _specific_heat(declareADProperty<Real>("specific_heat")),
@@ -176,9 +173,8 @@ PackedColumn<compute_stage>::PackedColumn(const InputParameters & parameters)
   _use_solid_cte_interp = initInputData("solid_thermal_expansion_file", _solid_cte_interpolation);
 }
 
-template <ComputeStage compute_stage>
 void
-PackedColumn<compute_stage>::computeQpProperties()
+PackedColumn::computeQpProperties()
 {
   // Current temperature
   ADReal temp = _temperature[_qp] - 273.15;
@@ -228,10 +224,8 @@ PackedColumn<compute_stage>::computeQpProperties()
   _thermal_expansion[_qp] = _porosity[_qp] * fluid_cte + (1.0 - _porosity[_qp]) * solid_cte;
 }
 
-template <ComputeStage compute_stage>
 bool
-PackedColumn<compute_stage>::initInputData(const std::string & param_name,
-                                           ADLinearInterpolation & interp)
+PackedColumn::initInputData(const std::string & param_name, ADLinearInterpolation & interp)
 {
   if (isParamValid(param_name))
   {

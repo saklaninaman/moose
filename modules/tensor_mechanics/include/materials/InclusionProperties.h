@@ -13,10 +13,6 @@
 #include "RankTwoTensor.h"
 
 // Forward Declarations
-class InclusionProperties;
-
-template <>
-InputParameters validParams<InclusionProperties>();
 
 /**
  * This material calculates the stresses, strains, and elastic energies for an
@@ -28,6 +24,8 @@ InputParameters validParams<InclusionProperties>();
 class InclusionProperties : public Material
 {
 public:
+  static InputParameters validParams();
+
   InclusionProperties(const InputParameters & parameters);
 
 protected:
@@ -60,8 +58,8 @@ private:
   RankTwoTensor _elastic_strain_int;
   Real _elastic_energy_int;
 
+  /// The stress tensor
   MaterialProperty<RankTwoTensor> & _stress;
   MaterialProperty<RankTwoTensor> & _strain;
   MaterialProperty<Real> & _elastic_energy;
 };
-

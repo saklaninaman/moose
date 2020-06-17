@@ -1,14 +1,14 @@
 [Mesh]
-  type = FileMesh
-  file = circle.e
-[]
-
-[MeshModifiers]
-  [./cnode]
-    type = AddExtraNodeset
+  [file_mesh]
+    type = FileMeshGenerator
+    file = circle.e
+  []
+  [cnode]
+    type = ExtraNodesetGenerator
     coord = '1000.0 0.0'
     new_boundary = 10
-  [../]
+    input = file_mesh
+  []
 []
 
 [Variables]
@@ -66,13 +66,13 @@
 
 [BCs]
   [./outer_x]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_x
     boundary = 2
     value = 0
   [../]
   [./outer_y]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_y
     boundary = '2 10'
     value = 0

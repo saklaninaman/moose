@@ -10,39 +10,33 @@
 #include "ADComputeThermalExpansionEigenstrainBase.h"
 #include "RankTwoTensor.h"
 
-defineADValidParams(ADComputeThermalExpansionEigenstrainBase,
-                    ADComputeEigenstrainBase,
-                    params.addCoupledVar("temperature", "Coupled temperature");
-                    params.addRequiredCoupledVar("stress_free_temperature",
-                                                 "Reference temperature at which there is no "
-                                                 "thermal expansion for thermal eigenstrain "
-                                                 "calculation"););
+InputParameters
+ADComputeThermalExpansionEigenstrainBase::validParams()
+{
+  InputParameters params = ADComputeEigenstrainBase::validParams();
+  params.addCoupledVar("temperature", "Coupled temperature");
+  params.addRequiredCoupledVar("stress_free_temperature",
+                               "Reference temperature at which there is no "
+                               "thermal expansion for thermal eigenstrain "
+                               "calculation");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADComputeThermalExpansionEigenstrainBase<compute_stage>::ADComputeThermalExpansionEigenstrainBase(
+ADComputeThermalExpansionEigenstrainBase::ADComputeThermalExpansionEigenstrainBase(
     const InputParameters & parameters)
-  : ADComputeEigenstrainBase<compute_stage>(parameters),
+  : ADComputeEigenstrainBase(parameters),
     _temperature(adCoupledValue("temperature")),
-    _deigenstrain_dT(declareADProperty<RankTwoTensor>(
-        derivativePropertyNameFirst(_eigenstrain_name, this->getVar("temperature", 0)->name()))),
     _stress_free_temperature(adCoupledValue("stress_free_temperature"))
 {
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeThermalExpansionEigenstrainBase<compute_stage>::computeQpEigenstrain()
+ADComputeThermalExpansionEigenstrainBase::computeQpEigenstrain()
 {
   ADReal thermal_strain = 0.0;
-  ADReal instantaneous_cte = 0.0;
 
-  computeThermalStrain(thermal_strain, instantaneous_cte);
+  computeThermalStrain(thermal_strain);
 
   _eigenstrain[_qp].zero();
   _eigenstrain[_qp].addIa(thermal_strain);
-
-  _deigenstrain_dT[_qp].zero();
-  _deigenstrain_dT[_qp].addIa(instantaneous_cte);
 }
-
-adBaseClass(ADComputeThermalExpansionEigenstrainBase);

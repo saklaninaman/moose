@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", SusceptibilityTimeDerivative);
 
-template <>
 InputParameters
-validParams<SusceptibilityTimeDerivative>()
+SusceptibilityTimeDerivative::validParams()
 {
-  InputParameters params = validParams<TimeDerivative>();
+  InputParameters params = TimeDerivative::validParams();
   params.addClassDescription(
       "A modified time derivative Kernel that multiplies the time derivative "
       "of a variable by a generalized susceptibility");
@@ -29,11 +28,11 @@ SusceptibilityTimeDerivative::SusceptibilityTimeDerivative(const InputParameters
   : DerivativeMaterialInterface<JvarMapKernelInterface<TimeDerivative>>(parameters),
     _Chi(getMaterialProperty<Real>("f_name")),
     _dChidu(getMaterialPropertyDerivative<Real>("f_name", _var.name())),
-    _dChidarg(_coupled_moose_vars.size())
+    _dChidarg(_n_args)
 {
   // fetch derivatives
-  for (unsigned int i = 0; i < _dChidarg.size(); ++i)
-    _dChidarg[i] = &getMaterialPropertyDerivative<Real>("f_name", _coupled_moose_vars[i]->name());
+  for (unsigned int i = 0; i < _n_args; ++i)
+    _dChidarg[i] = &getMaterialPropertyDerivative<Real>("f_name", i);
 }
 
 void

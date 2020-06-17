@@ -11,11 +11,6 @@
 
 #include "HEVPStrengthUOBase.h"
 
-class HEVPRambergOsgoodHardening;
-
-template <>
-InputParameters validParams<HEVPRambergOsgoodHardening>();
-
 /**
  * This user object classs
  * Computes power law  hardening
@@ -23,6 +18,8 @@ InputParameters validParams<HEVPRambergOsgoodHardening>();
 class HEVPRambergOsgoodHardening : public HEVPStrengthUOBase
 {
 public:
+  static InputParameters validParams();
+
   HEVPRambergOsgoodHardening(const InputParameters & parameters);
 
   virtual bool computeValue(unsigned int, Real &) const;
@@ -33,4 +30,3 @@ protected:
   Real _peeq0;
   Real _exponent;
 };
-

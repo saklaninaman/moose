@@ -12,10 +12,6 @@
 #include "LevelSetBiMaterialBase.h"
 
 // Forward Declarations
-class LevelSetBiMaterialReal;
-
-template <>
-InputParameters validParams<LevelSetBiMaterialReal>();
 
 /**
  * Compute a Real material property for bi-materials problem (consisting of two different materials)
@@ -25,6 +21,8 @@ InputParameters validParams<LevelSetBiMaterialReal>();
 class LevelSetBiMaterialReal : public LevelSetBiMaterialBase
 {
 public:
+  static InputParameters validParams();
+
   LevelSetBiMaterialReal(const InputParameters & parameters);
 
 protected:
@@ -37,4 +35,3 @@ protected:
   /// Global Real material property (switch bi-material diffusion coefficient based on level set values)
   MaterialProperty<Real> & _material_prop;
 };
-

@@ -12,11 +12,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowFluidStateWaterNCGIC);
 
-template <>
 InputParameters
-validParams<PorousFlowFluidStateWaterNCGIC>()
+PorousFlowFluidStateWaterNCGIC::validParams()
 {
-  InputParameters params = validParams<PorousFlowFluidStateIC>();
+  InputParameters params = PorousFlowFluidStateIC::validParams();
   params.addClassDescription(
       "An initial condition to calculate z from saturation for water and non-condensable gas");
   return params;

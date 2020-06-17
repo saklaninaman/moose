@@ -11,11 +11,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowPermeabilityKozenyCarman);
 
-template <>
 InputParameters
-validParams<PorousFlowPermeabilityKozenyCarman>()
+PorousFlowPermeabilityKozenyCarman::validParams()
 {
-  InputParameters params = validParams<PorousFlowPermeabilityBase>();
+  InputParameters params = PorousFlowPermeabilityBase::validParams();
   MooseEnum poroperm_function("kozeny_carman_fd2=0 kozeny_carman_phi0=1", "kozeny_carman_fd2");
   params.addParam<MooseEnum>(
       "poroperm_function",
@@ -85,6 +84,9 @@ PorousFlowPermeabilityKozenyCarman::PorousFlowPermeabilityKozenyCarman(
       _A = _k0 * std::pow(1.0 - _phi0, _m) / std::pow(_phi0, _n);
       break;
   }
+
+  // Make sure that derivatives are included in the Jacobian calculations
+  _dictator.usePermDerivs(true);
 }
 
 void

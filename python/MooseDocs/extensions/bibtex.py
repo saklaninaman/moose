@@ -1,4 +1,3 @@
-#pylint: disable=missing-docstring
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -7,27 +6,30 @@
 #*
 #* Licensed under LGPL 2.1, please see LICENSE for details
 #* https://www.gnu.org/licenses/lgpl-2.1.html
-import re
+import sys
 import uuid
 import logging
-
-import anytree
 
 from pybtex.plugin import find_plugin, PluginNotFound
 from pybtex.database import BibliographyData, parse_file
 from pybtex.database.input.bibtex import UndefinedMacro, Person
 from pylatexenc.latex2text import LatexNodes2Text
 
-import MooseDocs
-from MooseDocs.common import exceptions
-from MooseDocs.base import components, LatexRenderer
-from MooseDocs.tree import tokens, html, latex
-from MooseDocs.extensions import core, command
+import moosetree
+
+from ..common import exceptions
+from ..base import components, LatexRenderer, MarkdownReader
+from ..tree import tokens, html, latex
+from . import core, command
 
 LOG = logging.getLogger('MooseDocs.extensions.bibtex')
 
 def make_extension(**kwargs):
     return BibtexExtension(**kwargs)
+
+BibtexCite = tokens.newToken('BibtexCite', keys=[])
+BibtexBibliography = tokens.newToken('BibtexBibliography', bib_style='')
+BibtexList = tokens.newToken('BibtexList', BibtexBibliography, bib_files=None)
 
 class BibtexExtension(command.CommandExtension):
     """
@@ -45,30 +47,26 @@ class BibtexExtension(command.CommandExtension):
         command.CommandExtension.__init__(self, *args, **kwargs)
 
         self.__database = None
-        self.__citations = list()
+        self.__bib_files = list()
+        self.__bib_file_database = dict()
 
-    def initMetaData(self, page, meta):
-        meta.initData('citations', list())
-
-    def addCitations(self, *args):
-        self.__citations.extend(args)
-
-    def preExecute(self, content):
+    def preExecute(self):
 
         duplicates = self.get('duplicates', list())
         self.__database = BibliographyData()
 
-        bib_files = []
-        for node in content:
+        self.__bib_files = []
+        for node in self.translator.getPages():
             if node.source.endswith('.bib'):
-                bib_files.append(node.source)
+                self.__bib_files.append(node.source)
 
-        for bfile in bib_files:
+        for bfile in self.__bib_files:
             try:
                 db = parse_file(bfile)
+                self.__bib_file_database[bfile] = db
             except UndefinedMacro as e:
                 msg = "The BibTeX file %s has an undefined macro:\n%s"
-                LOG.warning(msg, bfile, e.message)
+                LOG.warning(msg, bfile, e)
 
             #TODO: https://bitbucket.org/pybtex-devs/pybtex/issues/93/
             #      databaseadd_entries-method-not-considering
@@ -83,39 +81,44 @@ class BibtexExtension(command.CommandExtension):
                 elif not duplicate_key:
                     self.__database.add_entry(key, db.entries[key])
 
-    def postTokenize(self, ast, page, meta, reader):
-        if self.__citations:
-            meta.getData('citations').extend(self.__citations)
-            del self.__citations[:] # TODO: In python 3 this should be a clear()
+    def preTokenize(self, page, ast):
+        page['citations'] = list()
 
+    def postTokenize(self, page, ast):
+        if page['citations']:
             has_bib = False
-            for node in anytree.PreOrderIter(ast):
+            for node in moosetree.iterate(ast):
                 if node.name == 'BibtexBibliography':
                     has_bib = True
                     break
 
             if not has_bib:
-                BibtexBibliography(ast)
+                core.Heading(ast, level=2, string='References')
+                BibtexBibliography(ast, bib_style='plain')
 
-    @property
-    def database(self):
-        return self.__database
+    def database(self, bibfile=None):
+        if bibfile is None:
+            return self.__database
+        else:
+            return self.__bib_file_database[bibfile]
+
+    def bibfiles(self):
+        return self.__bib_files
 
     def extend(self, reader, renderer):
         self.requires(core, command)
 
         self.addCommand(reader, BibtexCommand())
+        self.addCommand(reader, BibtexListCommand())
         self.addCommand(reader, BibtexReferenceComponent())
-        reader.addInline(BibtexReferenceComponentDeprecated(), location='>FormatInline')
 
         renderer.add('BibtexCite', RenderBibtexCite())
+        renderer.add('BibtexList', RenderBibtexList())
         renderer.add('BibtexBibliography', RenderBibtexBibliography())
 
         if isinstance(renderer, LatexRenderer):
             renderer.addPackage('natbib', 'round')
 
-BibtexCite = tokens.newToken('BibtexCite', keys=[])
-BibtexBibliography = tokens.newToken('BibtexBibliography', bib_style=u'')
 class BibtexReferenceComponent(command.CommandComponent):
     COMMAND = ('cite', 'citet', 'citep', 'nocite')
     SUBCOMMAND = None
@@ -123,20 +126,7 @@ class BibtexReferenceComponent(command.CommandComponent):
     def createToken(self, parent, info, page):
         keys = [key.strip() for key in info['inline'].split(',')]
         BibtexCite(parent, keys=keys, cite=info['command'])
-        self.extension.addCitations(*keys)
-        return parent
-
-class BibtexReferenceComponentDeprecated(components.TokenComponent):
-    RE = re.compile(r'\['                                 # open
-                    r'(?P<cite>cite|citet|citep|nocite):' # cite prefix
-                    r'(?P<keys>.*?)'                      # list of keys
-                    r'\]',                                # closing ]
-                    flags=re.UNICODE)
-
-    def createToken(self, parent, info, page):
-        keys = [key.strip() for key in info['keys'].split(',')]
-        BibtexCite(parent, keys=keys, cite=info['cite'])
-        self.extension.addCitations(*keys)
+        page['citations'].extend(keys)
         return parent
 
 class BibtexCommand(command.CommandComponent):
@@ -146,16 +136,40 @@ class BibtexCommand(command.CommandComponent):
     @staticmethod
     def defaultSettings():
         config = command.CommandComponent.defaultSettings()
-        config['style'] = (u'plain', "The BibTeX style (plain, unsrt, alpha, unsrtalpha).")
-        config['title'] = (u'References', "The section title for the references.")
+        config['style'] = ('plain', "The BibTeX style (plain, unsrt, alpha, unsrtalpha).")
+        config['title'] = ('References', "The section title for the references.")
         config['title-level'] = (2, "The heading level for the section title for the references.")
         return config
 
-    def createToken(self, parent, token, page): #pylint: disable=unused-argument
+    def createToken(self, parent, token, page):
         if self.settings['title']:
             h = core.Heading(parent, level=int(self.settings['title-level']))
-            self.reader.tokenize(h, self.settings['title'], page, MooseDocs.INLINE)
+            self.reader.tokenize(h, self.settings['title'], page, MarkdownReader.INLINE)
         BibtexBibliography(parent, bib_style=self.settings['style'])
+        return parent
+
+class BibtexListCommand(command.CommandComponent):
+    COMMAND = 'bibtex'
+    SUBCOMMAND = 'list'
+
+    @staticmethod
+    def defaultSettings():
+        config = command.CommandComponent.defaultSettings()
+        config['bib_files'] = (None, "The list of *.bib files to use for a complete citation list.")
+        return config
+
+    def createToken(self, parent, token, page):
+        bfiles = self.settings['bib_files']
+        bib_files = list()
+        if bfiles is None:
+            bib_files = self.extension.bibfiles()
+        else:
+            for bfile in bfiles.split():
+                for key in self.extension.bibfiles():
+                    if key.endswith(bfile):
+                        bib_files.append(key)
+
+        BibtexList(parent, bib_files=bib_files)
         return parent
 
 class RenderBibtexCite(components.RenderComponent):
@@ -168,18 +182,18 @@ class RenderBibtexCite(components.RenderComponent):
 
         citep = cite == 'citep'
         if citep:
-            html.String(parent, content=u'(')
+            html.String(parent, content='(')
 
         num_keys = len(token['keys'])
         for i, key in enumerate(token['keys']):
 
-            if key not in self.extension.database.entries:
+            if key not in self.extension.database().entries:
                 LOG.error('Unknown BibTeX key: %s', key)
                 html.Tag(parent, 'span', string=key, style='color:red;')
                 continue
 
 
-            entry = self.extension.database.entries[key]
+            entry = self.extension.database().entries[key]
             author_found = True
             if not 'author' in entry.persons.keys() and not 'Author' in entry.persons.keys():
                 author_found = False
@@ -207,25 +221,26 @@ class RenderBibtexCite(components.RenderComponent):
                 author = '{} and {}'.format(a0, a1)
             else:
                 author = ' '.join(a[0].last_names)
+
             author = LatexNodes2Text().latex_to_text(author)
 
-            form = u'{}, {}' if citep else u'{} ({})'
+            form = '{}, {}' if citep else '{} ({})'
             html.Tag(parent, 'a', href='#{}'.format(key),
                      string=form.format(author, entry.fields['year']))
 
             if citep:
                 if num_keys > 1 and i != num_keys - 1:
-                    html.String(parent, content=u'; ')
+                    html.String(parent, content='; ')
             else:
                 if num_keys == 2 and i == 0:
-                    html.String(parent, content=u' and ')
+                    html.String(parent, content=' and ')
                 elif num_keys > 2 and i == num_keys - 2:
-                    html.String(parent, content=u', and ')
+                    html.String(parent, content=', and ')
                 elif num_keys > 2 and i != num_keys - 1:
-                    html.String(parent, content=u', ')
+                    html.String(parent, content=', ')
 
         if citep:
-            html.String(parent, content=u')')
+            html.String(parent, content=')')
 
         return parent
 
@@ -233,10 +248,14 @@ class RenderBibtexCite(components.RenderComponent):
         self.createHTML(parent, token, page)
 
     def createLatex(self, parent, token, page):
-        latex.Command(parent, token['cite'], string=u','.join(token['keys']), escape=False)
+        latex.Command(parent, token['cite'], string=','.join(token['keys']), escape=False)
         return parent
 
 class RenderBibtexBibliography(components.RenderComponent):
+
+    def getCitations(self, parent, token, page):
+        return page.get('citations', list())
+
     def createHTML(self, parent, token, page):
 
         try:
@@ -245,8 +264,8 @@ class RenderBibtexBibliography(components.RenderComponent):
             msg = 'Unknown bibliography style "{}".'
             raise exceptions.MooseDocsException(msg, token['bib_style'])
 
-        citations = list(self.translator.getMetaData(page, 'citations'))
-        formatted_bibliography = style().format_bibliography(self.extension.database, citations)
+        citations = self.getCitations(parent, token, page)
+        formatted_bibliography = style().format_bibliography(self.extension.database(), citations)
         html_backend = find_plugin('pybtex.backends', 'html')
 
         div = html.Tag(parent, 'div', class_='moose-bibliography')
@@ -264,7 +283,7 @@ class RenderBibtexBibliography(components.RenderComponent):
         for child in ol.children:
             key = child['id']
             db = BibliographyData()
-            db.add_entry(key, self.extension.database.entries[key])
+            db.add_entry(key, self.extension.database().entries[key])
             btex = db.to_string("bibtex")
 
             m_id = uuid.uuid4()
@@ -272,7 +291,7 @@ class RenderBibtexBibliography(components.RenderComponent):
                      style="padding-left:10px;",
                      class_='modal-trigger moose-bibtex-modal',
                      href="#{}".format(m_id),
-                     string=u'[BibTeX]')
+                     string='[BibTeX]')
 
             modal = html.Tag(child, 'div', class_='modal', id_=m_id)
             content = html.Tag(modal, 'div', class_='modal-content')
@@ -283,3 +302,10 @@ class RenderBibtexBibliography(components.RenderComponent):
 
     def createLatex(self, parent, token, page):
         pass
+
+class RenderBibtexList(RenderBibtexBibliography):
+    def getCitations(self, parent, token, page):
+        citations = list()
+        for bfile in token['bib_files']:
+            citations += self.extension.database(bfile).entries.keys()
+        return citations

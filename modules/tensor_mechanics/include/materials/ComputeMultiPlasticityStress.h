@@ -12,11 +12,6 @@
 #include "ComputeStressBase.h"
 #include "MultiPlasticityDebugger.h"
 
-class ComputeMultiPlasticityStress;
-
-template <>
-InputParameters validParams<ComputeMultiPlasticityStress>();
-
 /**
  * ComputeMultiPlasticityStress performs the return-map
  * algorithm and associated stress updates for plastic
@@ -30,6 +25,8 @@ InputParameters validParams<ComputeMultiPlasticityStress>();
 class ComputeMultiPlasticityStress : public ComputeStressBase, public MultiPlasticityDebugger
 {
 public:
+  static InputParameters validParams();
+
   ComputeMultiPlasticityStress(const InputParameters & parameters);
 
 protected:
@@ -591,4 +588,3 @@ protected:
 private:
   RankTwoTensor rot(const RankTwoTensor & tens);
 };
-

@@ -14,9 +14,6 @@
 #include "MaterialPropertyInterface.h"
 #include "TransientInterface.h"
 #include "DependencyResolverInterface.h"
-#include "UserObjectInterface.h"
-#include "PostprocessorInterface.h"
-#include "VectorPostprocessorInterface.h"
 
 // Forward Declarations
 class GeneralUserObject;
@@ -29,12 +26,11 @@ InputParameters validParams<GeneralUserObject>();
 class GeneralUserObject : public UserObject,
                           public MaterialPropertyInterface,
                           public TransientInterface,
-                          public DependencyResolverInterface,
-                          public UserObjectInterface,
-                          protected PostprocessorInterface,
-                          protected VectorPostprocessorInterface
+                          public DependencyResolverInterface
 {
 public:
+  static InputParameters validParams();
+
   GeneralUserObject(const InputParameters & parameters);
 
   const std::set<std::string> & getRequestedItems() override;
@@ -53,7 +49,8 @@ public:
   /**
    * Store dependency among same object types for proper execution order
    */
-  virtual const PostprocessorValue & getPostprocessorValue(const std::string & name);
+  virtual const PostprocessorValue & getPostprocessorValue(const std::string & name,
+                                                           unsigned int index = 0);
   virtual const PostprocessorValue & getPostprocessorValueByName(const PostprocessorName & name);
 
   virtual const VectorPostprocessorValue &
@@ -75,4 +72,3 @@ protected:
   std::set<std::string> _depend_vars;
   std::set<std::string> _supplied_vars;
 };
-

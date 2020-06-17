@@ -11,11 +11,12 @@
 
 registerMooseObject("MooseApp", ChangeOverTimePostprocessor);
 
-template <>
+defineLegacyParams(ChangeOverTimePostprocessor);
+
 InputParameters
-validParams<ChangeOverTimePostprocessor>()
+ChangeOverTimePostprocessor::validParams()
 {
-  InputParameters params = validParams<GeneralPostprocessor>();
+  InputParameters params = GeneralPostprocessor::validParams();
 
   params.addRequiredParam<PostprocessorName>("postprocessor", "The name of the postprocessor");
   params.addParam<bool>("change_with_respect_to_initial",
@@ -44,7 +45,7 @@ ChangeOverTimePostprocessor::ChangeOverTimePostprocessor(const InputParameters &
   {
     // ensure dependent post-processor is executed on initial
     const PostprocessorName & pp_name = getParam<PostprocessorName>("postprocessor");
-    const UserObject & pp = _fe_problem.getUserObjectTempl<UserObject>(pp_name);
+    const UserObject & pp = _fe_problem.getUserObject<UserObject>(pp_name);
     if (!pp.getExecuteOnEnum().contains(EXEC_INITIAL))
       mooseError("When 'change_with_respect_to_initial' is specified to be true, 'execute_on' for "
                  "the dependent post-processor ('" +

@@ -12,13 +12,7 @@
 #include "MultiApp.h"
 
 // Forward declarations
-class LevelSetReinitializationMultiApp;
 class LevelSetReinitializationProblem;
-class Executioner;
-
-template <>
-InputParameters validParams<LevelSetReinitializationMultiApp>();
-
 /**
  * MultiApp that performs a time reset prior to solving, this enables the level set reinitialization
  * to
@@ -27,6 +21,8 @@ InputParameters validParams<LevelSetReinitializationMultiApp>();
 class LevelSetReinitializationMultiApp : public MultiApp
 {
 public:
+  static InputParameters validParams();
+
   LevelSetReinitializationMultiApp(const InputParameters & parameters);
 
   virtual void initialSetup() override;
@@ -42,4 +38,3 @@ protected:
   /// The solve interval for reinitialization.
   const unsigned int & _interval;
 };
-

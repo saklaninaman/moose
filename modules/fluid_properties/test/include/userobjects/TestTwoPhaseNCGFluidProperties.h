@@ -11,10 +11,8 @@
 
 #include "TwoPhaseNCGFluidProperties.h"
 
-class TestTwoPhaseNCGFluidProperties;
-
-template <>
-InputParameters validParams<TestTwoPhaseNCGFluidProperties>();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
 
 /**
  * Test 2-phase NCG fluid properties
@@ -24,6 +22,9 @@ InputParameters validParams<TestTwoPhaseNCGFluidProperties>();
 class TestTwoPhaseNCGFluidProperties : public TwoPhaseNCGFluidProperties
 {
 public:
+  static InputParameters validParams();
+
   TestTwoPhaseNCGFluidProperties(const InputParameters & parameters);
 };
 
+#pragma GCC diagnostic pop

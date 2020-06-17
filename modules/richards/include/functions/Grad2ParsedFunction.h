@@ -12,10 +12,6 @@
 #include "MooseParsedFunction.h"
 
 // Forward declarations
-class Grad2ParsedFunction;
-
-template <>
-InputParameters validParams<Grad2ParsedFunction>();
 
 /**
  * returns the central difference approx to the derivative (direction.nabla)^2 function
@@ -26,6 +22,8 @@ InputParameters validParams<Grad2ParsedFunction>();
 class Grad2ParsedFunction : public MooseParsedFunction
 {
 public:
+  static InputParameters validParams();
+
   Grad2ParsedFunction(const InputParameters & parameters);
 
   virtual Real value(Real t, const Point & pt) const;

@@ -86,7 +86,7 @@ void petscSetupDM(NonlinearSystemBase & nl);
 PetscErrorCode petscSetupOutput(CommandLine * cmd_line);
 
 /**
- * Helper function for outputing the norm values with/without color
+ * Helper function for outputting the norm values with/without color
  */
 void outputNorm(libMesh::Real old_norm, libMesh::Real norm, bool use_color = false);
 
@@ -120,6 +120,9 @@ MultiMooseEnum getCommonPetscFlags();
 /// A helper function to produce a MultiMooseEnum with commonly used PETSc iname options (keys in key-value pairs)
 MultiMooseEnum getCommonPetscKeys();
 
+/// check if SNES type is variational inequalities (VI) solver
+bool isSNESVI(FEProblemBase & fe_problem);
+
 /**
  * A wrapper function for dealing with different versions of
  * PetscOptionsSetValue.  This is not generally called from
@@ -151,4 +154,3 @@ void colorAdjacencyMatrix(PetscScalar * adjacency_matrix,
 }
 
 #endif // LIBMESH_HAVE_PETSC
-

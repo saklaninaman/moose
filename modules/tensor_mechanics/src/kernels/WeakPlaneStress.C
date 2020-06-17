@@ -17,30 +17,24 @@
 
 registerMooseObject("TensorMechanicsApp", WeakPlaneStress);
 
-template <>
 InputParameters
-validParams<WeakPlaneStress>()
+WeakPlaneStress::validParams()
 {
-  InputParameters params = validParams<Kernel>();
-  params.addClassDescription("Plane stress kernel to provide out-of-plane strain contribution");
+  InputParameters params = Kernel::validParams();
+  params.addClassDescription("Plane stress kernel to provide out-of-plane strain contribution.");
   params.addCoupledVar("displacements",
                        "The string of displacements suitable for the problem statement");
   params.addCoupledVar("temperature",
                        "The name of the temperature variable used in the "
                        "ComputeThermalExpansionEigenstrain.  (Not required for "
                        "simulations without temperature coupling.)");
-  params.addParam<std::string>(
-      "thermal_eigenstrain_name",
-      "thermal_eigenstrain",
-      "The eigenstrain_name used in the ComputeThermalExpansionEigenstrain.");
+  params.addParam<std::vector<MaterialPropertyName>>(
+      "eigenstrain_names",
+      "List of eigenstrains used in the strain calculation. Used for computing their derivaties "
+      "for off-diagonal Jacobian terms.");
   params.addParam<std::string>("base_name", "Material property base name");
 
   MooseEnum direction("x y z", "z");
-  params.addDeprecatedParam<MooseEnum>(
-      "direction",
-      direction,
-      "The direction of the out-of-plane strain variable",
-      "Use the new parameter name 'out_of_plane_strain_direction'");
   params.addParam<MooseEnum>("out_of_plane_strain_direction",
                              direction,
                              "The direction of the out-of-plane strain variable");
@@ -55,27 +49,23 @@ WeakPlaneStress::WeakPlaneStress(const InputParameters & parameters)
     _base_name(isParamValid("base_name") ? getParam<std::string>("base_name") + "_" : ""),
     _stress(getMaterialProperty<RankTwoTensor>(_base_name + "stress")),
     _Jacobian_mult(getMaterialProperty<RankFourTensor>(_base_name + "Jacobian_mult")),
-    _direction(parameters.isParamSetByUser("direction")
-                   ? getParam<MooseEnum>("direction")
-                   : getParam<MooseEnum>("out_of_plane_strain_direction")),
+    _direction(getParam<MooseEnum>("out_of_plane_strain_direction")),
     _disp_coupled(isCoupled("displacements")),
     _ndisp(_disp_coupled ? coupledComponents("displacements") : 0),
     _disp_var(_ndisp),
     _temp_coupled(isCoupled("temperature")),
-    _temp_var(_temp_coupled ? coupled("temperature") : 0),
-    _deigenstrain_dT(_temp_coupled ? &getMaterialPropertyDerivative<RankTwoTensor>(
-                                         getParam<std::string>("thermal_eigenstrain_name"),
-                                         getVar("temperature", 0)->name())
-                                   : nullptr)
+    _temp_var(_temp_coupled ? coupled("temperature") : 0)
 {
   if (_disp_coupled)
     for (unsigned int i = 0; i < _ndisp; ++i)
       _disp_var[i] = coupled("displacements", i);
 
-  if (parameters.isParamSetByUser("direction") &&
-      parameters.isParamSetByUser("out_of_plane_strain_direction"))
-    mooseError("Cannot specify both 'direction' and 'out_of_plane_strain_direction'! Use "
-               "'out_of_plane_strain_direction'.");
+  if (_temp_coupled)
+  {
+    for (auto eigenstrain_name : getParam<std::vector<MaterialPropertyName>>("eigenstrain_names"))
+      _deigenstrain_dT.push_back(&getMaterialPropertyDerivative<RankTwoTensor>(
+          eigenstrain_name, getVar("temperature", 0)->name()));
+  }
 
   // Checking for consistency between mesh size and length of the provided displacements vector
   if (_disp_coupled && _ndisp != _mesh.dimension())
@@ -143,9 +133,13 @@ WeakPlaneStress::computeQpOffDiagJacobian(unsigned int jvar)
   // off-diagonal Jacobian with respect to a coupled temperature variable
   if (_temp_coupled && jvar == _temp_var)
   {
+    RankTwoTensor total_deigenstrain_dT;
+    for (const auto deigenstrain_dT : _deigenstrain_dT)
+      total_deigenstrain_dT += (*deigenstrain_dT)[_qp];
+
     Real sum = 0.0;
     for (unsigned int i = 0; i < 3; ++i)
-      sum += _Jacobian_mult[_qp](_direction, _direction, i, i) * (*_deigenstrain_dT)[_qp](i, i);
+      sum += _Jacobian_mult[_qp](_direction, _direction, i, i) * total_deigenstrain_dT(i, i);
 
     val = -sum * _test[_i][_qp] * _phi[_j][_qp];
   }

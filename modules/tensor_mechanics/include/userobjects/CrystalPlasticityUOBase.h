@@ -11,17 +11,14 @@
 
 #include "DiscreteElementUserObject.h"
 
-class CrystalPlasticityUOBase;
-
-template <>
-InputParameters validParams<CrystalPlasticityUOBase>();
-
 /**
  * Crystal plasticity system userobject base class.
  */
 class CrystalPlasticityUOBase : public DiscreteElementUserObject
 {
 public:
+  static InputParameters validParams();
+
   CrystalPlasticityUOBase(const InputParameters & parameters);
 
   /// Returns the size of variable
@@ -30,4 +27,3 @@ public:
 protected:
   unsigned int _variable_size;
 };
-

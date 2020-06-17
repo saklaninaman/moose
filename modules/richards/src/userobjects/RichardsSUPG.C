@@ -11,11 +11,10 @@
 //
 #include "RichardsSUPG.h"
 
-template <>
 InputParameters
-validParams<RichardsSUPG>()
+RichardsSUPG::validParams()
 {
-  InputParameters params = validParams<GeneralUserObject>();
+  InputParameters params = GeneralUserObject::validParams();
   params.addClassDescription("Richards SUPG base class.  Override tauSUPG, etc");
   return params;
 }

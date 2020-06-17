@@ -14,21 +14,23 @@
 
 #include "libmesh/utility.h"
 
-registerADMooseObject("MooseApp", ADDGDiffusion);
+registerMooseObject("MooseApp", ADDGDiffusion);
 
-defineADValidParams(ADDGDiffusion,
-                    ADDGKernel,
-                    // See header file for sigma and epsilon
-                    params.addRequiredParam<Real>("sigma", "sigma");
-                    params.addRequiredParam<Real>("epsilon", "epsilon");
-                    params.addParam<MaterialPropertyName>(
-                        "diff",
-                        1.,
-                        "The diffusion (or thermal conductivity or viscosity) coefficient."););
+InputParameters
+ADDGDiffusion::validParams()
+{
+  InputParameters params = ADDGKernel::validParams();
+  // See header file for sigma and epsilon
+  params.addRequiredParam<Real>("sigma", "sigma");
+  params.addRequiredParam<Real>("epsilon", "epsilon");
+  params.addParam<MaterialPropertyName>(
+      "diff", 1., "The diffusion (or thermal conductivity or viscosity) coefficient.");
+  params.addClassDescription("DG kernel for diffusion operator");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADDGDiffusion<compute_stage>::ADDGDiffusion(const InputParameters & parameters)
-  : ADDGKernel<compute_stage>(parameters),
+ADDGDiffusion::ADDGDiffusion(const InputParameters & parameters)
+  : ADDGKernel(parameters),
     _epsilon(getParam<Real>("epsilon")),
     _sigma(getParam<Real>("sigma")),
     _diff(getADMaterialProperty<Real>("diff")),
@@ -36,15 +38,14 @@ ADDGDiffusion<compute_stage>::ADDGDiffusion(const InputParameters & parameters)
 {
 }
 
-template <ComputeStage compute_stage>
-ADResidual
-ADDGDiffusion<compute_stage>::computeQpResidual(Moose::DGResidualType type)
+ADReal
+ADDGDiffusion::computeQpResidual(Moose::DGResidualType type)
 {
-  ADResidual r = 0;
+  ADReal r = 0;
 
   const unsigned int elem_b_order = _var.order();
-  const double h_elem =
-      _current_elem->volume() / _current_side_elem->volume() * 1. / Utility::pow<2>(elem_b_order);
+  const Real h_elem =
+      this->_current_elem_volume / this->_current_side_volume * 1. / Utility::pow<2>(elem_b_order);
 
   switch (type)
   {
@@ -71,6 +72,3 @@ ADDGDiffusion<compute_stage>::computeQpResidual(Moose::DGResidualType type)
 
   return r;
 }
-
-template class ADDGDiffusion<RESIDUAL>;
-template class ADDGDiffusion<JACOBIAN>;

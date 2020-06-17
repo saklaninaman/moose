@@ -12,10 +12,6 @@
 #include "KKSACBulkBase.h"
 
 // Forward Declarations
-class KKSACBulkF;
-
-template <>
-InputParameters validParams<KKSACBulkF>();
 
 /**
  * KKSACBulkBase child class for the free energy difference term
@@ -27,6 +23,8 @@ InputParameters validParams<KKSACBulkF>();
 class KKSACBulkF : public KKSACBulkBase
 {
 public:
+  static InputParameters validParams();
+
   KKSACBulkF(const InputParameters & parameters);
 
 protected:
@@ -41,5 +39,10 @@ protected:
 
   /// Second derivative of the double well function \f$ \frac {d^2}{d\eta^2} g(\eta) \f$
   const MaterialProperty<Real> & _prop_d2g;
-};
 
+  /// Value of the free energy function \f$ F_b \f$
+  const MaterialProperty<Real> & _prop_Fb;
+
+  /// Derivative of the free energy function \f$ \frac d{d\eta} F_b \f$
+  const MaterialProperty<Real> & _prop_dFb;
+};

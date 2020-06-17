@@ -13,11 +13,10 @@
 #include "AppFactory.h"
 #include "MooseSyntax.h"
 
-template <>
 InputParameters
-validParams<ChemicalReactionsTestApp>()
+ChemicalReactionsTestApp::validParams()
 {
-  InputParameters params = validParams<ChemicalReactionsApp>();
+  InputParameters params = ChemicalReactionsApp::validParams();
   return params;
 }
 
@@ -34,9 +33,9 @@ ChemicalReactionsTestApp::~ChemicalReactionsTestApp() {}
 
 void
 ChemicalReactionsTestApp::registerAll(Factory & f,
-                                  ActionFactory & af,
-                                  Syntax & s,
-                                  bool use_test_objects)
+                                      ActionFactory & af,
+                                      Syntax & s,
+                                      bool use_test_objects)
 {
   ChemicalReactionsApp::registerAll(f, af, s);
   if (use_test_objects)

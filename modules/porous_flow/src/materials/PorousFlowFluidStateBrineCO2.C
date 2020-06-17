@@ -12,11 +12,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowFluidStateBrineCO2);
 
-template <>
 InputParameters
-validParams<PorousFlowFluidStateBrineCO2>()
+PorousFlowFluidStateBrineCO2::validParams()
 {
-  InputParameters params = validParams<PorousFlowFluidState>();
+  InputParameters params = PorousFlowFluidState::validParams();
   params.addCoupledVar("xnacl", 0, "The salt mass fraction in the brine (kg/kg)");
   params.addClassDescription("Fluid state class for brine and CO2");
   return params;

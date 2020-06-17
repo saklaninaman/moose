@@ -14,10 +14,6 @@
 #include "DerivativeMaterialInterface.h"
 
 // Forward Declarations
-class SplitCHParsed;
-
-template <>
-InputParameters validParams<SplitCHParsed>();
 
 /**
  * CHParsed uses the Free Energy function and derivatives
@@ -28,6 +24,8 @@ InputParameters validParams<SplitCHParsed>();
 class SplitCHParsed : public DerivativeMaterialInterface<JvarMapKernelInterface<SplitCHCRes>>
 {
 public:
+  static InputParameters validParams();
+
   SplitCHParsed(const InputParameters & parameters);
 
   virtual void initialSetup();
@@ -37,10 +35,7 @@ protected:
   virtual Real computeQpOffDiagJacobian(unsigned int jvar);
 
 private:
-  const unsigned int _nvar;
   const MaterialProperty<Real> & _dFdc;
   const MaterialProperty<Real> & _d2Fdc2;
-
   std::vector<const MaterialProperty<Real> *> _d2Fdcdarg;
 };
-

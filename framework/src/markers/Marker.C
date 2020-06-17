@@ -15,13 +15,14 @@
 #include "MooseVariableFE.h"
 #include "SystemBase.h"
 
-template <>
+defineLegacyParams(Marker);
+
 InputParameters
-validParams<Marker>()
+Marker::validParams()
 {
-  InputParameters params = validParams<MooseObject>();
-  params += validParams<BlockRestrictable>();
-  params += validParams<OutputInterface>();
+  InputParameters params = MooseObject::validParams();
+  params += BlockRestrictable::validParams();
+  params += OutputInterface::validParams();
 
   // use of displaced meshes with markers is not supported
   params.set<bool>("use_displaced_mesh") = false;
@@ -83,7 +84,7 @@ const MooseArray<Real> &
 Marker::getMarkerValue(std::string name)
 {
   _depend.insert(name);
-  return _sys.getVariable(_tid, name).dofValues();
+  return _sys.getFieldVariable<Real>(_tid, name).dofValues();
 }
 
 bool

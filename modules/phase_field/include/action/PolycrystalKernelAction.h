@@ -18,6 +18,8 @@
 class PolycrystalKernelAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   PolycrystalKernelAction(const InputParameters & params);
 
   virtual void act();
@@ -29,7 +31,3 @@ protected:
   /// base name for the order parameter variables
   const std::string _var_name_base;
 };
-
-template <>
-InputParameters validParams<PolycrystalKernelAction>();
-

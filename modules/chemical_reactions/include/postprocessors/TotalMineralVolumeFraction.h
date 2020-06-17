@@ -11,11 +11,6 @@
 
 #include "ElementAverageValue.h"
 
-class TotalMineralVolumeFraction;
-
-template <>
-InputParameters validParams<TotalMineralVolumeFraction>();
-
 /**
  * Calculates the total volume fraction of the coupled solid mineral
  * species (volume of mineral species / volume of model)
@@ -23,6 +18,8 @@ InputParameters validParams<TotalMineralVolumeFraction>();
 class TotalMineralVolumeFraction : public ElementAverageValue
 {
 public:
+  static InputParameters validParams();
+
   TotalMineralVolumeFraction(const InputParameters & parameters);
 
 protected:
@@ -31,4 +28,3 @@ protected:
   /// Molar volume of coupled mineral species (molar mass / density)
   const Real _molar_volume;
 };
-

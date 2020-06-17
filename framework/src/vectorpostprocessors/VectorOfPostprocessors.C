@@ -12,11 +12,12 @@
 
 registerMooseObject("MooseApp", VectorOfPostprocessors);
 
-template <>
+defineLegacyParams(VectorOfPostprocessors);
+
 InputParameters
-validParams<VectorOfPostprocessors>()
+VectorOfPostprocessors::validParams()
 {
-  InputParameters params = validParams<GeneralVectorPostprocessor>();
+  InputParameters params = GeneralVectorPostprocessor::validParams();
 
   params.addRequiredParam<std::vector<PostprocessorName>>(
       "postprocessors", "The postprocessors whose values are to be reported");
@@ -25,7 +26,7 @@ validParams<VectorOfPostprocessors>()
 
   // The value from this VPP is naturally already on every processor
   // TODO: Make this not the case!  See #11415
-  params.set<bool>("_is_broadcast") = true;
+  params.set<bool>("_auto_broadcast") = false;
 
   return params;
 }

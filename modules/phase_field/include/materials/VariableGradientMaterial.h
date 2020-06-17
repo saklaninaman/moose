@@ -11,17 +11,14 @@
 
 #include "Material.h"
 
-class VariableGradientMaterial;
-
-template <>
-InputParameters validParams<VariableGradientMaterial>();
-
 /**
  * Set a material property to the norm of the gradient of a non-linear variable
  */
 class VariableGradientMaterial : public Material
 {
 public:
+  static InputParameters validParams();
+
   VariableGradientMaterial(const InputParameters & parameters);
 
 protected:
@@ -30,4 +27,3 @@ protected:
   const VariableGradient & _grad;
   MaterialProperty<Real> & _prop;
 };
-

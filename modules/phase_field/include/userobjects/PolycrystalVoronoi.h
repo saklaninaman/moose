@@ -12,14 +12,12 @@
 #include "PolycrystalUserObjectBase.h"
 
 // Forward Declarations
-class PolycrystalVoronoi;
-
-template <>
-InputParameters validParams<PolycrystalVoronoi>();
 
 class PolycrystalVoronoi : public PolycrystalUserObjectBase
 {
 public:
+  static InputParameters validParams();
+
   PolycrystalVoronoi(const InputParameters & parameters);
 
   virtual void precomputeGrainStructure() override;
@@ -58,4 +56,3 @@ private:
                      const Point & cntr,
                      const unsigned int dim) const;
 };
-

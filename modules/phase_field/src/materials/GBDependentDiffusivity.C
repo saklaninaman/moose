@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", GBDependentDiffusivity);
 
-template <>
 InputParameters
-validParams<GBDependentDiffusivity>()
+GBDependentDiffusivity::validParams()
 {
-  InputParameters params = validParams<GBDependentTensorBase>();
+  InputParameters params = GBDependentTensorBase::validParams();
   params.addClassDescription("Compute diffusivity rank two tensor based on GB phase variable");
   return params;
 }

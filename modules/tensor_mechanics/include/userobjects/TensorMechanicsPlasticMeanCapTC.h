@@ -12,11 +12,6 @@
 #include "TensorMechanicsPlasticModel.h"
 #include "TensorMechanicsHardeningModel.h"
 
-class TensorMechanicsPlasticMeanCapTC;
-
-template <>
-InputParameters validParams<TensorMechanicsPlasticMeanCapTC>();
-
 /**
  * Rate-independent associative mean-cap tensile AND compressive failure
  * with hardening/softening of the tensile and compressive strength.
@@ -29,6 +24,8 @@ InputParameters validParams<TensorMechanicsPlasticMeanCapTC>();
 class TensorMechanicsPlasticMeanCapTC : public TensorMechanicsPlasticModel
 {
 public:
+  static InputParameters validParams();
+
   TensorMechanicsPlasticMeanCapTC(const InputParameters & parameters);
 
   virtual void activeConstraints(const std::vector<Real> & f,
@@ -126,4 +123,3 @@ protected:
   /// d(compressive strength)/d(internal_param) as a function of residual value, rate, and internal_param
   virtual Real dcompressive_strength(const Real internal_param) const;
 };
-

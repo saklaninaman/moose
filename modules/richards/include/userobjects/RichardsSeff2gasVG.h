@@ -12,11 +12,6 @@
 #include "RichardsSeff.h"
 #include "RichardsSeffVG.h"
 
-class RichardsSeff2gasVG;
-
-template <>
-InputParameters validParams<RichardsSeff2gasVG>();
-
 /**
  * van-Genuchten gas effective saturation as a function of (Pwater, Pgas),
  * and its derivs wrt to those pressures.  Note that the water pressure appears
@@ -25,6 +20,8 @@ InputParameters validParams<RichardsSeff2gasVG>();
 class RichardsSeff2gasVG : public RichardsSeff
 {
 public:
+  static InputParameters validParams();
+
   RichardsSeff2gasVG(const InputParameters & parameters);
 
   /**
@@ -63,4 +60,3 @@ protected:
   /// van Genuchten m parameter
   Real _m;
 };
-

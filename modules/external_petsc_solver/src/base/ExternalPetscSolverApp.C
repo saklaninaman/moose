@@ -12,31 +12,33 @@
 #include "AppFactory.h"
 #include "MooseSyntax.h"
 #include "PETScDiffusionFDM.h"
+#include "libmesh/petsc_vector.h"
+#include "ExternalPETScProblem.h"
+#include "Executioner.h"
 
-template <>
 InputParameters
-validParams<ExternalPetscSolverApp>()
+ExternalPetscSolverApp::validParams()
 {
-  InputParameters params = validParams<MooseApp>();
+  InputParameters params = MooseApp::validParams();
+
+  // By default, use preset BCs
+  params.set<bool>("use_legacy_dirichlet_bc") = false;
+
+  params.set<bool>("use_legacy_material_output") = false;
   return params;
 }
 
 ExternalPetscSolverApp::ExternalPetscSolverApp(InputParameters parameters) : MooseApp(parameters)
 {
   ExternalPetscSolverApp::registerAll(_factory, _action_factory, _syntax);
-
-#if LIBMESH_HAVE_PETSC
+  // Create an external PETSc solver
   PETScExternalSolverCreate(_comm->get(), &_ts);
-#else
-  mooseError("You need to have PETSc installed to use ExternalPETScApp");
-#endif
 }
 
 ExternalPetscSolverApp::~ExternalPetscSolverApp()
 {
-#if LIBMESH_HAVE_PETSC
+  // Destroy PETSc solver
   PETScExternalSolverDestroy(_ts);
-#endif
 }
 
 void
@@ -46,6 +48,44 @@ ExternalPetscSolverApp::registerAll(Factory & f, ActionFactory & af, Syntax & /*
   Registry::registerActionsTo(af, {"ExternalPetscSolverApp"});
 
   /* register custom execute flags, action syntax, etc. here */
+}
+
+std::shared_ptr<Backup>
+ExternalPetscSolverApp::backup()
+{
+  auto backup = MooseApp::backup();
+
+  ExternalPETScProblem & external_petsc_problem =
+      static_cast<ExternalPETScProblem &>(_executioner->feProblem());
+
+  // Backup current solution
+  dataStore(backup->_system_data, external_petsc_problem.currentSolution(), nullptr);
+
+  // Backup the old solution
+  dataStore(backup->_system_data, external_petsc_problem.solutionOld(), nullptr);
+
+  // Backup Udot
+  dataStore(backup->_system_data, external_petsc_problem.udot(), nullptr);
+
+  return backup;
+}
+
+void
+ExternalPetscSolverApp::restore(std::shared_ptr<Backup> backup, bool for_restart)
+{
+  MooseApp::restore(backup, for_restart);
+
+  ExternalPETScProblem & external_petsc_problem =
+      static_cast<ExternalPETScProblem &>(_executioner->feProblem());
+
+  // Restore previous solution
+  dataLoad(backup->_system_data, external_petsc_problem.currentSolution(), nullptr);
+
+  // Restore the solution at the previous time step
+  dataLoad(backup->_system_data, external_petsc_problem.solutionOld(), nullptr);
+
+  // Restore udot
+  dataLoad(backup->_system_data, external_petsc_problem.udot(), nullptr);
 }
 
 void

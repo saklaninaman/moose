@@ -12,10 +12,6 @@
 #include "IntegratedBC.h"
 
 // Forward Declarations
-class AdvectionBC;
-
-template <>
-InputParameters validParams<AdvectionBC>();
 
 /**
  * Boundary terms for inflow/outflow of advected
@@ -24,6 +20,8 @@ InputParameters validParams<AdvectionBC>();
 class AdvectionBC : public IntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   AdvectionBC(const InputParameters & parameters);
 
 protected:
@@ -31,6 +29,6 @@ protected:
   virtual Real computeQpJacobian() override;
 
   const unsigned int _dim;
-  const bool _outflow;
+  const unsigned int _coupled_components;
   std::vector<const VariableValue *> _velocity;
 };

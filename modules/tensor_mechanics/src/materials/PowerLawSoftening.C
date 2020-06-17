@@ -13,11 +13,10 @@
 
 registerMooseObject("TensorMechanicsApp", PowerLawSoftening);
 
-template <>
 InputParameters
-validParams<PowerLawSoftening>()
+PowerLawSoftening::validParams()
 {
-  InputParameters params = validParams<SmearedCrackSofteningBase>();
+  InputParameters params = SmearedCrackSofteningBase::validParams();
   params.addClassDescription("Softening model with an abrupt stress release upon cracking. This "
                              "class is intended to be used with ComputeSmearedCrackingStress.");
   params.addRequiredRangeCheckedParam<Real>(

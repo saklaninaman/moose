@@ -11,17 +11,14 @@
 
 #include "Kernel.h"
 
-class PressureGradient;
-
-template <>
-InputParameters validParams<PressureGradient>();
-
 /**
  *
  */
 class PressureGradient : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   PressureGradient(const InputParameters & parameters);
 
 protected:
@@ -31,4 +28,3 @@ protected:
   unsigned int _component;
   const VariableValue & _pressure;
 };
-

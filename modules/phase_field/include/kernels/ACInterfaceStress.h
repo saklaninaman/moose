@@ -10,18 +10,8 @@
 #pragma once
 
 #include "Kernel.h"
-
-class ACInterfaceStress;
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-
-template <typename>
-class RankThreeTensorTempl;
-typedef RankThreeTensorTempl<Real> RankThreeTensor;
-
-template <>
-InputParameters validParams<ACInterfaceStress>();
+#include "RankTwoTensorForward.h"
+#include "RankFourTensorForward.h"
 
 /**
  * Compute the Allen-Cahn interface stress driving force contribution
@@ -31,6 +21,8 @@ InputParameters validParams<ACInterfaceStress>();
 class ACInterfaceStress : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   ACInterfaceStress(const InputParameters & parameters);
 
 protected:
@@ -54,4 +46,3 @@ protected:
   /// derivative of _dS w.r.t. the finite element coefficients for the Jacobian calculation
   RankThreeTensor _ddS;
 };
-

@@ -11,11 +11,6 @@
 
 #include "PorousFlowMassFraction.h"
 
-class PorousFlowMassFractionAqueousEquilibriumChemistry;
-
-template <>
-InputParameters validParams<PorousFlowMassFractionAqueousEquilibriumChemistry>();
-
 /**
  * Material designed to form a std::vector<std::vector>
  * of mass fractions from primary-species concentrations
@@ -25,6 +20,8 @@ InputParameters validParams<PorousFlowMassFractionAqueousEquilibriumChemistry>()
 class PorousFlowMassFractionAqueousEquilibriumChemistry : public PorousFlowMassFraction
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowMassFractionAqueousEquilibriumChemistry(const InputParameters & parameters);
 
 protected:
@@ -118,4 +115,3 @@ protected:
   /// Activity coefficients for the secondary species
   const std::vector<Real> _secondary_activity_coefficients;
 };
-

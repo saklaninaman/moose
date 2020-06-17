@@ -11,11 +11,6 @@
 
 #include "Compute2DIncrementalStrain.h"
 
-class ComputeAxisymmetricRZIncrementalStrain;
-
-template <>
-InputParameters validParams<ComputeAxisymmetricRZIncrementalStrain>();
-
 /**
  * ComputeAxisymmetricRZIncrementalStrain defines a strain increment only
  * for incremental strains in an Axisymmetric simulation.
@@ -24,6 +19,8 @@ InputParameters validParams<ComputeAxisymmetricRZIncrementalStrain>();
 class ComputeAxisymmetricRZIncrementalStrain : public Compute2DIncrementalStrain
 {
 public:
+  static InputParameters validParams();
+
   ComputeAxisymmetricRZIncrementalStrain(const InputParameters & parameters);
 
   void initialSetup() override;
@@ -36,4 +33,3 @@ protected:
   /// the old value of the first component of the displacements vector
   const VariableValue & _disp_old_0;
 };
-

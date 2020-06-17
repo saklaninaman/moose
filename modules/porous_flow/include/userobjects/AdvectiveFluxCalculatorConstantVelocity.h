@@ -11,17 +11,14 @@
 
 #include "AdvectiveFluxCalculatorBase.h"
 
-class AdvectiveFluxCalculatorConstantVelocity;
-
-template <>
-InputParameters validParams<AdvectiveFluxCalculatorConstantVelocity>();
-
 /**
  * Computes Advective fluxes for a constant velocity
  */
 class AdvectiveFluxCalculatorConstantVelocity : public AdvectiveFluxCalculatorBase
 {
 public:
+  static InputParameters validParams();
+
   AdvectiveFluxCalculatorConstantVelocity(const InputParameters & parameters);
 
 protected:
@@ -41,4 +38,3 @@ protected:
   /// grad(Kuzmin-Turek shape function)
   const VariablePhiGradient & _grad_phi;
 };
-

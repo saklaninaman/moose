@@ -11,11 +11,6 @@
 
 #include "FEProblem.h"
 
-class RichardsMultiphaseProblem;
-
-template <>
-InputParameters validParams<RichardsMultiphaseProblem>();
-
 /**
  * Allows a constraint u>=v to be enforced during
  * the nonlinear iteration process.  This is done
@@ -24,6 +19,8 @@ InputParameters validParams<RichardsMultiphaseProblem>();
 class RichardsMultiphaseProblem : public FEProblem
 {
 public:
+  static InputParameters validParams();
+
   RichardsMultiphaseProblem(const InputParameters & params);
   virtual ~RichardsMultiphaseProblem();
 
@@ -57,4 +54,3 @@ protected:
   /// internal moose variable number associated with _lower_var
   unsigned int _lower_var_num;
 };
-

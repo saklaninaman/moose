@@ -12,10 +12,6 @@
 #include "IntegratedBC.h"
 
 // Forward Declarations
-class DashpotBC;
-
-template <>
-InputParameters validParams<DashpotBC>();
 
 /**
  * Implements a simple constant Dashpot BC where grad(u)=value on the boundary.
@@ -24,6 +20,8 @@ InputParameters validParams<DashpotBC>();
 class DashpotBC : public IntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   /**
    * Factory constructor, takes parameters so that all derived classes can be built using the same
    * constructor.
@@ -36,6 +34,7 @@ protected:
   virtual Real computeQpOffDiagJacobian(unsigned int jvar);
 
 private:
+  /// Component of the velocity vector
   unsigned int _component;
   Real _coefficient;
 
@@ -47,4 +46,3 @@ private:
   const VariableValue & _disp_y_dot;
   const VariableValue & _disp_z_dot;
 };
-

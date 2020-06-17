@@ -11,14 +11,11 @@
 
 #include "MooseApp.h"
 
-class CombinedTestApp;
-
-template <>
-InputParameters validParams<CombinedTestApp>();
-
 class CombinedTestApp : public MooseApp
 {
 public:
+  static InputParameters validParams();
+
   CombinedTestApp(const InputParameters & parameters);
   virtual ~CombinedTestApp();
 
@@ -28,4 +25,3 @@ public:
   static void associateSyntax(Syntax & syntax, ActionFactory & action_factory);
   static void registerExecFlags(Factory & factory);
 };
-

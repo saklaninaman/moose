@@ -10,18 +10,13 @@
 #pragma once
 
 #include "Material.h"
-
-class ComputeSurfaceTensionKKS;
-template <typename>
-class RankTwoTensorTempl;
-typedef RankTwoTensorTempl<Real> RankTwoTensor;
-
-template <>
-InputParameters validParams<ComputeSurfaceTensionKKS>();
+#include "RankTwoTensorForward.h"
 
 class ComputeSurfaceTensionKKS : public Material
 {
 public:
+  static InputParameters validParams();
+
   ComputeSurfaceTensionKKS(const InputParameters & parameters);
 
 protected:
@@ -41,4 +36,3 @@ protected:
 
   MaterialProperty<RankTwoTensor> & _planar_stress;
 };
-

@@ -20,11 +20,10 @@
 #include "XFEMElementPairLocator.h"
 #include "DisplacedProblem.h"
 
-template <>
 InputParameters
-validParams<GeometricCutUserObject>()
+GeometricCutUserObject::validParams()
 {
-  InputParameters params = validParams<CrackFrontPointsProvider>();
+  InputParameters params = CrackFrontPointsProvider::validParams();
   params.addClassDescription("Base UserObject class for XFEM Geometric Cuts");
   params.addParam<bool>("heal_always", false, "Heal previous cuts at every time step");
   ExecFlagEnum & exec = params.set<ExecFlagEnum>("execute_on");

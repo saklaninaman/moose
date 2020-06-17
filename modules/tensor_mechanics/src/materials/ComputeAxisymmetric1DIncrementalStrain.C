@@ -11,11 +11,10 @@
 
 registerMooseObject("TensorMechanicsApp", ComputeAxisymmetric1DIncrementalStrain);
 
-template <>
 InputParameters
-validParams<ComputeAxisymmetric1DIncrementalStrain>()
+ComputeAxisymmetric1DIncrementalStrain::validParams()
 {
-  InputParameters params = validParams<Compute1DIncrementalStrain>();
+  InputParameters params = Compute1DIncrementalStrain::validParams();
   params.addClassDescription(
       "Compute strain increment for small strains in an axisymmetric 1D problem");
   params.addParam<UserObjectName>("subblock_index_provider",
@@ -42,9 +41,6 @@ ComputeAxisymmetric1DIncrementalStrain::ComputeAxisymmetric1DIncrementalStrain(
 {
   if (_has_out_of_plane_strain && _has_scalar_out_of_plane_strain)
     mooseError("Must define only one of out_of_plane_strain or scalar_out_of_plane_strain");
-
-  if (!_has_out_of_plane_strain && !_has_scalar_out_of_plane_strain)
-    mooseError("Must define either out_of_plane_strain or scalar_out_of_plane_strain");
 
   if (_has_scalar_out_of_plane_strain)
   {

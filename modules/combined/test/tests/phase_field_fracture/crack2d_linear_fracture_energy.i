@@ -1,18 +1,18 @@
 #This input uses PhaseField-Nonconserved Action to add phase field fracture bulk rate kernels
 [Mesh]
-  type = GeneratedMesh
-  dim = 2
-  nx = 20
-  ny = 10
-  ymax = 0.5
-[]
-
-[MeshModifiers]
+  [gen]
+    type = GeneratedMeshGenerator
+    dim = 2
+    nx = 20
+    ny = 10
+    ymax = 0.5
+  []
   [./noncrack]
-    type = BoundingBoxNodeSet
+    type = BoundingBoxNodeSetGenerator
     new_boundary = noncrack
     bottom_left = '0.5 0 0'
     top_right = '1 0 0'
+    input = gen
   [../]
 []
 
@@ -66,19 +66,19 @@
 
 [BCs]
   [./ydisp]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = disp_y
     boundary = top
     function = 't'
   [../]
   [./yfix]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_y
     boundary = noncrack
     value = 0
   [../]
   [./xfix]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_x
     boundary = top
     value = 0

@@ -31,19 +31,19 @@
 
 [BCs]
   [./symmetry_x]
-    type = ADPresetBC
+    type = ADDirichletBC
     variable = disp_r
     value = 0
     boundary = left
   [../]
   [./roller_z]
-    type = ADPresetBC
+    type = ADDirichletBC
     variable = disp_z
     value = 0
     boundary = bottom
   [../]
   [./top_load]
-    type = ADFunctionPresetBC
+    type = ADFunctionDirichletBC
     variable = disp_z
     function = -0.01*t
     boundary = top
@@ -52,7 +52,7 @@
 
 [Materials]
   [./elasticity_tensor]
-    type = ComputeIsotropicElasticityTensor
+    type = ADComputeIsotropicElasticityTensor
     youngs_modulus = 1e10
     poissons_ratio = 0.3
   [../]

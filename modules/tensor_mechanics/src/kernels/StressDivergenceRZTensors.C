@@ -14,11 +14,10 @@
 
 registerMooseObject("TensorMechanicsApp", StressDivergenceRZTensors);
 
-template <>
 InputParameters
-validParams<StressDivergenceRZTensors>()
+StressDivergenceRZTensors::validParams()
 {
-  InputParameters params = validParams<StressDivergenceTensors>();
+  InputParameters params = StressDivergenceTensors::validParams();
   params.addClassDescription(
       "Calculate stress divergence for an axisymmetric problem in cylindrical coordinates.");
   params.addRequiredRangeCheckedParam<unsigned int>(
@@ -93,6 +92,10 @@ StressDivergenceRZTensors::computeQpOffDiagJacobian(unsigned int jvar)
 
   if (_temp_coupled && jvar == _temp_var)
   {
+    RankTwoTensor total_deigenstrain_dT;
+    for (const auto deigenstrain_dT : _deigenstrain_dT)
+      total_deigenstrain_dT += (*deigenstrain_dT)[_qp];
+
     Real jac = 0.0;
     if (_component == 0)
     {
@@ -101,7 +104,7 @@ StressDivergenceRZTensors::computeQpOffDiagJacobian(unsigned int jvar)
           jac -= (_grad_test[_i][_qp](0) * _Jacobian_mult[_qp](0, 0, k, l) +
                   _test[_i][_qp] / _q_point[_qp](0) * _Jacobian_mult[_qp](2, 2, k, l) +
                   _grad_test[_i][_qp](1) * _Jacobian_mult[_qp](0, 1, k, l)) *
-                 (*_deigenstrain_dT)[_qp](k, l);
+                 total_deigenstrain_dT(k, l);
       return jac * _phi[_j][_qp];
     }
     else if (_component == 1)
@@ -110,7 +113,7 @@ StressDivergenceRZTensors::computeQpOffDiagJacobian(unsigned int jvar)
         for (unsigned l = 0; l < LIBMESH_DIM; ++l)
           jac -= (_grad_test[_i][_qp](1) * _Jacobian_mult[_qp](1, 1, k, l) +
                   _grad_test[_i][_qp](0) * _Jacobian_mult[_qp](1, 0, k, l)) *
-                 (*_deigenstrain_dT)[_qp](k, l);
+                 total_deigenstrain_dT(k, l);
       return jac * _phi[_j][_qp];
     }
   }

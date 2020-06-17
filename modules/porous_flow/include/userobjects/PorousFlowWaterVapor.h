@@ -12,10 +12,6 @@
 #include "PorousFlowFluidStateSingleComponentBase.h"
 
 class SinglePhaseFluidProperties;
-class PorousFlowWaterVapor;
-
-template <>
-InputParameters validParams<PorousFlowWaterVapor>();
 
 /**
  * Specialized class for water and vapor mixture using pressure and enthalpy.
@@ -26,6 +22,8 @@ InputParameters validParams<PorousFlowWaterVapor>();
 class PorousFlowWaterVapor : public PorousFlowFluidStateSingleComponentBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowWaterVapor(const InputParameters & parameters);
 
   virtual std::string fluidStateName() const override;
@@ -34,7 +32,7 @@ public:
                                 Real enthalpy,
                                 unsigned int qp,
                                 FluidStatePhaseEnum & phase_state,
-                                std::vector<FluidStatePropertiesAD> & fsp) const override;
+                                std::vector<FluidStateProperties> & fsp) const override;
 
 protected:
   /// Fluid properties UserObject for water

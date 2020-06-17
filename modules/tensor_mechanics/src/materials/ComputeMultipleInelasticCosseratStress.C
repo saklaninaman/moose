@@ -11,11 +11,10 @@
 
 registerMooseObject("TensorMechanicsApp", ComputeMultipleInelasticCosseratStress);
 
-template <>
 InputParameters
-validParams<ComputeMultipleInelasticCosseratStress>()
+ComputeMultipleInelasticCosseratStress::validParams()
 {
-  InputParameters params = validParams<ComputeMultipleInelasticStress>();
+  InputParameters params = ComputeMultipleInelasticStress::validParams();
   params.addClassDescription("Compute state (stress and other quantities such as plastic "
                              "strains and internal parameters) using an iterative process, as well "
                              "as Cosserat versions of these quantities.  Only elasticity is "

@@ -12,11 +12,6 @@
 #include "SlopeLimitingBase.h"
 #include "SlopeReconstructionBase.h"
 
-class SlopeLimitingMultiDBase;
-
-template <>
-InputParameters validParams<SlopeLimitingMultiDBase>();
-
 /**
  * Base class for multi-dimensional slope limiting to limit
  * the slopes of cell average variables
@@ -24,10 +19,11 @@ InputParameters validParams<SlopeLimitingMultiDBase>();
 class SlopeLimitingMultiDBase : public SlopeLimitingBase
 {
 public:
+  static InputParameters validParams();
+
   SlopeLimitingMultiDBase(const InputParameters & parameters);
 
 protected:
   /// slope reconstruction user object
   const SlopeReconstructionBase & _rslope;
 };
-

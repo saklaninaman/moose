@@ -13,11 +13,10 @@
 
 registerMooseObject("TensorMechanicsApp", ExponentialSoftening);
 
-template <>
 InputParameters
-validParams<ExponentialSoftening>()
+ExponentialSoftening::validParams()
 {
-  InputParameters params = validParams<SmearedCrackSofteningBase>();
+  InputParameters params = SmearedCrackSofteningBase::validParams();
   params.addClassDescription(
       "Softening model with an exponential softening response upon cracking. This "
       "class is intended to be used with ComputeSmearedCrackingStress.");

@@ -1,7 +1,7 @@
 [Tests]
-  [./JsonData]
+  [JsonData]
     type = PythonUnitTest
     input = test_JsonData.py
-    display_required = True
-  [../]
+    display_required = true
+  []
 []

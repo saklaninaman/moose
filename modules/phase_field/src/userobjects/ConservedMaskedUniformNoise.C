@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldApp", ConservedMaskedUniformNoise);
 
-template <>
 InputParameters
-validParams<ConservedMaskedUniformNoise>()
+ConservedMaskedUniformNoise::validParams()
 {
-  auto params = validParams<ConservedMaskedNoiseBase>();
+  auto params = ConservedMaskedNoiseBase::validParams();
   params.addClassDescription("Uniformly distributed random number noise provider with an applied "
                              "spatially dependent material property mask for the "
                              "ConservedLangevinNoise kernel.");

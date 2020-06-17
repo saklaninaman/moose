@@ -1,9 +1,10 @@
 [Tests]
-  [./test]
+  [test]
     type = ImageDiff
     command = extents.py
     imagediff = 'extents.png'
     allowed_darwin = 0.96
     allowed_linux = 0.96
-  [../]
+    display_required = true
+  []
 []

@@ -9,6 +9,9 @@
 
 #pragma once
 
+#include "MooseObject.h"
+#include "BlockRestrictable.h"
+#include "OutputInterface.h"
 #include "MooseTypes.h"
 #include "MooseArray.h"
 
@@ -21,19 +24,22 @@ class DofMap;
 class Variable;
 }
 
+class MooseVariableBase;
+
+template <>
+InputParameters validParams<MooseVariableBase>();
+
+class Assembly;
 class SubProblem;
 class SystemBase;
 class MooseMesh;
 
-class MooseVariableBase
+class MooseVariableBase : public MooseObject, public BlockRestrictable, public OutputInterface
 {
 public:
-  MooseVariableBase(unsigned int var_num,
-                    const FEType & fe_type,
-                    SystemBase & sys,
-                    Moose::VarKindType var_kind,
-                    THREAD_ID tid);
-  virtual ~MooseVariableBase();
+  static InputParameters validParams();
+
+  MooseVariableBase(const InputParameters & parameters);
 
   /**
    * Get variable number coming from libMesh
@@ -54,7 +60,12 @@ public:
   /**
    * Get the variable name
    */
-  const std::string & name() const;
+  const std::string & name() const override { return _var_name; }
+
+  /**
+   * Get dual mortar option
+   */
+  bool useDual() const { return _use_dual; }
 
   /**
    * Get all global dofindices for the variable
@@ -70,12 +81,14 @@ public:
   /**
    * Set the scaling factor for this variable
    */
-  void scalingFactor(Real factor) { _scaling_factor = factor; }
+  void scalingFactor(Real factor) { _scaling_factor.assign(_count, factor); }
+  void scalingFactor(const std::vector<Real> & factor) { _scaling_factor = factor; }
 
   /**
    * Get the scaling factor for this variable
    */
-  Real scalingFactor() const { return _scaling_factor; }
+  Real scalingFactor() const { return _scaling_factor[0]; }
+  const std::vector<Real> & arrayScalingFactor() const { return _scaling_factor; }
 
   /**
    * Get the order of this variable
@@ -84,44 +97,107 @@ public:
   Order order() const;
 
   /**
+   * Get the number of components
+   * Note: For standard and vector variables, the number is one.
+   */
+  unsigned int count() const { return _count; }
+
+  /**
+   * Is this variable nodal
+   * @return true if it nodal, otherwise false
+   */
+  virtual bool isNodal() const { return true; }
+
+  /**
    * The DofMap associated with the system this variable is in.
    */
   const DofMap & dofMap() const { return _dof_map; }
 
-  /// Get local DoF indices
+  virtual void getDofIndices(const Elem * /*elem*/,
+                             std::vector<dof_id_type> & /*dof_indices*/) const
+  {
+    mooseError("not implemented");
+  };
+
+  /**
+   * Get local DoF indices
+   */
   virtual const std::vector<dof_id_type> & dofIndices() const { return _dof_indices; }
 
-  /// Get the number of local DoFs
+  /**
+   * Obtain DoF indices of a component with the indices of the 0th component
+   */
+  std::vector<dof_id_type> componentDofIndices(const std::vector<dof_id_type> & dof_indices,
+                                               unsigned int component) const;
+
+  /**
+   * Get the number of local DoFs
+   */
   virtual unsigned int numberOfDofs() const { return _dof_indices.size(); }
 
 protected:
-  /// variable number (from libMesh)
-  unsigned int _var_num;
-  /// The FEType associated with this variable
-  FEType _fe_type;
-  /// variable number within MOOSE
-  unsigned int _index;
-  Moose::VarKindType _var_kind;
-  /// Problem this variable is part of
-  SubProblem & _subproblem;
   /// System this variable is part of
   SystemBase & _sys;
+
+  /// The FEType associated with this variable
+  FEType _fe_type;
+
+  /// variable number (from libMesh)
+  unsigned int _var_num;
+
+  /// variable number within MOOSE
+  unsigned int _index;
+
+  /// Variable type (see MooseTypes.h)
+  Moose::VarKindType _var_kind;
+
+  /// Problem this variable is part of
+  SubProblem & _subproblem;
 
   /// libMesh variable object for this variable
   const Variable & _variable;
 
+  /// Assembly data
+  Assembly & _assembly;
+
   /// DOF map
   const DofMap & _dof_map;
+
   /// DOF indices
   std::vector<dof_id_type> _dof_indices;
 
   /// mesh the variable is active in
   MooseMesh & _mesh;
 
-  /// scaling factor for this variable
-  Real _scaling_factor;
-
   /// Thread ID
   THREAD_ID _tid;
+
+  /// Number of variables in the array
+  const unsigned int _count;
+
+  /// scaling factor for this variable
+  std::vector<Real> _scaling_factor;
+
+  /// Variable name
+  std::string _var_name;
+
+  /// If dual mortar approach is used
+  bool _use_dual;
 };
 
+#define usingMooseVariableBaseMembers                                                              \
+  using MooseVariableBase::_sys;                                                                   \
+  using MooseVariableBase::_fe_type;                                                               \
+  using MooseVariableBase::_var_num;                                                               \
+  using MooseVariableBase::_index;                                                                 \
+  using MooseVariableBase::_var_kind;                                                              \
+  using MooseVariableBase::_subproblem;                                                            \
+  using MooseVariableBase::_variable;                                                              \
+  using MooseVariableBase::_assembly;                                                              \
+  using MooseVariableBase::_dof_map;                                                               \
+  using MooseVariableBase::_dof_indices;                                                           \
+  using MooseVariableBase::_mesh;                                                                  \
+  using MooseVariableBase::_tid;                                                                   \
+  using MooseVariableBase::_count;                                                                 \
+  using MooseVariableBase::_scaling_factor;                                                        \
+  using MooseVariableBase::_var_name

@@ -4,6 +4,8 @@
 [GlobalParams]
   order = FIRST
   family = LAGRANGE
+  displacements = 'disp_x disp_y'
+  volumetric_locking_correction = true
 []
 
 [XFEM]
@@ -21,7 +23,6 @@
   ymin = 0.0
   ymax = 1.0
   elem_type = QUAD4
-  displacements = 'disp_x disp_y'
 []
 
 [UserObjects]
@@ -46,11 +47,9 @@
   [../]
 []
 
-[SolidMechanics]
-  [./solid]
-    disp_x = disp_x
-    disp_y = disp_y
-    use_displaced_mesh = false
+[Modules/TensorMechanics/Master]
+  [./all]
+    strain = SMALL
   [../]
 []
 
@@ -89,13 +88,13 @@
     function = right_trac_x
   [../]
   [./bottom_y]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     boundary = 0
     variable = disp_y
     function = bottom_disp_y
   [../]
   [./left_x]
-    type = PresetBC
+    type = DirichletBC
     boundary = 3
     variable = disp_x
     value = 0.0
@@ -103,13 +102,13 @@
 []
 
 [Materials]
-  [./linelast]
-    type = LinearIsotropicMaterial
-    block = 0
-    disp_x = disp_x
-    disp_y = disp_y
-    poissons_ratio = 0.3
+  [./elasticity_tensor]
+    type = ComputeIsotropicElasticityTensor
     youngs_modulus = 1e6
+    poissons_ratio = 0.3
+  [../]
+  [./stress]
+    type = ComputeLinearElasticStress
   [../]
 []
 

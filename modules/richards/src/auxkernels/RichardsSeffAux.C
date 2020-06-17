@@ -13,11 +13,10 @@
 
 registerMooseObject("RichardsApp", RichardsSeffAux);
 
-template <>
 InputParameters
-validParams<RichardsSeffAux>()
+RichardsSeffAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   params.addRequiredCoupledVar("pressure_vars", "List of variables that represent the pressure");
   params.addRequiredParam<UserObjectName>("seff_UO",
                                           "Name of user object that defines effective saturation.");

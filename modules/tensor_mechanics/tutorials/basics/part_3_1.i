@@ -7,19 +7,20 @@
 []
 
 [Mesh]
-  file = necking_quad4.e
-  uniform_refine = 0
-  second_order = true
-[]
-
-[MeshModifiers]
-  [./extrude]
-    type = MeshExtruder
+  [file_mesh]
+    type = FileMeshGenerator
+    file = necking_quad4.e
+  []
+  [extrude]
+    type = MeshExtruderGenerator
     extrusion_vector = '0 0 0.5'
     num_layers = 2
     bottom_sideset = 'back'
     top_sideset = 'front'
-  [../]
+    input = file_mesh
+  []
+  uniform_refine = 0
+  second_order = true
 []
 
 [Modules/TensorMechanics/Master]
@@ -61,27 +62,27 @@
 
 [BCs]
   [./left]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_x #change the variable to reflect the new displacement names
-    boundary = left
+    boundary = 1
     value = 0.0
   [../]
   [./back]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_z #change the variable to reflect the new displacement names
     boundary = back
     value = 0.0
   [../]
   [./bottom]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_y #change the variable to reflect the new displacement names
-    boundary = bottom
+    boundary = 3
     value = 0.0
   [../]
   [./top]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = disp_y #change the variable to reflect the new displacement names
-    boundary = top
+    boundary = 4
     function = '0.0007*t'
   [../]
 []
@@ -109,12 +110,12 @@
   [./ave_stress_bottom]
     type = SideAverageValue
     variable = stress_yy
-    boundary = bottom
+    boundary = 3
   [../]
   [./ave_strain_bottom]
     type = SideAverageValue
     variable = strain_yy
-    boundary = bottom
+    boundary = 3
   [../]
 []
 

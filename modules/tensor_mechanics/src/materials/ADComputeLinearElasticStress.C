@@ -9,25 +9,25 @@
 
 #include "ADComputeLinearElasticStress.h"
 
-registerADMooseObject("TensorMechanicsApp", ADComputeLinearElasticStress);
+registerMooseObject("TensorMechanicsApp", ADComputeLinearElasticStress);
 
-defineADValidParams(
-    ADComputeLinearElasticStress,
-    ADComputeStressBase,
-    params.addClassDescription("Compute stress using elasticity for small strains"););
+InputParameters
+ADComputeLinearElasticStress::validParams()
+{
+  InputParameters params = ADComputeStressBase::validParams();
+  params.addClassDescription("Compute stress using elasticity for small strains");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-ADComputeLinearElasticStress<compute_stage>::ADComputeLinearElasticStress(
-    const InputParameters & parameters)
-  : ADComputeStressBase<compute_stage>(parameters),
+ADComputeLinearElasticStress::ADComputeLinearElasticStress(const InputParameters & parameters)
+  : ADComputeStressBase(parameters),
     _elasticity_tensor_name(_base_name + "elasticity_tensor"),
     _elasticity_tensor(getADMaterialProperty<RankFourTensor>(_elasticity_tensor_name))
 {
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeLinearElasticStress<compute_stage>::initialSetup()
+ADComputeLinearElasticStress::initialSetup()
 {
   if (this->template hasBlockMaterialProperty<RankTwoTensor>(_base_name + "strain_increment"))
     mooseError("This linear elastic stress calculation only works for small strains; use "
@@ -35,9 +35,8 @@ ADComputeLinearElasticStress<compute_stage>::initialSetup()
                "strains.");
 }
 
-template <ComputeStage compute_stage>
 void
-ADComputeLinearElasticStress<compute_stage>::computeQpStress()
+ADComputeLinearElasticStress::computeQpStress()
 {
   // stress = C * e
   _stress[_qp] = _elasticity_tensor[_qp] * _mechanical_strain[_qp];

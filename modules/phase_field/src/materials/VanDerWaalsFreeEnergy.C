@@ -11,14 +11,13 @@
 
 registerMooseObject("PhaseFieldApp", VanDerWaalsFreeEnergy);
 
-template <>
 InputParameters
-validParams<VanDerWaalsFreeEnergy>()
+VanDerWaalsFreeEnergy::validParams()
 {
-  InputParameters params = validParams<GasFreeEnergyBase>();
+  InputParameters params = GasFreeEnergyBase::validParams();
   params.addClassDescription("Free energy of a Van der Waals gas.");
   params.addRequiredParam<Real>("a",
-                                "Van der Waals coeefficient a (default mass_unit_conversion "
+                                "Van der Waals coefficient a (default mass_unit_conversion "
                                 "requires this to be in [eV*Ang^3])");
   params.addRequiredParam<Real>("b",
                                 "Van der Waals molecular exclusion volume b (default "

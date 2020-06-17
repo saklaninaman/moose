@@ -14,6 +14,8 @@
 class MatVecRealGradAuxKernelAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   MatVecRealGradAuxKernelAction(const InputParameters & params);
 
   virtual void act();
@@ -23,7 +25,3 @@ protected:
   const std::vector<MaterialPropertyName> _prop;
   const MaterialPropertyName _div_prop;
 };
-
-template <>
-InputParameters validParams<MatVecRealGradAuxKernelAction>();
-

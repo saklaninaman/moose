@@ -11,11 +11,6 @@
 
 #include "PorousFlowAdvectiveFluxCalculatorSaturated.h"
 
-class PorousFlowAdvectiveFluxCalculatorSaturatedHeat;
-
-template <>
-InputParameters validParams<PorousFlowAdvectiveFluxCalculatorSaturatedHeat>();
-
 /**
  * Computes the advective flux of heat energy in the given phase, assuming fully-saturated
  * conditions. Hence this UserObject is only relevant to single-phase situations. Explicitly, the
@@ -26,6 +21,8 @@ class PorousFlowAdvectiveFluxCalculatorSaturatedHeat
   : public PorousFlowAdvectiveFluxCalculatorSaturated
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowAdvectiveFluxCalculatorSaturatedHeat(const InputParameters & parameters);
 
 protected:
@@ -39,4 +36,3 @@ protected:
   /// Derivative of enthalpy of each phase wrt PorousFlow variables
   const MaterialProperty<std::vector<std::vector<Real>>> & _denthalpy_dvar;
 };
-

@@ -12,10 +12,6 @@
 #include "DerivativeFunctionMaterialBase.h"
 
 // Forward Declarations
-class DerivativeTwoPhaseMaterial;
-
-template <>
-InputParameters validParams<DerivativeTwoPhaseMaterial>();
 
 /**
  * DerivativeMaterial child class to evaluate a parsed function for the
@@ -26,6 +22,8 @@ InputParameters validParams<DerivativeTwoPhaseMaterial>();
 class DerivativeTwoPhaseMaterial : public DerivativeFunctionMaterialBase
 {
 public:
+  static InputParameters validParams();
+
   DerivativeTwoPhaseMaterial(const InputParameters & parameters);
 
   virtual void initialSetup() override;
@@ -76,4 +74,3 @@ protected:
   /// Third derivatives of Fa and Fb.
   std::vector<std::vector<std::vector<const MaterialProperty<Real> *>>> _prop_d3Fa, _prop_d3Fb;
 };
-

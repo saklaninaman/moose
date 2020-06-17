@@ -9,11 +9,10 @@
 
 #include "VaporMixtureFluidProperties.h"
 
-template <>
 InputParameters
-validParams<VaporMixtureFluidProperties>()
+VaporMixtureFluidProperties::validParams()
 {
-  InputParameters params = validParams<FluidProperties>();
+  InputParameters params = FluidProperties::validParams();
 
   return params;
 }

@@ -8,16 +8,23 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "ContactApp.h"
+#include "TensorMechanicsApp.h"
 #include "Moose.h"
 #include "AppFactory.h"
 #include "MooseSyntax.h"
 
-template <>
 InputParameters
-validParams<ContactApp>()
+ContactApp::validParams()
 {
-  InputParameters params = validParams<MooseApp>();
+  InputParameters params = MooseApp::validParams();
+
   params.set<bool>("automatic_automatic_scaling") = false;
+
+  // Do not use legacy DirichletBC, that is, set DirichletBC default for preset = true
+  params.set<bool>("use_legacy_dirichlet_bc") = false;
+
+  params.set<bool>("use_legacy_material_output") = false;
+
   return params;
 }
 
@@ -35,15 +42,6 @@ associateSyntaxInner(Syntax & syntax, ActionFactory & /*action_factory*/)
 {
   registerSyntax("ContactAction", "Contact/*");
 
-  registerSyntax("ContactPenetrationAuxAction", "Contact/*");
-  registerSyntax("ContactPenetrationVarAction", "Contact/*");
-
-  registerSyntax("ContactPressureAuxAction", "Contact/*");
-  registerSyntax("ContactPressureVarAction", "Contact/*");
-
-  registerSyntax("NodalAreaAction", "Contact/*");
-  registerSyntax("NodalAreaVarAction", "Contact/*");
-
   registerTask("output_penetration_info_vars", false);
   syntax.addDependency("output_penetration_info_vars", "add_output");
 }
@@ -54,6 +52,8 @@ ContactApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
   Registry::registerObjectsTo(f, {"ContactApp"});
   Registry::registerActionsTo(af, {"ContactApp"});
   associateSyntaxInner(s, af);
+
+  TensorMechanicsApp::registerAll(f, af, s);
 }
 
 void
@@ -80,6 +80,20 @@ ContactApp::associateSyntax(Syntax & syntax, ActionFactory & action_factory)
 void
 ContactApp::registerExecFlags(Factory & /*factory*/)
 {
+}
+
+void
+ContactApp::registerObjectDepends(Factory & factory)
+{
+  mooseDeprecated("use registerAll instead of registerObjectsDepends");
+  TensorMechanicsApp::registerObjects(factory);
+}
+
+void
+ContactApp::associateSyntaxDepends(Syntax & syntax, ActionFactory & action_factory)
+{
+  mooseDeprecated("use registerAll instead of registerObjectsDepends");
+  TensorMechanicsApp::associateSyntax(syntax, action_factory);
 }
 
 extern "C" void

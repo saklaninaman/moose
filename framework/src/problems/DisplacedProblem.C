@@ -25,11 +25,13 @@
 
 registerMooseObject("MooseApp", DisplacedProblem);
 
-template <>
+defineLegacyParams(DisplacedProblem);
+
 InputParameters
-validParams<DisplacedProblem>()
+DisplacedProblem::validParams()
 {
-  InputParameters params = validParams<SubProblem>();
+  InputParameters params = SubProblem::validParams();
+  params.addPrivateParam<MooseMesh *>("mesh");
   params.addPrivateParam<std::vector<std::string>>("displacements");
   return params;
 }
@@ -45,21 +47,18 @@ DisplacedProblem::DisplacedProblem(const InputParameters & parameters)
     _displacements(getParam<std::vector<std::string>>("displacements")),
     _displaced_nl(*this,
                   _mproblem.getNonlinearSystemBase(),
-                  _mproblem.getNonlinearSystemBase().name() + "_displaced",
+                  _mproblem.getNonlinearSystemBase().name(),
                   Moose::VAR_NONLINEAR),
     _displaced_aux(*this,
                    _mproblem.getAuxiliarySystem(),
-                   _mproblem.getAuxiliarySystem().name() + "_displaced",
+                   _mproblem.getAuxiliarySystem().name(),
                    Moose::VAR_AUXILIARY),
-    _geometric_search_data(_mproblem, _mesh),
+    _geometric_search_data(*this, _mesh),
     _eq_init_timer(registerTimedSection("eq::init", 2)),
     _update_mesh_timer(registerTimedSection("updateMesh", 3)),
     _sync_solutions_timer(registerTimedSection("syncSolutions", 5)),
     _update_geometric_search_timer(registerTimedSection("updateGeometricSearch", 3))
 {
-  // Possibly turn off default ghosting in libMesh
-  _eq.enable_default_ghosting(_default_ghosting);
-
   // TODO: Move newAssemblyArray further up to SubProblem so that we can use it here
   unsigned int n_threads = libMesh::n_threads();
 
@@ -68,6 +67,12 @@ DisplacedProblem::DisplacedProblem(const InputParameters & parameters)
     _assembly.emplace_back(libmesh_make_unique<Assembly>(_displaced_nl, i));
 
   _displaced_nl.addTimeIntegrator(_mproblem.getNonlinearSystemBase().getSharedTimeIntegrator());
+  _displaced_aux.addTimeIntegrator(_mproblem.getAuxiliarySystem().getSharedTimeIntegrator());
+
+  if (!_default_ghosting)
+    _mesh.getMesh().remove_ghosting_functor(_mesh.getMesh().default_ghosting());
+
+  automaticScaling(_mproblem.automaticScaling());
 }
 
 bool
@@ -172,15 +177,27 @@ DisplacedProblem::syncSolutions(const NumericVector<Number> & soln,
 }
 
 void
-DisplacedProblem::updateMesh()
+DisplacedProblem::updateMesh(bool mesh_changing)
 {
   TIME_SECTION(_update_mesh_timer);
   CONSOLE_TIMED_PRINT("Updating displaced mesh");
 
-  syncSolutions();
+  if (mesh_changing)
+  {
+    // We are probably performing adaptivity. We do not want to use the undisplaced
+    // mesh solution because it may be out-of-sync, whereas our displaced mesh solution should be in
+    // the correct state after getting restricted/prolonged in EquationSystems::reinit (must have
+    // been called before this method)
+    _nl_solution = _displaced_nl.sys().solution.get();
+    _aux_solution = _displaced_aux.sys().solution.get();
+  }
+  else
+  {
+    syncSolutions();
 
-  _nl_solution = _mproblem.getNonlinearSystemBase().currentSolution();
-  _aux_solution = _mproblem.getAuxiliarySystem().currentSolution();
+    _nl_solution = _mproblem.getNonlinearSystemBase().currentSolution();
+    _aux_solution = _mproblem.getAuxiliarySystem().currentSolution();
+  }
 
   // If the displaced mesh has been serialized to one processor (as
   // may have occurred if it was used for Exodus output), then we need
@@ -203,8 +220,28 @@ DisplacedProblem::updateMesh()
 
   Threads::parallel_reduce(node_range, udmt);
 
-  // Update the geometric searches that depend on the displaced mesh
-  _geometric_search_data.update();
+  // Update the geometric searches that depend on the displaced mesh. This call can end up running
+  // NearestNodeThread::operator() which has a throw inside of it. We need to catch it and make sure
+  // it's propagated to all processes before updating the point locator because the latter requires
+  // communication
+  try
+  {
+    // We may need to re-run geometric operations like SlaveNeighborhoodTread if, for instance, we
+    // have performed mesh adaptivity
+    if (mesh_changing)
+      _geometric_search_data.reinit();
+    else
+      _geometric_search_data.update();
+  }
+  catch (MooseException & e)
+  {
+    _mproblem.setException(e.what());
+  }
+
+  // The below call will throw an exception on all processes if any of our processes had an
+  // exception above. This exception will be caught higher up the call stack and the error message
+  // will be printed there
+  _mproblem.checkExceptionAndStopSolve(/*print_message=*/false);
 
   // Since the Mesh changed, update the PointLocator object used by DiracKernels.
   _dirac_kernel_info.updatePointLocator(_mesh);
@@ -232,47 +269,75 @@ DisplacedProblem::updateMesh(const NumericVector<Number> & soln,
 
   Threads::parallel_reduce(node_range, udmt);
 
-  // Update the geometric searches that depend on the displaced mesh
-  _geometric_search_data.update();
+  // Update the geometric searches that depend on the displaced mesh. This call can end up running
+  // NearestNodeThread::operator() which has a throw inside of it. We need to catch it and make sure
+  // it's propagated to all processes before updating the point locator because the latter requires
+  // communication
+  try
+  {
+    _geometric_search_data.update();
+  }
+  catch (MooseException & e)
+  {
+    _mproblem.setException(e.what());
+  }
+
+  // The below call will throw an exception on all processes if any of our processes had an
+  // exception above. This exception will be caught higher up the call stack and the error message
+  // will be printed there
+  _mproblem.checkExceptionAndStopSolve(/*print_message=*/false);
 
   // Since the Mesh changed, update the PointLocator object used by DiracKernels.
   _dirac_kernel_info.updatePointLocator(_mesh);
 }
 
 TagID
-DisplacedProblem::addVectorTag(TagName tag_name)
+DisplacedProblem::addVectorTag(const TagName & tag_name,
+                               const Moose::VectorTagType type /* = Moose::VECTOR_TAG_RESIDUAL */)
 {
-  return _mproblem.addVectorTag(tag_name);
+  return _mproblem.addVectorTag(tag_name, type);
+}
+
+const VectorTag &
+DisplacedProblem::getVectorTag(const TagID tag_id) const
+{
+  return _mproblem.getVectorTag(tag_id);
 }
 
 TagID
-DisplacedProblem::getVectorTagID(const TagName & tag_name)
+DisplacedProblem::getVectorTagID(const TagName & tag_name) const
 {
   return _mproblem.getVectorTagID(tag_name);
 }
 
 TagName
-DisplacedProblem::vectorTagName(TagID tag)
+DisplacedProblem::vectorTagName(const TagID tag_id) const
 {
-  return _mproblem.vectorTagName(tag);
+  return _mproblem.vectorTagName(tag_id);
 }
 
 bool
-DisplacedProblem::vectorTagExists(TagID tag)
+DisplacedProblem::vectorTagExists(const TagID tag_id) const
 {
-  return _mproblem.vectorTagExists(tag);
+  return _mproblem.vectorTagExists(tag_id);
 }
 
 unsigned int
-DisplacedProblem::numVectorTags() const
+DisplacedProblem::numVectorTags(const Moose::VectorTagType type /* = Moose::VECTOR_TAG_ANY */) const
 {
-  return _mproblem.numVectorTags();
+  return _mproblem.numVectorTags(type);
 }
 
-std::map<TagName, TagID> &
-DisplacedProblem::getVectorTags()
+const std::vector<VectorTag> &
+DisplacedProblem::getVectorTags(const Moose::VectorTagType type /* = Moose::VECTOR_TAG_ANY */) const
 {
-  return _mproblem.getVectorTags();
+  return _mproblem.getVectorTags(type);
+}
+
+Moose::VectorTagType
+DisplacedProblem::vectorTagType(const TagID tag_id) const
+{
+  return _mproblem.vectorTagType(tag_id);
 }
 
 TagID
@@ -354,6 +419,15 @@ DisplacedProblem::getVectorVariable(THREAD_ID tid, const std::string & var_name)
   return _displaced_aux.getFieldVariable<RealVectorValue>(tid, var_name);
 }
 
+ArrayMooseVariable &
+DisplacedProblem::getArrayVariable(THREAD_ID tid, const std::string & var_name)
+{
+  if (!_displaced_nl.hasVariable(var_name))
+    mooseError("No variable with name '" + var_name + "'");
+
+  return _displaced_nl.getFieldVariable<RealEigenVector>(tid, var_name);
+}
+
 bool
 DisplacedProblem::hasScalarVariable(const std::string & var_name) const
 {
@@ -388,38 +462,19 @@ DisplacedProblem::getSystem(const std::string & var_name)
 }
 
 void
-DisplacedProblem::addVariable(const std::string & var_name,
-                              const FEType & type,
-                              Real scale_factor,
-                              const std::set<SubdomainID> * const active_subdomains)
+DisplacedProblem::addVariable(const std::string & var_type,
+                              const std::string & name,
+                              InputParameters & parameters)
 {
-  _displaced_nl.addVariable(var_name, type, scale_factor, active_subdomains);
+  _displaced_nl.addVariable(var_type, name, parameters);
 }
 
 void
-DisplacedProblem::addAuxVariable(const std::string & var_name,
-                                 const FEType & type,
-                                 const std::set<SubdomainID> * const active_subdomains)
+DisplacedProblem::addAuxVariable(const std::string & var_type,
+                                 const std::string & name,
+                                 InputParameters & parameters)
 {
-  _displaced_aux.addVariable(var_name, type, 1.0, active_subdomains);
-}
-
-void
-DisplacedProblem::addScalarVariable(const std::string & var_name,
-                                    Order order,
-                                    Real scale_factor,
-                                    const std::set<SubdomainID> * const active_subdomains)
-{
-  _displaced_nl.addScalarVariable(var_name, order, scale_factor, active_subdomains);
-}
-
-void
-DisplacedProblem::addAuxScalarVariable(const std::string & var_name,
-                                       Order order,
-                                       Real scale_factor,
-                                       const std::set<SubdomainID> * const active_subdomains)
-{
-  _displaced_aux.addScalarVariable(var_name, order, scale_factor, active_subdomains);
+  _displaced_aux.addVariable(var_type, name, parameters);
 }
 
 void
@@ -585,10 +640,22 @@ DisplacedProblem::reinitNodesNeighbor(const std::vector<dof_id_type> & nodes, TH
 void
 DisplacedProblem::reinitNeighbor(const Elem * elem, unsigned int side, THREAD_ID tid)
 {
+  reinitNeighbor(elem, side, tid, nullptr);
+}
+
+void
+DisplacedProblem::reinitNeighbor(const Elem * elem,
+                                 unsigned int side,
+                                 THREAD_ID tid,
+                                 const std::vector<Point> * neighbor_reference_points)
+{
+  setNeighborSubdomainID(elem, side, tid);
+
   const Elem * neighbor = elem->neighbor_ptr(side);
   unsigned int neighbor_side = neighbor->which_neighbor_am_i(elem);
 
-  _assembly[tid]->reinitElemAndNeighbor(elem, side, neighbor, neighbor_side);
+  _assembly[tid]->reinitElemAndNeighbor(
+      elem, side, neighbor, neighbor_side, neighbor_reference_points);
 
   _displaced_nl.prepareNeighbor(tid);
   _displaced_aux.prepareNeighbor(tid);
@@ -643,10 +710,10 @@ DisplacedProblem::reinitNeighborPhys(const Elem * neighbor,
 }
 
 void
-DisplacedProblem::reinitScalars(THREAD_ID tid)
+DisplacedProblem::reinitScalars(THREAD_ID tid, bool reinit_for_derivative_reordering /*=false*/)
 {
-  _displaced_nl.reinitScalars(tid);
-  _displaced_aux.reinitScalars(tid);
+  _displaced_nl.reinitScalars(tid, reinit_for_derivative_reordering);
+  _displaced_aux.reinitScalars(tid, reinit_for_derivative_reordering);
 }
 
 void
@@ -670,13 +737,13 @@ DisplacedProblem::clearDiracInfo()
 void
 DisplacedProblem::addResidual(THREAD_ID tid)
 {
-  _assembly[tid]->addResidual(getVectorTags());
+  _assembly[tid]->addResidual(getVectorTags(Moose::VECTOR_TAG_RESIDUAL));
 }
 
 void
 DisplacedProblem::addResidualNeighbor(THREAD_ID tid)
 {
-  _assembly[tid]->addResidualNeighbor(getVectorTags());
+  _assembly[tid]->addResidualNeighbor(getVectorTags(Moose::VECTOR_TAG_RESIDUAL));
 }
 
 void
@@ -700,20 +767,29 @@ DisplacedProblem::addCachedResidual(THREAD_ID tid)
 void
 DisplacedProblem::addCachedResidualDirectly(NumericVector<Number> & residual, THREAD_ID tid)
 {
-  _assembly[tid]->addCachedResidual(residual, _displaced_nl.timeVectorTag());
-  _assembly[tid]->addCachedResidual(residual, _displaced_nl.nonTimeVectorTag());
+  if (_displaced_nl.hasVector(_displaced_nl.timeVectorTag()))
+    _assembly[tid]->addCachedResidualDirectly(residual,
+                                              getVectorTag(_displaced_nl.timeVectorTag()));
+
+  if (_displaced_nl.hasVector(_displaced_nl.nonTimeVectorTag()))
+    _assembly[tid]->addCachedResidualDirectly(residual,
+                                              getVectorTag(_displaced_nl.nonTimeVectorTag()));
+
+  // We do this because by adding the cached residual directly, we cannot ensure that all of the
+  // cached residuals are emptied after only the two add calls above
+  _assembly[tid]->clearCachedResiduals();
 }
 
 void
 DisplacedProblem::setResidual(NumericVector<Number> & residual, THREAD_ID tid)
 {
-  _assembly[tid]->setResidual(residual);
+  _assembly[tid]->setResidual(residual, getVectorTag(_displaced_nl.residualVectorTag()));
 }
 
 void
 DisplacedProblem::setResidualNeighbor(NumericVector<Number> & residual, THREAD_ID tid)
 {
-  _assembly[tid]->setResidualNeighbor(residual);
+  _assembly[tid]->setResidualNeighbor(residual, getVectorTag(_displaced_nl.residualVectorTag()));
 }
 
 void
@@ -767,6 +843,18 @@ DisplacedProblem::addJacobianBlock(SparseMatrix<Number> & jacobian,
                                    THREAD_ID tid)
 {
   _assembly[tid]->addJacobianBlock(jacobian, ivar, jvar, dof_map, dof_indices);
+}
+
+void
+DisplacedProblem::addJacobianBlockTags(SparseMatrix<Number> & jacobian,
+                                       unsigned int ivar,
+                                       unsigned int jvar,
+                                       const DofMap & dof_map,
+                                       std::vector<dof_id_type> & dof_indices,
+                                       const std::set<TagID> & tags,
+                                       THREAD_ID tid)
+{
+  _assembly[tid]->addJacobianBlockTags(jacobian, ivar, jvar, dof_map, dof_indices, tags);
 }
 
 void
@@ -824,14 +912,22 @@ DisplacedProblem::updateGeomSearch(GeometricSearchData::GeometricSearchType type
 void
 DisplacedProblem::meshChanged()
 {
-  // mesh changed
+  // The mesh changed. The displaced equations system object only holds ExplicitSystems, so calling
+  // EquationSystems::reinit only prolongs/restricts the solution vectors, which is something that
+  // needs to happen for every step of mesh adaptivity.
   _eq.reinit();
+
+  // We've performed some mesh adaptivity. We need to
+  // clear any quadrature nodes such that when we build the boundary node lists in
+  // MooseMesh::meshChanged we don't have any extraneous extra boundary nodes lying around
+  _mesh.clearQuadratureNodes();
+
   _mesh.meshChanged();
 
-  // Since the Mesh changed, update the PointLocator object used by DiracKernels.
-  _dirac_kernel_info.updatePointLocator(_mesh);
-
-  _geometric_search_data.reinit();
+  // Before performing mesh adaptivity we un-displaced the mesh. We need to re-displace the mesh and
+  // then reinitialize GeometricSearchData such that we have all the correct geometric information
+  // for the changed mesh
+  updateMesh(/*mesh_changing=*/true);
 }
 
 void
@@ -913,4 +1009,16 @@ DisplacedProblem::undisplaceMesh()
 
   // Undisplace the mesh using threads.
   Threads::parallel_reduce(node_range, rdmt);
+}
+
+LineSearch *
+DisplacedProblem::getLineSearch()
+{
+  return _mproblem.getLineSearch();
+}
+
+const CouplingMatrix *
+DisplacedProblem::couplingMatrix() const
+{
+  return _mproblem.couplingMatrix();
 }

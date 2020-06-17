@@ -11,11 +11,10 @@
 
 registerMooseObject("ChemicalReactionsApp", AqueousEquilibriumRxnAux);
 
-template <>
 InputParameters
-validParams<AqueousEquilibriumRxnAux>()
+AqueousEquilibriumRxnAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   params.addCoupledVar("log_k", 0.0, "The equilibrium constant in dissociation form");
   params.addRequiredParam<std::vector<Real>>("sto_v",
                                              "The stoichiometric coefficient of reactants");

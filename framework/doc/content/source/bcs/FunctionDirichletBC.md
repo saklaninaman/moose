@@ -1,4 +1,3 @@
-
 # FunctionDirichletBC
 
 !syntax description /BCs/FunctionDirichletBC
@@ -29,9 +28,20 @@ $g(t,\vec{x})$, and the user must define one or more sidesets
 corresponding to the boundary subset $\partial \Omega_D$ via the
 `boundary` parameter.
 
+## Preset boundary conditions
+
+With the parameter `preset = true`, the value of the boundary condition is applied
+before the solve begins. With `preset = false`, the boundary condition is
+only enforced as the solve progresses. In most situations, presetting the boundary
+condition is better.
+
+The default behavior of the `preset` parameter is determined by the flag
+`use_legacy_dirichlet_bc` in the application. Change this flag to false to switch
+your application to the preferred behavior (setting `preset = true` as the default).
+
 ## Example Input Syntax
 
-!listing test/tests/bcs/function_dirichlet_bc/function_dirichlet_bc_test.i block=BCs
+!listing test/tests/bcs/function_dirichlet_bc/test.i block=BCs
 
 !syntax parameters /BCs/FunctionDirichletBC
 

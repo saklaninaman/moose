@@ -12,11 +12,6 @@
 #include "RichardsSeff.h"
 #include "RichardsSeffVG.h"
 
-class RichardsSeff2waterVGshifted;
-
-template <>
-InputParameters validParams<RichardsSeff2waterVGshifted>();
-
 /**
  * Shifted van-Genuchten water effective saturation as a function of (Pwater, Pgas),
  * and its derivs wrt to those pressures.  Note that the water pressure appears
@@ -28,6 +23,8 @@ InputParameters validParams<RichardsSeff2waterVGshifted>();
 class RichardsSeff2waterVGshifted : public RichardsSeff
 {
 public:
+  static InputParameters validParams();
+
   RichardsSeff2waterVGshifted(const InputParameters & parameters);
 
   /**
@@ -72,4 +69,3 @@ protected:
   /// scale
   Real _scale;
 };
-

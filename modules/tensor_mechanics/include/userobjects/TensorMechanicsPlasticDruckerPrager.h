@@ -12,11 +12,6 @@
 #include "TensorMechanicsPlasticModel.h"
 #include "TensorMechanicsHardeningModel.h"
 
-class TensorMechanicsPlasticDruckerPrager;
-
-template <>
-InputParameters validParams<TensorMechanicsPlasticDruckerPrager>();
-
 /**
  * Rate-independent non-associative Drucker Prager
  * with hardening/softening.  The cone's tip is not smoothed.
@@ -27,6 +22,8 @@ InputParameters validParams<TensorMechanicsPlasticDruckerPrager>();
 class TensorMechanicsPlasticDruckerPrager : public TensorMechanicsPlasticModel
 {
 public:
+  static InputParameters validParams();
+
   TensorMechanicsPlasticDruckerPrager(const InputParameters & parameters);
 
   virtual std::string modelName() const override;
@@ -143,4 +140,3 @@ private:
    */
   void initializeB(Real intnl, int fd, Real & bbb) const;
 };
-

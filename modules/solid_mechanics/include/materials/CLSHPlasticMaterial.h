@@ -11,19 +11,15 @@
 
 #include "SolidModel.h"
 
-class CLSHPlasticMaterial;
-
-template <>
-InputParameters validParams<CLSHPlasticMaterial>();
-
 /**
  * Plastic material
  */
 class CLSHPlasticMaterial : public SolidModel
 {
 public:
+  static InputParameters validParams();
+
   CLSHPlasticMaterial(const InputParameters & parameters);
 
 protected:
 };
-

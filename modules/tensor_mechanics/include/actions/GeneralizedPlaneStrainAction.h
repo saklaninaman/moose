@@ -11,20 +11,19 @@
 
 #include "Action.h"
 
-class GeneralizedPlaneStrainAction;
-
-template <>
-InputParameters validParams<GeneralizedPlaneStrainAction>();
-
 class GeneralizedPlaneStrainAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   GeneralizedPlaneStrainAction(const InputParameters & params);
 
   void act() override;
 
 protected:
   std::vector<VariableName> _displacements;
+
+  /// Number of displacement variables
   unsigned int _ndisp;
   const unsigned int _out_of_plane_direction;
 };

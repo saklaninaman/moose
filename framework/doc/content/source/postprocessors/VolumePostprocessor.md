@@ -1,18 +1,17 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # VolumePostprocessor
 
-!alert construction title=Undocumented Class
-The VolumePostprocessor has not been documented. The content contained on this page includes the
-typical automatic documentation associated with a MooseObject; however, what is contained is
-ultimately determined by what is necessary to make the documentation clear for users.
-
 !syntax description /Postprocessors/VolumePostprocessor
+
+## Overview
+
+Computes the volume of the Mesh or a subdomain of the Mesh.
+
+## Example Input File Syntax
+
+!! Describe and include an example of how to use the VolumePostprocessor object.
 
 !syntax parameters /Postprocessors/VolumePostprocessor
 
 !syntax inputs /Postprocessors/VolumePostprocessor
 
 !syntax children /Postprocessors/VolumePostprocessor
-
-!bibtex bibliography

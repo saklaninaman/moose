@@ -15,10 +15,6 @@
 #include "DerivativeMaterialInterface.h"
 
 // Forward Declarations
-class GrainAdvectionVelocity;
-
-template <>
-InputParameters validParams<GrainAdvectionVelocity>();
 
 /**
  * This Material calculates the advection velocity, it's divergence and
@@ -27,6 +23,8 @@ InputParameters validParams<GrainAdvectionVelocity>();
 class GrainAdvectionVelocity : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   GrainAdvectionVelocity(const InputParameters & parameters);
 
 protected:
@@ -58,4 +56,3 @@ private:
   /// Material storing advection velocities of grains
   MaterialProperty<std::vector<RealGradient>> & _velocity_advection;
 };
-

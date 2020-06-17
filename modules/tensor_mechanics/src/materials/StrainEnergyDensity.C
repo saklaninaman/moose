@@ -13,11 +13,10 @@
 
 registerMooseObject("TensorMechanicsApp", StrainEnergyDensity);
 
-template <>
 InputParameters
-validParams<StrainEnergyDensity>()
+StrainEnergyDensity::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   params.addClassDescription("Computes the strain energy density using a combination of the "
                              "elastic and inelastic components of the strain increment, which is a "
                              "valid assumption for monotonic behavior.");

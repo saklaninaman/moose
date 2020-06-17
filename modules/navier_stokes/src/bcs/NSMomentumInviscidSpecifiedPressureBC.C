@@ -11,11 +11,10 @@
 
 registerMooseObject("NavierStokesApp", NSMomentumInviscidSpecifiedPressureBC);
 
-template <>
 InputParameters
-validParams<NSMomentumInviscidSpecifiedPressureBC>()
+NSMomentumInviscidSpecifiedPressureBC::validParams()
 {
-  InputParameters params = validParams<NSMomentumInviscidBC>();
+  InputParameters params = NSMomentumInviscidBC::validParams();
   params.addClassDescription("Momentum equation boundary condition in which pressure is specified "
                              "(given) and the value of the convective part is allowed to vary (is "
                              "computed implicitly).");

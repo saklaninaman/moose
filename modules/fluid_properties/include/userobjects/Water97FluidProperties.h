@@ -12,11 +12,6 @@
 #include "SinglePhaseFluidProperties.h"
 #include <array>
 
-class Water97FluidProperties;
-
-template <>
-InputParameters validParams<Water97FluidProperties>();
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Woverloaded-virtual"
 
@@ -42,6 +37,8 @@ InputParameters validParams<Water97FluidProperties>();
 class Water97FluidProperties : public SinglePhaseFluidProperties
 {
 public:
+  static InputParameters validParams();
+
   Water97FluidProperties(const InputParameters & parameters);
   virtual ~Water97FluidProperties();
 
@@ -84,12 +81,8 @@ public:
 
   virtual Real mu_from_rho_T(Real density, Real temperature) const override;
 
-  virtual void mu_from_rho_T(Real density,
-                             Real temperature,
-                             Real ddensity_dT,
-                             Real & mu,
-                             Real & dmu_drho,
-                             Real & dmu_dT) const override;
+  void mu_from_rho_T(
+      Real rho, Real temperature, Real drho_dT, Real & mu, Real & dmu_drho, Real & dmu_dT) const;
 
   virtual void
   rho_mu_from_p_T(Real pressure, Real temperature, Real & rho, Real & mu) const override;
@@ -245,6 +238,21 @@ public:
    * @return enthalpy at boundary (J/kg)
    */
   Real b3ab(Real pressure) const;
+
+  /**
+   * IAPWS formulation of Henry's law constant for dissolution in water
+   * From Guidelines on the Henry's constant and vapour
+   * liquid distribution constant for gases in H20 and D20 at high
+   * temperatures, IAPWS (2004)
+   * @param T fluid temperature (K)
+   * @param coeffs Henry's constant coefficients of gas
+   * @param[out] Kh Henry's constant
+   * @param[out] dKh_dT derivative of Kh wrt temperature
+   */
+  Real henryConstant(Real temperature, const std::vector<Real> & coeffs) const;
+  void
+  henryConstant(Real temperature, const std::vector<Real> & coeffs, Real & Kh, Real & dKh_dT) const;
+  DualReal henryConstant(const DualReal & temperature, const std::vector<Real> & coeffs) const;
 
 protected:
   /**
@@ -1326,4 +1334,3 @@ protected:
 };
 
 #pragma GCC diagnostic pop
-

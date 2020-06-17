@@ -9,15 +9,8 @@
 
 #pragma once
 
+#include "DenseMatrix.h"
 #include "Material.h"
-// libMesh
-#include "libmesh/dense_matrix.h"
-
-// Forward Declarations
-class TypesMaterial;
-
-template <>
-InputParameters validParams<TypesMaterial>();
 
 /**
  * Material for testing different types of material properties
@@ -25,6 +18,8 @@ InputParameters validParams<TypesMaterial>();
 class TypesMaterial : public Material
 {
 public:
+  static InputParameters validParams();
+
   TypesMaterial(const InputParameters & parameters);
 
 protected:
@@ -38,4 +33,3 @@ protected:
   MaterialProperty<DenseMatrix<Real>> & _matrix_prop;
   MaterialProperty<RealTensorValue> & _tensor_prop;
 };
-

@@ -18,11 +18,10 @@
 
 registerMooseObject("MooseTestApp", DGMDDBC);
 
-template <>
 InputParameters
-validParams<DGMDDBC>()
+DGMDDBC::validParams()
 {
-  InputParameters params = validParams<IntegratedBC>();
+  InputParameters params = IntegratedBC::validParams();
   params.addParam<Real>("value", 0.0, "The value the variable should have on the boundary");
   params.addRequiredParam<FunctionName>("function", "The forcing function.");
   params.addRequiredParam<Real>("epsilon", "Epsilon");
@@ -46,7 +45,7 @@ DGMDDBC::computeQpResidual()
 {
   const unsigned int elem_b_order = _var.order();
   const double h_elem =
-      _current_elem->volume() / _current_side_elem->volume() * 1. / std::pow(elem_b_order, 2.);
+      _current_elem_volume / _current_side_volume * 1. / std::pow(elem_b_order, 2.);
 
   Real fn = _func.value(_t, _q_point[_qp]);
   Real r = 0;
@@ -62,7 +61,7 @@ DGMDDBC::computeQpJacobian()
 {
   const unsigned int elem_b_order = _var.order();
   const double h_elem =
-      _current_elem->volume() / _current_side_elem->volume() * 1. / std::pow(elem_b_order, 2.);
+      _current_elem_volume / _current_side_volume * 1. / std::pow(elem_b_order, 2.);
 
   Real r = 0;
   r -= _diff[_qp] * _grad_test[_j][_qp] * _normals[_qp] * _test[_i][_qp];

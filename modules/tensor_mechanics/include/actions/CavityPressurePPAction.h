@@ -10,16 +10,13 @@
 #pragma once
 
 #include "Action.h"
-#include "MooseTypes.h"
 
 class CavityPressurePPAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   CavityPressurePPAction(InputParameters params);
 
   virtual void act();
 };
-
-template <>
-InputParameters validParams<CavityPressurePPAction>();
-

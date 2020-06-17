@@ -6,11 +6,11 @@
 #*
 #* Licensed under LGPL 2.1, please see LICENSE for details
 #* https://www.gnu.org/licenses/lgpl-2.1.html
-
 """Auto python property creation."""
+import sys
 import collections
 import inspect
-from MooseException import MooseException
+from .MooseException import MooseException
 
 class Property(object):
     """
@@ -36,12 +36,12 @@ class Property(object):
         self.__default = default
 
         if (ptype is not None) and (not isinstance(ptype, type)):
-            msg = "The supplied property type (ptype) must be of type 'type', but '{}' provided."
-            raise MooseException(msg, type(ptype).__name__)
+            msg = "The supplied property '{}' type (ptype) must be of type 'type', but '{}' provided."
+            raise MooseException(msg, name, type(ptype).__name__)
 
         if (ptype is not None) and (default is not None) and (not isinstance(default, ptype)):
-            msg = "The default for property must be of type '{}', but '{}' was provided."
-            raise MooseException(msg, ptype.__name__, type(default).__name__)
+            msg = "The default for property '{}' must be of type '{}', but '{}' was provided."
+            raise MooseException(msg, name, ptype.__name__, type(default).__name__)
 
     @property
     def name(self):
@@ -65,8 +65,11 @@ class Property(object):
 
     def __set__(self, instance, value):
         """Set the property value."""
-        self.onPropertySet(instance, value)
-        instance._AutoPropertyMixin__properties[self.name] = value
+        if instance._AutoPropertyMixin__mutable:
+            self.onPropertySet(instance, value)
+            instance._AutoPropertyMixin__properties[self.name] = value
+        else:
+            raise MooseException("The {} object is immutable, see mooseuitls.AutoPropertyMixin.", type(instance).__name__)
 
     def __get__(self, instance, owner):
         """Get the property value."""
@@ -177,6 +180,7 @@ class AutoPropertyMixin(object):
         node['range'] = [0, 1]
 
     Inputs:
+        mutable[bool]: (default: True) Set the object to be mutable/immutable.f
         kwargs: (Optional) Any key, value pairs supplied are stored as properties or attributes.
     """
 
@@ -184,7 +188,10 @@ class AutoPropertyMixin(object):
     __DESCRIPTORS__ = collections.defaultdict(set)
     __INITIALIZED__ = set()
 
-    def __init__(self, **kwargs):
+    def __init__(self, mutable=True, **kwargs):
+
+        # A flag for controlling the mutability of the object
+        self.__mutable = True # must be True initially to allow for the properties to initialize
 
         # Class members
         self.__properties = dict() # storage for property values, addProperty items
@@ -201,7 +208,40 @@ class AutoPropertyMixin(object):
             self.__properties[prop.name] = prop.default
 
         # Update the properties from the key value pairs
-        for key, value in kwargs.iteritems():
+        self.update(kwargs)
+        """
+        for key, value in kwargs.items():
+            key = key.strip('_')
+            if value is None:
+                continue
+            if key in self.__properties:
+                setattr(self, key, value)
+            else:
+                self.__attributes[key] = value
+        """
+        # Check properties
+        for prop in descriptors:
+            prop.onPropertyCheck(self)
+
+        # Update the mutable flag
+        self.__mutable = mutable
+
+    @property
+    def attributes(self):
+        """Return the dict() of attributes."""
+        if self.__mutable:
+            return self.__attributes
+        else:
+            raise MooseException("The {} object is immutable, see mooseuitls.AutoPropertyMixin.", type(self).__name__)
+
+    def __setstate__(self, state):
+        """Re-create the properties after a pickle load."""
+        self.__dict__ = state
+        for key, value in self.__properties.items():
+            setattr(self, key, value)
+
+    def update(self, other):
+        for key, value in other.items():
             key = key.strip('_')
             if value is None:
                 continue
@@ -210,20 +250,11 @@ class AutoPropertyMixin(object):
             else:
                 self.__attributes[key] = value
 
-        # Check properties
-        for prop in descriptors:
-            prop.onPropertyCheck(self)
-
-    @property
-    def attributes(self):
-        """Return the dict() of attributes."""
-        return self.__attributes
-
-    def __setstate__(self, state):
-        """Re-create the properties after a pickle load."""
-        self.__dict__ = state
-        for key, value in self.__properties.iteritems():
-            setattr(self, key, value)
+    def get(self, *args):
+        """
+        Return an attribute with optional default
+        """
+        return self.__attributes.get(*args)
 
     def __getitem__(self, key):
         """
@@ -235,7 +266,10 @@ class AutoPropertyMixin(object):
         """
         Create/set an attribute.
         """
-        self.__attributes[key] = value
+        if self.__mutable:
+            self.__attributes[key] = value
+        else:
+            raise MooseException("The {} object is immutable, see mooseuitls.AutoPropertyMixin.", type(self).__name__)
 
     def __contains__(self, key):
         """

@@ -13,10 +13,6 @@
 #include "Material.h"
 
 // Forward Declarations
-class PoroFullSatMaterial;
-
-template <>
-InputParameters validParams<PoroFullSatMaterial>();
 
 /**
  * Material designed to calculate and store all the
@@ -27,6 +23,8 @@ InputParameters validParams<PoroFullSatMaterial>();
 class PoroFullSatMaterial : public DerivativeMaterialInterface<Material>
 {
 public:
+  static InputParameters validParams();
+
   PoroFullSatMaterial(const InputParameters & parameters);
 
 protected:
@@ -84,4 +82,3 @@ protected:
   virtual void initQpStatefulProperties();
   virtual void computeQpProperties();
 };
-

@@ -11,29 +11,22 @@
 
 #include "ADDGKernel.h"
 
-// Forward Declarations
-template <ComputeStage>
-class ADDGCoupledTest;
-
-declareADValidParams(ADDGCoupledTest);
-
 /**
  * This class is only currently used to test whether we can request neighbor AD calculations and not
  * have anything go horribly wrong
  */
-template <ComputeStage compute_stage>
-class ADDGCoupledTest : public ADDGKernel<compute_stage>
+class ADDGCoupledTest : public ADDGKernel
 {
 public:
+  static InputParameters validParams();
+
   ADDGCoupledTest(const InputParameters & parameters);
 
 protected:
-  virtual ADResidual computeQpResidual(Moose::DGResidualType type) override;
+  virtual ADReal computeQpResidual(Moose::DGResidualType type) override;
 
   MooseVariable & _v_var;
   const ADVariableValue & _v;
   const ADVariableValue & _v_neighbor;
 
-  usingDGKernelMembers;
 };
-

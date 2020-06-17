@@ -12,10 +12,6 @@
 #include "IntegratedBC.h"
 
 // Forward Declarations
-class ChemicalOutFlowBC;
-
-template <>
-InputParameters validParams<ChemicalOutFlowBC>();
 
 /**
  * Implements a simple constant VectorNeumann BC where grad(u)=value on the boundary.
@@ -24,6 +20,8 @@ InputParameters validParams<ChemicalOutFlowBC>();
 class ChemicalOutFlowBC : public IntegratedBC
 {
 public:
+  static InputParameters validParams();
+
   ChemicalOutFlowBC(const InputParameters & parameters);
 
 protected:
@@ -36,4 +34,3 @@ private:
   /// Porosity
   const MaterialProperty<Real> & _porosity;
 };
-

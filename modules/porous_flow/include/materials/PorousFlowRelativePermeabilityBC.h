@@ -11,11 +11,6 @@
 
 #include "PorousFlowRelativePermeabilityBase.h"
 
-class PorousFlowRelativePermeabilityBC;
-
-template <>
-InputParameters validParams<PorousFlowRelativePermeabilityBC>();
-
 /**
  * Material to calculate Brooks-Corey relative permeability of an arbitrary phase
  * given the effective saturation and exponent of that phase.
@@ -26,6 +21,8 @@ InputParameters validParams<PorousFlowRelativePermeabilityBC>();
 class PorousFlowRelativePermeabilityBC : public PorousFlowRelativePermeabilityBase
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowRelativePermeabilityBC(const InputParameters & parameters);
 
 protected:
@@ -37,4 +34,3 @@ protected:
   /// Flag that is set to true if this is the non-wetting (gas) phase
   const bool _is_nonwetting;
 };
-

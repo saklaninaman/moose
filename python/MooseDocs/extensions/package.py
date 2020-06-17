@@ -1,4 +1,3 @@
-#pylint: disable=missing-docstring
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -14,9 +13,9 @@ import re
 from mooseutils.yaml_load import yaml_load
 
 import MooseDocs
-from MooseDocs.common import exceptions
-from MooseDocs.extensions import core, command
-from MooseDocs.tree import tokens
+from ..common import exceptions
+from ..tree import tokens
+from . import core, command
 
 def make_extension(**kwargs):
     return PackageExtension(**kwargs)
@@ -36,7 +35,7 @@ class PackageExtension(command.CommandExtension):
         config = command.CommandExtension.defaultConfig()
 
         # Assign a key/value for every item in packages_config.yml
-        for k, v in packages_config.iteritems():
+        for k, v in packages_config.items():
             if k != 'moose_packages':
                 config[k] = (v, 'Default version for %s' % (k))
             else:
@@ -83,7 +82,7 @@ class PackageCommand(command.CommandComponent):
             raise exceptions.MooseDocsException(msg, arch)
 
         href = os.path.join(self.extension.get('link'), packages[arch])
-        core.Link(parent, url=unicode(href), string=unicode(packages[arch]))
+        core.Link(parent, url=str(href), string=str(packages[arch]))
         return parent
 
 class PackageCodeReplace(command.CommandComponent):
@@ -108,25 +107,23 @@ class PackageCodeReplace(command.CommandComponent):
     @staticmethod
     def defaultSettings():
         settings = command.CommandComponent.defaultSettings()
-        settings['max-height'] = (u'350px', "The default height for listing content.")
-        settings['language'] = (u'bash', "The language to use for highlighting, if not supplied " \
+        settings['max-height'] = ('350px', "The default height for listing content.")
+        settings['language'] = ('bash', "The language to use for highlighting, if not supplied " \
                                          "it will be inferred from the extension (if possible).")
         return settings
 
     def createToken(self, parent, info, page):
         content = info['inline'] if 'inline' in info else info['block']
-        content = re.sub(r'__(?P<package>[A-Z][A-Z_]+)__', self.subFunction, content,
+        content = re.sub(r'__(?P<package>[A-Z][A-Z_]+)__', self._subFunction, content,
                          flags=re.UNICODE)
         core.Code(parent, style="max-height:{};".format(self.settings['max-height']),
                   language=self.settings['language'], content=content)
         return parent
 
-    def subFunction(self, match):
-        key = match.group('package')
-        for package in self.extension.keys():
-            if package.upper() == key:
-                version = self.extension.get(package)
-                return unicode(version)
+    def _subFunction(self, match):
+        version = self.extension.get(match.group('package').lower(), None)
+        if version is not None:
+            return str(version)
         return match.group(0)
 
 class PackageTextReplace(command.CommandComponent):
@@ -153,5 +150,5 @@ class PackageTextReplace(command.CommandComponent):
 
     def createToken(self, parent, info, page):
         content = self.extension.get(info['subcommand'], dict())
-        tokens.String(parent, content=unicode(content))
+        tokens.String(parent, content=str(content))
         return parent

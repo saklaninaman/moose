@@ -12,11 +12,7 @@
 #include "Marker.h"
 #include "DiscreteNucleationInserterBase.h"
 
-class DiscreteNucleationMarker;
 class DiscreteNucleationMap;
-
-template <>
-InputParameters validParams<DiscreteNucleationMarker>();
 
 /**
  * Mark new nucleation sites for refinement
@@ -24,6 +20,8 @@ InputParameters validParams<DiscreteNucleationMarker>();
 class DiscreteNucleationMarker : public Marker
 {
 public:
+  static InputParameters validParams();
+
   DiscreteNucleationMarker(const InputParameters & parameters);
 
 protected:
@@ -47,4 +45,3 @@ protected:
   /// list of nuclei maintained bu the inserter object
   const DiscreteNucleationInserterBase::NucleusList & _nucleus_list;
 };
-

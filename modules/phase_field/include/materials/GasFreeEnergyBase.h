@@ -13,10 +13,6 @@
 #include "ExpressionBuilder.h"
 
 // Forward Declarations
-class GasFreeEnergyBase;
-
-template <>
-InputParameters validParams<GasFreeEnergyBase>();
 
 /**
  * Material class that provides the free energy of an ideal gas with the expression builder
@@ -25,6 +21,8 @@ InputParameters validParams<GasFreeEnergyBase>();
 class GasFreeEnergyBase : public DerivativeParsedMaterialHelper, public ExpressionBuilder
 {
 public:
+  static InputParameters validParams();
+
   GasFreeEnergyBase(const InputParameters & parameters);
 
 protected:
@@ -51,4 +49,3 @@ protected:
   /// quantum concentration
   const EBTerm _nq;
 };
-

@@ -11,20 +11,16 @@
 
 #include "ADCompute2DFiniteStrain.h"
 
-template <ComputeStage>
-class ADComputeAxisymmetricRZFiniteStrain;
-
-declareADValidParams(ADComputeAxisymmetricRZFiniteStrain);
-
 /**
  * ADComputeAxisymmetricRZFiniteStrain defines a strain increment and rotation
  * increment for finite strains in an Axisymmetric simulation.
  * The COORD_TYPE in the Problem block must be set to RZ.
  */
-template <ComputeStage compute_stage>
-class ADComputeAxisymmetricRZFiniteStrain : public ADCompute2DFiniteStrain<compute_stage>
+class ADComputeAxisymmetricRZFiniteStrain : public ADCompute2DFiniteStrain
 {
 public:
+  static InputParameters validParams();
+
   ADComputeAxisymmetricRZFiniteStrain(const InputParameters & parameters);
 
   void initialSetup() override;
@@ -36,7 +32,4 @@ protected:
 
   /// the old value of the first component of the displacements vector
   const VariableValue & _disp_old_0;
-
-  usingCompute2DFiniteStrainMembers;
 };
-

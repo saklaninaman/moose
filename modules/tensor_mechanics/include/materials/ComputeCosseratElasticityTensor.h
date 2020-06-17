@@ -11,17 +11,14 @@
 
 #include "ComputeElasticityTensorBase.h"
 
-class ComputeCosseratElasticityTensor;
-
-template <>
-InputParameters validParams<ComputeCosseratElasticityTensor>();
-
 /**
  * ComputeElasticityTensor defines an elasticity tensor material for isi.
  */
 class ComputeCosseratElasticityTensor : public ComputeElasticityTensorBase
 {
 public:
+  static InputParameters validParams();
+
   ComputeCosseratElasticityTensor(const InputParameters & parameters);
 
 protected:
@@ -36,4 +33,3 @@ protected:
   /// Flexural rigidity tensor at the qps
   MaterialProperty<RankFourTensor> & _elastic_flexural_rigidity_tensor;
 };
-

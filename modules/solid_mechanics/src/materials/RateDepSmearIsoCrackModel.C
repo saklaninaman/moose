@@ -11,12 +11,11 @@
 
 registerMooseObject("SolidMechanicsApp", RateDepSmearIsoCrackModel);
 
-template <>
 InputParameters
-validParams<RateDepSmearIsoCrackModel>()
+RateDepSmearIsoCrackModel::validParams()
 {
 
-  InputParameters params = validParams<RateDepSmearCrackModel>();
+  InputParameters params = RateDepSmearCrackModel::validParams();
 
   params.addRequiredParam<Real>("critical_energy", "Critical Energy");
   params.addParam<Real>("k_fail", 1e-6, "Post failure stiffness");

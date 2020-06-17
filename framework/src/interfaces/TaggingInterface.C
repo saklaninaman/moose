@@ -14,10 +14,12 @@
 
 #include "libmesh/dense_vector.h"
 
-template <>
+defineLegacyParams(TaggingInterface);
+
 InputParameters
-validParams<TaggingInterface>()
+TaggingInterface::validParams()
 {
+
   InputParameters params = emptyInputParameters();
 
   // These are the default names for tags, but users will be able to add their own
@@ -53,14 +55,32 @@ TaggingInterface::TaggingInterface(const MooseObject * moose_object)
     mooseError("MUST provide at least one vector_tag for Kernel: ", _moose_object.name());
 
   for (auto & vector_tag_name : vector_tag_names)
-    _vector_tags.insert(_subproblem.getVectorTagID(vector_tag_name.name()));
+  {
+    const TagID vector_tag_id = _subproblem.getVectorTagID(vector_tag_name.name());
+    if (_subproblem.vectorTagType(vector_tag_id) != Moose::VECTOR_TAG_RESIDUAL)
+      mooseError("Vector tag '",
+                 vector_tag_name.name(),
+                 "' for Kernel '",
+                 _moose_object.name(),
+                 "' is not a residual vector tag");
+    _vector_tags.insert(vector_tag_id);
+  }
 
   // Add extra vector tags. These tags should be created in the System already, otherwise
   // we can not add the extra tags
   auto & extra_vector_tags = _tag_params.get<std::vector<TagName>>("extra_vector_tags");
 
   for (auto & vector_tag_name : extra_vector_tags)
-    _vector_tags.insert(_subproblem.getVectorTagID(vector_tag_name));
+  {
+    const TagID vector_tag_id = _subproblem.getVectorTagID(vector_tag_name);
+    if (_subproblem.vectorTagType(vector_tag_id) != Moose::VECTOR_TAG_RESIDUAL)
+      mooseError("Extra vector tag '",
+                 vector_tag_name,
+                 "' for Kernel '",
+                 _moose_object.name(),
+                 "' is not a residual vector tag");
+    _vector_tags.insert(vector_tag_id);
+  }
 
   auto & matrix_tag_names = _tag_params.get<MultiMooseEnum>("matrix_tags");
 
@@ -125,7 +145,6 @@ TaggingInterface::prepareVectorTag(Assembly & assembly, unsigned int ivar)
     _re_blocks[i] = &assembly.residualBlock(ivar, *vector_tag);
 
   _local_re.resize(_re_blocks[0]->size());
-  _local_re.zero();
 }
 
 void
@@ -138,7 +157,6 @@ TaggingInterface::prepareVectorTagNeighbor(Assembly & assembly, unsigned int iva
     _re_blocks[i] = &assembly.residualBlockNeighbor(ivar, *vector_tag);
 
   _local_re.resize(_re_blocks[0]->size());
-  _local_re.zero();
 }
 
 void
@@ -151,7 +169,6 @@ TaggingInterface::prepareVectorTagLower(Assembly & assembly, unsigned int ivar)
     _re_blocks[i] = &assembly.residualBlockLower(ivar, *vector_tag);
 
   _local_re.resize(_re_blocks[0]->size());
-  _local_re.zero();
 }
 
 void
@@ -164,7 +181,6 @@ TaggingInterface::prepareMatrixTag(Assembly & assembly, unsigned int ivar, unsig
     _ke_blocks[i] = &assembly.jacobianBlock(ivar, jvar, *mat_vector);
 
   _local_ke.resize(_ke_blocks[0]->m(), _ke_blocks[0]->n());
-  _local_ke.zero();
 }
 
 void
@@ -180,7 +196,6 @@ TaggingInterface::prepareMatrixTagNeighbor(Assembly & assembly,
     _ke_blocks[i] = &assembly.jacobianBlockNeighbor(type, ivar, jvar, *mat_vector);
 
   _local_ke.resize(_ke_blocks[0]->m(), _ke_blocks[0]->n());
-  _local_ke.zero();
 }
 
 void
@@ -196,7 +211,6 @@ TaggingInterface::prepareMatrixTagLower(Assembly & assembly,
     _ke_blocks[i] = &assembly.jacobianBlockLower(type, ivar, jvar, *mat_vector);
 
   _local_ke.resize(_ke_blocks[0]->m(), _ke_blocks[0]->n());
-  _local_ke.zero();
 }
 
 void

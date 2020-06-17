@@ -12,10 +12,6 @@
 #include "KernelGrad.h"
 
 // Forward Declarations
-class LaplacianSplit;
-
-template <>
-InputParameters validParams<LaplacianSplit>();
 
 /**
  * Split with a variable that holds the Laplacian of the phase field.
@@ -23,6 +19,8 @@ InputParameters validParams<LaplacianSplit>();
 class LaplacianSplit : public KernelGrad
 {
 public:
+  static InputParameters validParams();
+
   LaplacianSplit(const InputParameters & parameters);
 
 protected:
@@ -34,4 +32,3 @@ private:
   const unsigned int _var_c;
   const VariableGradient & _grad_c;
 };
-

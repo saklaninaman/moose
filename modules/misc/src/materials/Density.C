@@ -11,11 +11,10 @@
 
 registerMooseObject("MiscApp", Density);
 
-template <>
 InputParameters
-validParams<Density>()
+Density::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
 
   params.addCoupledVar("disp_r", "The r displacement");
   params.addCoupledVar("disp_x", "The x displacement");

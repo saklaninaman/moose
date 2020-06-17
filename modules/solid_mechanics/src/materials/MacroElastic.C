@@ -13,11 +13,10 @@
 
 registerMooseObject("SolidMechanicsApp", MacroElastic);
 
-template <>
 InputParameters
-validParams<MacroElastic>()
+MacroElastic::validParams()
 {
-  InputParameters params = validParams<Elastic>();
+  InputParameters params = Elastic::validParams();
   params.addRequiredParam<PostprocessorName>("C1111",
                                              "The postprocessor associated with the C1111 value");
   params.addRequiredParam<PostprocessorName>("C1122",

@@ -11,17 +11,14 @@
 
 #include "Action.h"
 
-class MortarPeriodicAction;
-
-template <>
-InputParameters validParams<MortarPeriodicAction>();
-
 /**
  * Set up Mortar based periodicity in an input file with a MortarPeriodicMesh
  */
 class MortarPeriodicAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   MortarPeriodicAction(const InputParameters & parameters);
 
   virtual void act();
@@ -36,4 +33,3 @@ protected:
   // the periodic directions
   const MultiMooseEnum _periodic_directions;
 };
-

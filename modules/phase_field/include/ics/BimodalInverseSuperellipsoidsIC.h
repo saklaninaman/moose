@@ -12,10 +12,6 @@
 #include "BimodalSuperellipsoidsIC.h"
 
 // Forward Declarations
-class BimodalInverseSuperellipsoidsIC;
-
-template <>
-InputParameters validParams<BimodalInverseSuperellipsoidsIC>();
 
 /**
  * BimodalInverseSuperellipsoidsIC takes a specified number of superellipsoids, each with given
@@ -29,6 +25,8 @@ InputParameters validParams<BimodalInverseSuperellipsoidsIC>();
 class BimodalInverseSuperellipsoidsIC : public BimodalSuperellipsoidsIC
 {
 public:
+  static InputParameters validParams();
+
   BimodalInverseSuperellipsoidsIC(const InputParameters & parameters);
 
   /// Have to do things slightly different from SmoothSuperellipsoidBaseIC because of the inverse structure
@@ -37,4 +35,3 @@ public:
   virtual void initialSetup();
   virtual void computeSuperellipsoidCenters();
 };
-

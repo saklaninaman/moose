@@ -89,4 +89,24 @@
     issues = '#9741'
     requirement = 'The phase-field fracture model shall predict damage evolution for an isotropic elastic material with a void.'
   [../]
+  [./crack2d_iso_with_pressure]
+    type = 'Exodiff'
+    input = 'crack2d_iso_with_pressure.i'
+    exodiff = 'crack2d_iso_with_pressure_out.e'
+    abs_zero = 1e-09
+    use_old_floor = True
+    design = 'ComputeLinearElasticPFFractureStress.md'
+    issues = '#14707'
+    requirement = 'The phase-field fracture model shall apply a pressure boundary condition on the fracture surface.'
+  [../]
+  [./crack2d_vi_solver]
+    type = 'Exodiff'
+    input = 'crack2d_vi_solver.i'
+    exodiff = 'crack2d_vi_solver_out.e'
+    abs_zero = 1e-09
+    use_old_floor = True
+    design = 'ComputeLinearElasticPFFractureStress.md PFFractureBoundsAux.md'
+    issues = '#14946'
+    requirement = "The phase-field fracture model shall predict damage evolution using PETSc's SNES variational inequalities solver."
+  [../]
 [../]

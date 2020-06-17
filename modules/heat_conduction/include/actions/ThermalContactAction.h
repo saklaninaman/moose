@@ -16,6 +16,8 @@
 class ThermalContactAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   ThermalContactAction(const InputParameters & params);
   virtual void act() override;
 
@@ -33,7 +35,3 @@ protected:
   const AuxVariableName _gap_value_name;
   const AuxVariableName _gap_conductivity_name;
 };
-
-template <>
-InputParameters validParams<ThermalContactAction>();
-

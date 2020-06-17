@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #* This file is part of the MOOSE framework
 #* https://www.mooseframework.org
 #*
@@ -15,7 +15,7 @@ import mooseutils
 
 if __name__ == '__main__':
     data = mooseutils.SQAStats('Total')
-    data += mooseutils.compute_requirement_stats('test/tests')
+    data += mooseutils.compute_requirement_stats('test/tests', list_missing=True)
     data += mooseutils.compute_requirement_stats('stork')
     data += mooseutils.compute_requirement_stats('tutorials')
     data += mooseutils.compute_requirement_stats('examples')
@@ -28,6 +28,7 @@ if __name__ == '__main__':
     data += mooseutils.compute_requirement_stats('modules/fluid_properties')
     data += mooseutils.compute_requirement_stats('modules/functional_expansion_tools')
     data += mooseutils.compute_requirement_stats('modules/heat_conduction')
+    data += mooseutils.compute_requirement_stats('modules/geochemistry')
     data += mooseutils.compute_requirement_stats('modules/level_set')
     data += mooseutils.compute_requirement_stats('modules/misc')
     data += mooseutils.compute_requirement_stats('modules/navier_stokes')

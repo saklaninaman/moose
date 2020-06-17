@@ -11,11 +11,6 @@
 
 #include "RichardsDensity.h"
 
-class RichardsDensityMethane20degC;
-
-template <>
-InputParameters validParams<RichardsDensityMethane20degC>();
-
 /**
  * Methane density - a quadratic fit to expressions in:
  * "Results of (pressure, density, temperature) measurements on methane and on nitrogen in the
@@ -30,6 +25,8 @@ InputParameters validParams<RichardsDensityMethane20degC>();
 class RichardsDensityMethane20degC : public RichardsDensity
 {
 public:
+  static InputParameters validParams();
+
   RichardsDensityMethane20degC(const InputParameters & parameters);
 
   /**
@@ -54,4 +51,3 @@ private:
   /// Unit of measurement for pressure (should be 1 for pressure in Pa, 1E6 for pressure in MPa, etc)
   Real _p_unit;
 };
-

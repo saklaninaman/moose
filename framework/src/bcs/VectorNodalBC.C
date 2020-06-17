@@ -14,11 +14,13 @@
 #include "SystemBase.h"
 #include "NonlinearSystemBase.h"
 
-template <>
+defineLegacyParams(VectorNodalBC);
+
 InputParameters
-validParams<VectorNodalBC>()
+VectorNodalBC::validParams()
 {
-  return validParams<NodalBCBase>();
+  InputParameters params = NodalBCBase::validParams();
+  return params;
 }
 
 VectorNodalBC::VectorNodalBC(const InputParameters & parameters)
@@ -47,7 +49,7 @@ VectorNodalBC::computeResidual()
 
   for (auto tag_id : _vector_tags)
     if (_sys.hasVector(tag_id))
-      for (size_t i = 0; i < dof_indices.size(); ++i)
+      for (std::size_t i = 0; i < dof_indices.size(); ++i)
         _sys.getVector(tag_id).set(dof_indices[i], res(i));
 }
 
@@ -60,7 +62,7 @@ VectorNodalBC::computeJacobian()
   // Cache the user's computeQpJacobian() value for later use.
   for (auto tag : _matrix_tags)
     if (_sys.hasMatrix(tag))
-      for (size_t i = 0; i < cached_rows.size(); ++i)
+      for (std::size_t i = 0; i < cached_rows.size(); ++i)
         _fe_problem.assembly(0).cacheJacobianContribution(
             cached_rows[i], cached_rows[i], cached_val(i), tag);
 }
@@ -80,7 +82,7 @@ VectorNodalBC::computeOffDiagJacobian(unsigned int jvar)
     // Cache the user's computeQpJacobian() value for later use.
     for (auto tag : _matrix_tags)
       if (_sys.hasMatrix(tag))
-        for (size_t i = 0; i < cached_rows.size(); ++i)
+        for (std::size_t i = 0; i < cached_rows.size(); ++i)
           _fe_problem.assembly(0).cacheJacobianContribution(
               cached_rows[i], cached_col, cached_val, tag);
   }

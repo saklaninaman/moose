@@ -12,11 +12,10 @@
 
 registerMooseObject("XFEMTestApp", TestCrackCounter);
 
-template <>
 InputParameters
-validParams<TestCrackCounter>()
+TestCrackCounter::validParams()
 {
-  InputParameters params = validParams<GeneralPostprocessor>();
+  InputParameters params = GeneralPostprocessor::validParams();
   params.addClassDescription(
       "Test postprocessor for extracting the crack_tip_origin_direction_map from XFEM.");
 

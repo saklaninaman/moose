@@ -21,11 +21,10 @@
 
 registerMooseObject("XFEMApp", MeshCut3DUserObject);
 
-template <>
 InputParameters
-validParams<MeshCut3DUserObject>()
+MeshCut3DUserObject::validParams()
 {
-  InputParameters params = validParams<GeometricCutUserObject>();
+  InputParameters params = GeometricCutUserObject::validParams();
   params.addRequiredParam<MeshFileName>(
       "mesh_file",
       "Mesh file for the XFEM geometric cut; currently only the xda type is supported");
@@ -75,31 +74,43 @@ MeshCut3DUserObject::MeshCut3DUserObject(const InputParameters & parameters)
 }
 
 void
-MeshCut3DUserObject::initialize()
+MeshCut3DUserObject::initialSetup()
 {
-  // this is a test of all methods relevant to front growth
   if (_grow)
   {
-    _stop = 0;
-
     findBoundaryNodes();
     findBoundaryEdges();
     sortBoundaryNodes();
     refineBoundary();
+  }
+}
 
-    for (unsigned int i = 0; i < _n_step_growth; ++i)
+void
+MeshCut3DUserObject::initialize()
+{
+  if (_grow)
+  {
+    unsigned int timestep = _fe_problem.timeStep();
+
+    if (timestep == 1)
+      _last_step_initialized = 1;
+
+    _stop = 0;
+
+    if (timestep > 1 && timestep != _last_step_initialized)
     {
-      findActiveBoundaryNodes();
+      _last_step_initialized = timestep;
+
+      for (unsigned int i = 0; i < _n_step_growth; ++i)
+        findActiveBoundaryNodes();
 
       if (_stop != 1)
       {
         findActiveBoundaryDirection();
         growFront();
         sortFrontNodes();
-
         if (_inactive_boundary_pos.size() != 0)
           findFrontIntersection();
-
         refineFront();
         triangulation();
         joinBoundary();

@@ -12,14 +12,12 @@
 #include "Material.h"
 
 // Forward Declarations
-class TrussMaterial;
-
-template <>
-InputParameters validParams<TrussMaterial>();
 
 class TrussMaterial : public Material
 {
 public:
+  static InputParameters validParams();
+
   TrussMaterial(const InputParameters & parameters);
 
 protected:
@@ -31,8 +29,10 @@ protected:
 
   std::vector<MooseVariable *> _disp_var;
 
+  /// Base name of the material system
   const std::string _base_name;
 
+  /// Number of displacement variables
   unsigned int _ndisp;
   const VariableValue & _youngs_modulus;
 
@@ -44,4 +44,3 @@ protected:
   Real _origin_length;
   Real _current_length;
 };
-

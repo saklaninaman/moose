@@ -12,14 +12,11 @@
 #include "DiscreteElementUserObject.h"
 #include "PointValueAtXFEMInterface.h"
 
-class XFEMMovingInterfaceVelocityBase;
-
-template <>
-InputParameters validParams<XFEMMovingInterfaceVelocityBase>();
-
 class XFEMMovingInterfaceVelocityBase : public DiscreteElementUserObject
 {
 public:
+  static InputParameters validParams();
+
   XFEMMovingInterfaceVelocityBase(const InputParameters & parameters);
   virtual ~XFEMMovingInterfaceVelocityBase() {}
 
@@ -41,4 +38,3 @@ protected:
   /// Pointer to PointValueAtXFEMInterface object
   const PointValueAtXFEMInterface * _value_at_interface_uo;
 };
-

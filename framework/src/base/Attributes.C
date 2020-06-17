@@ -26,16 +26,50 @@
 #include "ShapeSideUserObject.h"
 #include "ShapeElementUserObject.h"
 
+std::ostream &
+operator<<(std::ostream & os, Interfaces & iface)
+{
+  os << "Interfaces(";
+  if (static_cast<bool>(iface & Interfaces::UserObject))
+    os << "|UserObject";
+  if (static_cast<bool>(iface & Interfaces::ElementUserObject))
+    os << "|ElementUserObject";
+  if (static_cast<bool>(iface & Interfaces::SideUserObject))
+    os << "|SideUserObject";
+  if (static_cast<bool>(iface & Interfaces::InternalSideUserObject))
+    os << "|InternalSideUserObject";
+  if (static_cast<bool>(iface & Interfaces::NodalUserObject))
+    os << "|NodalUserObject";
+  if (static_cast<bool>(iface & Interfaces::GeneralUserObject))
+    os << "|GeneralUserObject";
+  if (static_cast<bool>(iface & Interfaces::ThreadedGeneralUserObject))
+    os << "|ThreadedGeneralUserObject";
+  if (static_cast<bool>(iface & Interfaces::ShapeElementUserObject))
+    os << "|ShapeElementUserObject";
+  if (static_cast<bool>(iface & Interfaces::ShapeSideUserObject))
+    os << "|ShapeSideUserObject";
+  if (static_cast<bool>(iface & Interfaces::Postprocessor))
+    os << "|Postprocessor";
+  if (static_cast<bool>(iface & Interfaces::VectorPostprocessor))
+    os << "|VectorPostprocessor";
+  if (static_cast<bool>(iface & Interfaces::InterfaceUserObject))
+    os << "|InterfaceUserObject";
+  os << ")";
+  return os;
+}
+
 bool
 AttribTagBase::isMatch(const Attribute & other) const
 {
   auto a = dynamic_cast<const AttribTagBase *>(&other);
-  if (!a || a->_vals.size() < 1)
+  if (!a)
     return false;
+  if (a->_vals.size() == 0)
+    return true; // the condition is empty tags - which we take to mean any tag should match
 
-  auto cond = a->_vals[0];
+  // return true if any single tag matches between the two attribute objects
   for (auto val : _vals)
-    if (val == cond)
+    if (std::find(a->_vals.begin(), a->_vals.end(), val) != a->_vals.end())
       return true;
   return false;
 }
@@ -186,12 +220,14 @@ AttribBoundaries::isMatch(const Attribute & other) const
   if (!a || a->_vals.size() < 1)
     return false;
 
-  auto cond = a->_vals[0];
-  if (cond == Moose::ANY_BOUNDARY_ID)
-    return true;
-  for (auto id : _vals)
+  // return true if a single tag matches between the two attribute objects
+  for (auto val : _vals)
   {
-    if (id == cond || (!a->_must_be_restricted && (id == Moose::ANY_BOUNDARY_ID)))
+    if (!a->_must_be_restricted && (val == Moose::ANY_BOUNDARY_ID))
+      return true;
+    if (std::find(a->_vals.begin(), a->_vals.end(), val) != a->_vals.end())
+      return true;
+    else if (std::find(a->_vals.begin(), a->_vals.end(), Moose::ANY_BOUNDARY_ID) != a->_vals.end())
       return true;
   }
   return false;
@@ -213,7 +249,7 @@ AttribBoundaries::isEqual(const Attribute & other) const
 void
 AttribThread::initFrom(const MooseObject * obj)
 {
-  _val = obj->getParamTempl<THREAD_ID>("_tid");
+  _val = obj->getParam<THREAD_ID>("_tid");
 }
 bool
 AttribThread::isMatch(const Attribute & other) const
@@ -262,6 +298,23 @@ AttribPreAux::isEqual(const Attribute & other) const
 }
 
 void
+AttribPostAux::initFrom(const MooseObject * /*obj*/)
+{
+}
+bool
+AttribPostAux::isMatch(const Attribute & other) const
+{
+  auto a = dynamic_cast<const AttribPostAux *>(&other);
+  return a && (a->_val == _val);
+}
+
+bool
+AttribPostAux::isEqual(const Attribute & other) const
+{
+  return isMatch(other);
+}
+
+void
 AttribName::initFrom(const MooseObject * obj)
 {
   _val = obj->name();
@@ -280,8 +333,12 @@ AttribName::isEqual(const Attribute & other) const
 }
 
 void
-AttribSystem::initFrom(const MooseObject * /*obj*/)
+AttribSystem::initFrom(const MooseObject * obj)
 {
+  if (!obj->isParamValid("_moose_warehouse_system_name"))
+    mooseError("The base objects supplied to the TheWarehouse must call "
+               "'registerSystemAttributeName' method in the validParams function.");
+  _val = obj->getParam<std::string>("_moose_warehouse_system_name");
 }
 bool
 AttribSystem::isMatch(const Attribute & other) const
@@ -301,7 +358,7 @@ AttribVar::initFrom(const MooseObject * obj)
 {
   auto vi = dynamic_cast<const MooseVariableInterface<Real> *>(obj);
   if (vi)
-    _val = static_cast<int>(vi->mooseVariable()->number());
+    _val = static_cast<int>(vi->mooseVariableBase()->number());
 }
 bool
 AttribVar::isMatch(const Attribute & other) const

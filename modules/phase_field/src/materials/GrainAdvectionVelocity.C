@@ -11,13 +11,12 @@
 
 registerMooseObject("PhaseFieldApp", GrainAdvectionVelocity);
 
-template <>
 InputParameters
-validParams<GrainAdvectionVelocity>()
+GrainAdvectionVelocity::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   params.addClassDescription(
-      "Calculation the advection velocity of grain due to rigid vody translation and rotation");
+      "Calculation the advection velocity of grain due to rigid body translation and rotation");
   params.addRequiredCoupledVarWithAutoBuild(
       "etas", "var_name_base", "op_num", "Array of other coupled order parameters");
   params.addCoupledVar("c", "Concentration field");

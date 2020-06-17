@@ -16,11 +16,10 @@
 
 registerMooseObject("TensorMechanicsApp", TensorMechanicsPlasticMohrCoulombMulti);
 
-template <>
 InputParameters
-validParams<TensorMechanicsPlasticMohrCoulombMulti>()
+TensorMechanicsPlasticMohrCoulombMulti::validParams()
 {
-  InputParameters params = validParams<TensorMechanicsPlasticModel>();
+  InputParameters params = TensorMechanicsPlasticModel::validParams();
   params.addClassDescription("Non-associative Mohr-Coulomb plasticity with hardening/softening");
   params.addRequiredParam<UserObjectName>(
       "cohesion", "A TensorMechanicsHardening UserObject that defines hardening of the cohesion");

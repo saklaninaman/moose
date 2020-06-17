@@ -12,15 +12,13 @@
 #include "NodalBC.h"
 
 // Forward Declarations
-class NSThermalBC;
 class IdealGasFluidProperties;
-
-template <>
-InputParameters validParams<NSThermalBC>();
 
 class NSThermalBC : public NodalBC
 {
 public:
+  static InputParameters validParams();
+
   NSThermalBC(const InputParameters & parameters);
 
 protected:
@@ -38,4 +36,3 @@ protected:
   // Fluid properties
   const IdealGasFluidProperties & _fp;
 };
-

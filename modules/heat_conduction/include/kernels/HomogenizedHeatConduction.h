@@ -19,6 +19,8 @@
 class HomogenizedHeatConduction : public Kernel
 {
 public:
+  static InputParameters validParams();
+
   HomogenizedHeatConduction(const InputParameters & parameters);
 
 protected:
@@ -27,7 +29,3 @@ protected:
   const MaterialProperty<Real> & _diffusion_coefficient;
   const unsigned int _component;
 };
-
-template <>
-InputParameters validParams<HomogenizedHeatConduction>();
-

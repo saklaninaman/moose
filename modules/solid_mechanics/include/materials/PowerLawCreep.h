@@ -12,10 +12,6 @@
 #include "SolidModel.h"
 
 // Forward declarations
-class PowerLawCreep;
-
-template <>
-InputParameters validParams<PowerLawCreep>();
 
 /**
  * Power-law creep material
@@ -25,8 +21,9 @@ InputParameters validParams<PowerLawCreep>();
 class PowerLawCreep : public SolidModel
 {
 public:
+  static InputParameters validParams();
+
   PowerLawCreep(const InputParameters & parameters);
 
 protected:
 };
-

@@ -30,17 +30,9 @@
 []
 
 [AuxVariables]
-  [velocity_x]
+  [velocity]
     order = CONSTANT
-    family = MONOMIAL
-  []
-  [velocity_y]
-    order = CONSTANT
-    family = MONOMIAL
-  []
-  [velocity_z]
-    order = CONSTANT
-    family = MONOMIAL
+    family = MONOMIAL_VEC
   []
 []
 
@@ -77,24 +69,9 @@
 []
 
 [AuxKernels]
-  [velocity_x]
+  [velocity]
     type = DarcyVelocity
-    variable = velocity_x
-    component = x
-    execute_on = timestep_end
-    pressure = pressure
-  []
-  [velocity_y]
-    type = DarcyVelocity
-    variable = velocity_y
-    component = y
-    execute_on = timestep_end
-    pressure = pressure
-  []
-  [velocity_z]
-    type = DarcyVelocity
-    variable = velocity_z
-    component = z
+    variable = velocity
     execute_on = timestep_end
     pressure = pressure
   []
@@ -175,7 +152,7 @@
   []
 
   [elasticity_tensor]
-    type = ComputeIsotropicElasticityTensor
+    type = ADComputeIsotropicElasticityTensor
     youngs_modulus = 200e9 # (Pa) from wikipedia
     poissons_ratio = .3 # from wikipedia
 

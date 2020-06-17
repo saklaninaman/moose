@@ -20,19 +20,22 @@
 #include "libmesh/dof_map.h"
 #include "libmesh/quadrature.h"
 
-template <>
+defineLegacyParams(AuxKernel);
+defineLegacyParams(VectorAuxKernel);
+
+template <typename ComputeValueType>
 InputParameters
-validParams<AuxKernel>()
+AuxKernelTempl<ComputeValueType>::validParams()
 {
-  InputParameters params = validParams<MooseObject>();
-  params += validParams<BlockRestrictable>();
-  params += validParams<BoundaryRestrictable>();
-  params += validParams<RandomInterface>();
-  params += validParams<MeshChangedInterface>();
-  params += validParams<MaterialPropertyInterface>();
+  InputParameters params = MooseObject::validParams();
+  params += BlockRestrictable::validParams();
+  params += BoundaryRestrictable::validParams();
+  params += RandomInterface::validParams();
+  params += MeshChangedInterface::validParams();
+  params += MaterialPropertyInterface::validParams();
 
   // Add the SetupInterface parameter 'execute_on' with 'linear' and 'timestep_end'
-  params += validParams<SetupInterface>();
+  params += SetupInterface::validParams();
   ExecFlagEnum & exec_enum = params.set<ExecFlagEnum>("execute_on", true);
   exec_enum.addAvailableFlags(EXEC_PRE_DISPLACE);
   exec_enum = {EXEC_LINEAR, EXEC_TIMESTEP_END};
@@ -55,15 +58,9 @@ validParams<AuxKernel>()
 
   params.declareControllable("enable"); // allows Control to enable/disable this type of object
   params.registerBase("AuxKernel");
-  return params;
-}
 
-template <>
-InputParameters
-validParams<VectorAuxKernel>()
-{
-  InputParameters params = validParams<AuxKernel>();
-  params.registerBase("VectorAuxKernel");
+  if (typeid(AuxKernelTempl<ComputeValueType>).name() == typeid(VectorAuxKernel).name())
+    params.registerBase("VectorAuxKernel");
   return params;
 }
 
@@ -98,6 +95,7 @@ AuxKernelTempl<ComputeValueType>::AuxKernelTempl(const InputParameters & paramet
     Restartable(this, "AuxKernels"),
     MeshChangedInterface(parameters),
     VectorPostprocessorInterface(this),
+    ElementIDInterface(this),
     _subproblem(*getCheckedPointerParam<SubProblem *>("_subproblem")),
     _sys(*getCheckedPointerParam<SystemBase *>("_sys")),
     _nl_sys(*getCheckedPointerParam<SystemBase *>("_nl_sys")),
@@ -126,13 +124,13 @@ AuxKernelTempl<ComputeValueType>::AuxKernelTempl(const InputParameters & paramet
     _current_side_volume(_assembly.sideElemVolume()),
 
     _current_node(_assembly.node()),
-
+    _current_boundary_id(_assembly.currentBoundaryID()),
     _solution(_aux_sys.solution())
 {
   addMooseVariableDependency(mooseVariable());
   _supplied_vars.insert(parameters.get<AuxVariableName>("variable"));
 
-  std::map<std::string, std::vector<MooseVariableFEBase *>> coupled_vars = getCoupledVars();
+  const auto & coupled_vars = getCoupledVars();
   for (const auto & it : coupled_vars)
     for (const auto & var : it.second)
       _depend_vars.insert(var->name());
@@ -154,17 +152,30 @@ AuxKernelTempl<ComputeValueType>::getSuppliedItems()
 
 template <typename ComputeValueType>
 const UserObject &
-AuxKernelTempl<ComputeValueType>::getUserObjectBase(const std::string & name)
+AuxKernelTempl<ComputeValueType>::getUserObjectBase(const UserObjectName & name)
 {
-  _depend_uo.insert(_pars.get<UserObjectName>(name));
-  return UserObjectInterface::getUserObjectBase(name);
+  return getUserObjectBaseByName(_pars.get<UserObjectName>(name));
+}
+
+template <typename ComputeValueType>
+const UserObject &
+AuxKernelTempl<ComputeValueType>::getUserObjectBaseByName(const UserObjectName & name)
+{
+  _depend_uo.insert(name);
+  auto & uo = UserObjectInterface::getUserObjectBaseByName(name);
+  auto indirect_dependents = uo.getDependObjects();
+  for (auto & indirect_dependent : indirect_dependents)
+    _depend_uo.insert(indirect_dependent);
+  return uo;
 }
 
 template <typename ComputeValueType>
 const PostprocessorValue &
-AuxKernelTempl<ComputeValueType>::getPostprocessorValue(const std::string & name)
+AuxKernelTempl<ComputeValueType>::getPostprocessorValue(const std::string & name,
+                                                        unsigned int index)
 {
-  _depend_uo.insert(_pars.get<PostprocessorName>(name));
+  if (hasPostprocessor(name, index))
+    getUserObjectBaseByName(_pars.get<PostprocessorName>(name));
   return PostprocessorInterface::getPostprocessorValue(name);
 }
 
@@ -172,7 +183,7 @@ template <typename ComputeValueType>
 const PostprocessorValue &
 AuxKernelTempl<ComputeValueType>::getPostprocessorValueByName(const PostprocessorName & name)
 {
-  _depend_uo.insert(name);
+  getUserObjectBaseByName(name);
   return PostprocessorInterface::getPostprocessorValueByName(name);
 }
 
@@ -181,7 +192,7 @@ const VectorPostprocessorValue &
 AuxKernelTempl<ComputeValueType>::getVectorPostprocessorValue(const std::string & name,
                                                               const std::string & vector_name)
 {
-  _depend_uo.insert(_pars.get<VectorPostprocessorName>(name));
+  getUserObjectBaseByName(_pars.get<VectorPostprocessorName>(name));
   return VectorPostprocessorInterface::getVectorPostprocessorValue(name, vector_name);
 }
 
@@ -190,7 +201,7 @@ const VectorPostprocessorValue &
 AuxKernelTempl<ComputeValueType>::getVectorPostprocessorValueByName(
     const VectorPostprocessorName & name, const std::string & vector_name)
 {
-  _depend_uo.insert(name);
+  getUserObjectBaseByName(name);
   return VectorPostprocessorInterface::getVectorPostprocessorValueByName(name, vector_name);
 }
 
@@ -200,7 +211,7 @@ AuxKernelTempl<ComputeValueType>::getVectorPostprocessorValue(const std::string 
                                                               const std::string & vector_name,
                                                               bool needs_broadcast)
 {
-  _depend_uo.insert(_pars.get<VectorPostprocessorName>(name));
+  getUserObjectBaseByName(_pars.get<VectorPostprocessorName>(name));
   return VectorPostprocessorInterface::getVectorPostprocessorValue(
       name, vector_name, needs_broadcast);
 }
@@ -210,7 +221,7 @@ const VectorPostprocessorValue &
 AuxKernelTempl<ComputeValueType>::getVectorPostprocessorValueByName(
     const VectorPostprocessorName & name, const std::string & vector_name, bool needs_broadcast)
 {
-  _depend_uo.insert(name);
+  getUserObjectBaseByName(name);
   return VectorPostprocessorInterface::getVectorPostprocessorValueByName(
       name, vector_name, needs_broadcast);
 }
@@ -220,7 +231,7 @@ const ScatterVectorPostprocessorValue &
 AuxKernelTempl<ComputeValueType>::getScatterVectorPostprocessorValue(
     const std::string & name, const std::string & vector_name)
 {
-  _depend_uo.insert(_pars.get<VectorPostprocessorName>(name));
+  getUserObjectBaseByName(_pars.get<VectorPostprocessorName>(name));
   return VectorPostprocessorInterface::getScatterVectorPostprocessorValue(name, vector_name);
 }
 
@@ -229,13 +240,13 @@ const ScatterVectorPostprocessorValue &
 AuxKernelTempl<ComputeValueType>::getScatterVectorPostprocessorValueByName(
     const std::string & name, const std::string & vector_name)
 {
-  _depend_uo.insert(name);
+  getUserObjectBaseByName(_pars.get<PostprocessorName>(name));
   return VectorPostprocessorInterface::getScatterVectorPostprocessorValueByName(name, vector_name);
 }
 
 template <typename ComputeValueType>
 void
-AuxKernelTempl<ComputeValueType>::coupledCallback(const std::string & var_name, bool is_old)
+AuxKernelTempl<ComputeValueType>::coupledCallback(const std::string & var_name, bool is_old) const
 {
   if (is_old)
   {
@@ -247,9 +258,9 @@ AuxKernelTempl<ComputeValueType>::coupledCallback(const std::string & var_name, 
 
 template <typename ComputeValueType>
 const VariableValue &
-AuxKernelTempl<ComputeValueType>::coupledDot(const std::string & var_name, unsigned int comp)
+AuxKernelTempl<ComputeValueType>::coupledDot(const std::string & var_name, unsigned int comp) const
 {
-  MooseVariableFEBase * var = getVar(var_name, comp);
+  auto var = getVar(var_name, comp);
   if (var->kind() == Moose::VAR_AUXILIARY)
     mooseError(
         name(),
@@ -260,9 +271,10 @@ AuxKernelTempl<ComputeValueType>::coupledDot(const std::string & var_name, unsig
 
 template <typename ComputeValueType>
 const VariableValue &
-AuxKernelTempl<ComputeValueType>::coupledDotDu(const std::string & var_name, unsigned int comp)
+AuxKernelTempl<ComputeValueType>::coupledDotDu(const std::string & var_name,
+                                               unsigned int comp) const
 {
-  MooseVariableFEBase * var = getVar(var_name, comp);
+  auto var = getVar(var_name, comp);
   if (var->kind() == Moose::VAR_AUXILIARY)
     mooseError(
         name(),

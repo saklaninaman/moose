@@ -14,20 +14,28 @@
 #include "MooseSyntax.h"
 #include "FluidPropertiesApp.h"
 #include "ChemicalReactionsApp.h"
-#include "RdgApp.h"
 
-template <>
 InputParameters
-validParams<PorousFlowApp>()
+PorousFlowApp::validParams()
 {
-  InputParameters params = validParams<MooseApp>();
+  InputParameters params = MooseApp::validParams();
+
   params.set<bool>("automatic_automatic_scaling") = false;
+
+  // Do not use legacy DirichletBC, that is, set DirichletBC default for preset = true
+  params.set<bool>("use_legacy_dirichlet_bc") = false;
+
+  params.set<bool>("use_legacy_material_output") = false;
+
   return params;
 }
 
 registerKnownLabel("PorousFlowApp");
 
-PorousFlowApp::PorousFlowApp(const InputParameters & parameters) : MooseApp(parameters) {}
+PorousFlowApp::PorousFlowApp(const InputParameters & parameters) : MooseApp(parameters)
+{
+  PorousFlowApp::registerAll(_factory, _action_factory, _syntax);
+}
 
 PorousFlowApp::~PorousFlowApp() {}
 
@@ -74,7 +82,6 @@ PorousFlowApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
   TensorMechanicsApp::registerAll(f, af, s);
   FluidPropertiesApp::registerAll(f, af, s);
   ChemicalReactionsApp::registerAll(f, af, s);
-  RdgApp::registerAll(f, af, s);
   Registry::registerObjectsTo(f, {"PorousFlowApp"});
   Registry::registerActionsTo(af, {"PorousFlowApp"});
   associateSyntaxInner(s, af);
@@ -87,7 +94,6 @@ PorousFlowApp::registerObjectDepends(Factory & factory)
   TensorMechanicsApp::registerObjects(factory);
   FluidPropertiesApp::registerObjects(factory);
   ChemicalReactionsApp::registerObjects(factory);
-  RdgApp::registerObjects(factory);
 }
 
 void
@@ -104,7 +110,6 @@ PorousFlowApp::associateSyntaxDepends(Syntax & syntax, ActionFactory & action_fa
   TensorMechanicsApp::associateSyntax(syntax, action_factory);
   FluidPropertiesApp::associateSyntax(syntax, action_factory);
   ChemicalReactionsApp::associateSyntax(syntax, action_factory);
-  RdgApp::associateSyntax(syntax, action_factory);
 }
 
 void

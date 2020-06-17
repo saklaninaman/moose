@@ -18,6 +18,32 @@
 
 // C++ includes
 #include <cstdlib>
+#include <tuple>
+#include <type_traits>
+
+// these functions allow streaming tuples to ostreams
+template <size_t n, typename... T>
+typename std::enable_if<(n >= sizeof...(T))>::type
+print_tuple(std::ostream &, const std::tuple<T...> &)
+{
+}
+template <size_t n, typename... T>
+typename std::enable_if<(n < sizeof...(T))>::type
+print_tuple(std::ostream & os, const std::tuple<T...> & tup)
+{
+  if (n != 0)
+    os << ", ";
+  os << std::get<n>(tup);
+  print_tuple<n + 1>(os, tup);
+}
+template <typename... T>
+std::ostream &
+operator<<(std::ostream & os, const std::tuple<T...> & tup)
+{
+  os << "[";
+  print_tuple<0>(os, tup);
+  return os << "]";
+}
 
 /// Application abort macro. Uses MPI_Abort if available, std::abort otherwise
 #if defined(LIBMESH_HAVE_MPI)
@@ -39,7 +65,7 @@
   do                                                                                               \
   {                                                                                                \
     static bool did_this_already = false;                                                          \
-    if (!did_this_already)                                                                         \
+    if (Moose::show_multiple || !did_this_already)                                                 \
     {                                                                                              \
       did_this_already = true;                                                                     \
       do_this;                                                                                     \
@@ -95,10 +121,11 @@
 template <typename... Args>
 [[noreturn]] void mooseError(Args &&... args);
 
-class MooseVariableFEBase;
+class MooseVariableFieldBase;
 
 namespace moose
 {
+
 namespace internal
 {
 
@@ -108,7 +135,7 @@ namespace internal
 ///
 /// This is a convenience function to be used when error messages (especially with paramError)
 /// need to report that variable types are incompatible (e.g. with residual save-in).
-std::string incompatVarMsg(MooseVariableFEBase & var1, MooseVariableFEBase & var2);
+std::string incompatVarMsg(MooseVariableFieldBase & var1, MooseVariableFieldBase & var2);
 
 std::string
 mooseMsgFmt(const std::string & msg, const std::string & title, const std::string & color);
@@ -181,13 +208,18 @@ mooseDeprecatedStream(S & oss, bool expired, Args &&... args)
   mooseDoOnce(std::ostringstream ss; mooseStreamAll(ss, args...);
               std::string msg = mooseMsgFmt(
                   ss.str(),
-                  "*** Warning, This code is deprecated and will be removed in future versions!\n",
+                  "*** Warning, This code is deprecated and will be removed in future versions:",
                   expired ? COLOR_RED : COLOR_YELLOW);
               oss << msg;
               ss.str("");
-              if (libMesh::global_n_processors() == 1) print_trace(ss);
-              else libMesh::write_traceout();
-              oss << ss.str() << std::endl;);
+              if (Moose::show_trace) {
+                if (libMesh::global_n_processors() == 1)
+                  print_trace(ss);
+                else
+                  libMesh::write_traceout();
+                oss << ss.str() << std::endl;
+                ;
+              });
 }
 /**
  * @}

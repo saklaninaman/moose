@@ -9,11 +9,13 @@
 
 #pragma once
 
-#include "PresetNodalBC.h"
+#include "DirichletBCBase.h"
 
-class PresetVelocity : public PresetNodalBC
+class PresetVelocity : public DirichletBCBase
 {
 public:
+  static InputParameters validParams();
+
   PresetVelocity(const InputParameters & parameters);
 
 protected:
@@ -23,6 +25,3 @@ protected:
   const Real _velocity;
   const Function & _function;
 };
-
-template <>
-InputParameters validParams<PresetVelocity>();

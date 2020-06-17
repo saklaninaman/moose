@@ -23,6 +23,8 @@ InputParameters validParams<MaterialDerivativeRankFourTestKernel>();
 class MaterialDerivativeRankFourTestKernel : public MaterialDerivativeTestKernelBase<RankFourTensor>
 {
 public:
+  static InputParameters validParams();
+
   MaterialDerivativeRankFourTestKernel(const InputParameters & parameters);
 
 protected:
@@ -35,4 +37,3 @@ protected:
   const unsigned int _component_k;
   const unsigned int _component_l;
 };
-

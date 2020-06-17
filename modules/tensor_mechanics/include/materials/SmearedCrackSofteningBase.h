@@ -14,10 +14,6 @@
 #include "Material.h"
 
 // Forward declaration
-class SmearedCrackSofteningBase;
-
-template <>
-InputParameters validParams<SmearedCrackSofteningBase>();
 
 /**
  * SmearedCrackSofteningBase is the base class for a set of models that define the
@@ -28,6 +24,8 @@ InputParameters validParams<SmearedCrackSofteningBase>();
 class SmearedCrackSofteningBase : public Material
 {
 public:
+  static InputParameters validParams();
+
   SmearedCrackSofteningBase(const InputParameters & parameters);
 
   /**
@@ -56,4 +54,3 @@ public:
   void resetProperties() final {}
   ///@}
 };
-

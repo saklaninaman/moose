@@ -20,6 +20,8 @@
 class EulerAngle2RGBAction : public Action
 {
 public:
+  static InputParameters validParams();
+
   EulerAngle2RGBAction(const InputParameters & params);
 
   virtual void act();
@@ -27,7 +29,3 @@ public:
 private:
   const std::string _var_name_base;
 };
-
-template <>
-InputParameters validParams<EulerAngle2RGBAction>();
-

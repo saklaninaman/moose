@@ -1,18 +1,19 @@
-<!-- MOOSE Documentation Stub: Remove this when content is added. -->
-
 # CSV
 
-!alert construction title=Undocumented Class
-The CSV has not been documented. The content contained on this page includes the
-typical automatic documentation associated with a MooseObject; however, what is contained is
-ultimately determined by what is necessary to make the documentation clear for users.
-
 !syntax description /Outputs/CSV
+
+## Overview
+
+The CSV output object creates files containing comma separated values. Unless disabled
+(see [syntax/Outputs/index.md) all postprocessors and scalar variables will be written to a single
+file that includes a time column.
+
+If vector postprocessors exist within the simulation an additional set of files will be created,
+there will be one file for every vector that exists within a VectorPostprocessor object for
+each timestep.
 
 !syntax parameters /Outputs/CSV
 
 !syntax inputs /Outputs/CSV
 
 !syntax children /Outputs/CSV
-
-!bibtex bibliography

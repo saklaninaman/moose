@@ -14,11 +14,9 @@
 class MaterialVectorGradAuxKernelAction : public MaterialVectorAuxKernelAction
 {
 public:
+  static InputParameters validParams();
+
   MaterialVectorGradAuxKernelAction(const InputParameters & params);
 
   virtual void act();
 };
-
-template <>
-InputParameters validParams<MaterialVectorGradAuxKernelAction>();
-

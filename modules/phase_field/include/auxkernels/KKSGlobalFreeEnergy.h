@@ -13,10 +13,6 @@
 #include "Material.h"
 
 // Forward Declarations
-class KKSGlobalFreeEnergy;
-
-template <>
-InputParameters validParams<KKSGlobalFreeEnergy>();
 
 /**
  * Compute the global free energy in the KKS Model
@@ -25,6 +21,8 @@ InputParameters validParams<KKSGlobalFreeEnergy>();
 class KKSGlobalFreeEnergy : public TotalFreeEnergyBase
 {
 public:
+  static InputParameters validParams();
+
   KKSGlobalFreeEnergy(const InputParameters & parameters);
 
 protected:
@@ -41,4 +39,3 @@ protected:
   /// Gradient interface free energy coefficients
   std::vector<const MaterialProperty<Real> *> _kappas;
 };
-

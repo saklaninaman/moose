@@ -11,9 +11,8 @@
 
 registerMooseObject("PhaseFieldApp", AllenCahn);
 
-template <>
 InputParameters
-validParams<AllenCahn>()
+AllenCahn::validParams()
 {
   InputParameters params = ACBulk<Real>::validParams();
   params.addClassDescription("Allen-Cahn Kernel that uses a DerivativeMaterial Free Energy");
@@ -24,15 +23,13 @@ validParams<AllenCahn>()
 
 AllenCahn::AllenCahn(const InputParameters & parameters)
   : ACBulk<Real>(parameters),
-    _nvar(_coupled_moose_vars.size()),
     _dFdEta(getMaterialPropertyDerivative<Real>("f_name", _var.name())),
     _d2FdEta2(getMaterialPropertyDerivative<Real>("f_name", _var.name(), _var.name())),
-    _d2FdEtadarg(_nvar)
+    _d2FdEtadarg(_n_args)
 {
   // Iterate over all coupled variables
-  for (unsigned int i = 0; i < _nvar; ++i)
-    _d2FdEtadarg[i] =
-        &getMaterialPropertyDerivative<Real>("f_name", _var.name(), _coupled_moose_vars[i]->name());
+  for (unsigned int i = 0; i < _n_args; ++i)
+    _d2FdEtadarg[i] = &getMaterialPropertyDerivative<Real>("f_name", _var.name(), i);
 }
 
 void

@@ -8,29 +8,22 @@
 #* https://www.gnu.org/licenses/lgpl-2.1.html
 
 """Extension for adding commands to Markdown syntax."""
-#pylint: disable=missing-docstring
 import re
 
-from MooseDocs import common
-from MooseDocs.base import components, Reader
-from MooseDocs.tree import tokens
-from MooseDocs.extensions import core
+from .. import common
+from ..base import components, Reader, Extension
+from ..tree import tokens
+from . import core
 
 def make_extension(**kwargs):
     """Create the CommandExtension object."""
     return CommandExtension(**kwargs)
 
-class CommandExtension(components.Extension):
+class CommandExtension(Extension):
     """Extension for creating tools necessary generic commands."""
     EXTENSION_COMMANDS = dict()
 
     def addCommand(self, reader, command):
-
-        # Type checking
-        common.check_type('reader', reader, Reader)
-        common.check_type('command', command, CommandComponent)
-        common.check_type('COMMAND', command.COMMAND, (str, tuple))
-        common.check_type('SUBCOMMAND', command.SUBCOMMAND, (type(None), str, tuple))
 
         # Initialize the component
         command.setReader(reader)
@@ -63,15 +56,13 @@ class CommandExtension(components.Extension):
         self.requires(core)
         reader.addBlock(BlockBlockCommand(), location='_begin')
         reader.addBlock(BlockInlineCommand(), location='<BlockBlockCommand')
-        reader.addInline(OlderInlineCommand(), location='_begin') #TODO: add deprecated message
-        reader.addInline(OldInlineCommand(), location='_begin')   #TODO: add deprecated message
         reader.addInline(InlineCommand(), location='_begin')
 
-class CommandComponent(components.TokenComponent): #pylint: disable=abstract-method
+class CommandComponent(components.ReaderComponent):
     COMMAND = None
     SUBCOMMAND = None
 
-class CommandBase(components.TokenComponent):
+class CommandBase(components.ReaderComponent):
     """
     Provides a component for creating commands.
 
@@ -87,7 +78,7 @@ class CommandBase(components.TokenComponent):
     FILENAME_RE = re.compile(r'(?P<filename>\S*\.(?P<ext>\w+))(?= |$)', flags=re.UNICODE)
 
     def __init__(self, *args, **kwargs):
-        components.TokenComponent.__init__(self, *args, **kwargs)
+        components.ReaderComponent.__init__(self, *args, **kwargs)
 
     def createToken(self, parent, info, page):
 
@@ -150,21 +141,14 @@ class BlockBlockCommand(CommandBase):
                     r'(?=\n*\Z|\n{2,})',         # ends with empty line or end of string
                     flags=re.UNICODE|re.MULTILINE|re.DOTALL)
 
-class OlderInlineCommand(CommandBase):
-    RE = re.compile(r'!{2}(?P<command>\w+) *(?P<subcommand>\w+)? *(?P<settings>.*?)!{2}',
-                    flags=re.UNICODE)
-
-class OldInlineCommand(CommandBase):
-    RE = re.compile(r'\[(?P<command>\w+)!(?!(?P<subcommand>\w+)!)?(?P<inline>.*?)'
-                    r' *(?P<settings>\w+=.*?)?\]',
-                    flags=re.UNICODE)
-
 class InlineCommand(CommandBase):
     """Inline commands as:
-        [command key=value]
-        [command](content in here)
-        [command!subcommand key=value]
-        [command!subcommand key=value](content in here)
+        [!command key=value]
+        [!command](content in here)
+        [!command!subcommand key=value]
+        [!command!subcommand key=value](content in here)
+
+    https://regex101.com/r/B7er21/1
     """
 
     RE = re.compile(r'\['                        # opening bracket "["

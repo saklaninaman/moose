@@ -11,11 +11,10 @@
 
 registerMooseObject("ChemicalReactionsApp", PrimaryTimeDerivative);
 
-template <>
 InputParameters
-validParams<PrimaryTimeDerivative>()
+PrimaryTimeDerivative::validParams()
 {
-  InputParameters params = validParams<TimeDerivative>();
+  InputParameters params = TimeDerivative::validParams();
   params.addClassDescription("Derivative of primary species concentration wrt time");
   return params;
 }

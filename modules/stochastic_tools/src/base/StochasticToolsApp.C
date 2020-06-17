@@ -12,11 +12,16 @@
 #include "AppFactory.h"
 #include "MooseSyntax.h"
 
-template <>
 InputParameters
-validParams<StochasticToolsApp>()
+StochasticToolsApp::validParams()
 {
-  InputParameters params = validParams<MooseApp>();
+  InputParameters params = MooseApp::validParams();
+
+  // Do not use legacy DirichletBC, that is, set DirichletBC default for preset = true
+  params.set<bool>("use_legacy_dirichlet_bc") = false;
+
+  params.set<bool>("use_legacy_material_output") = false;
+
   return params;
 }
 
@@ -30,10 +35,36 @@ StochasticToolsApp::StochasticToolsApp(InputParameters parameters) : MooseApp(pa
 StochasticToolsApp::~StochasticToolsApp() {}
 
 void
-StochasticToolsApp::registerAll(Factory & f, ActionFactory & af, Syntax & /*s*/)
+StochasticToolsApp::registerAll(Factory & f, ActionFactory & af, Syntax & syntax)
 {
   Registry::registerObjectsTo(f, {"StochasticToolsApp"});
   Registry::registerActionsTo(af, {"StochasticToolsApp"});
+
+  // Adds [Trainers] block
+  registerSyntaxTask("AddSurrogateAction", "Trainers/*", "add_trainer");
+  registerMooseObjectTask("add_trainer", SurrogateTrainer, false);
+  addTaskDependency("add_trainer", "add_user_object");
+
+  // Adds [Surrogates] block
+  registerSyntaxTask("AddSurrogateAction", "Surrogates/*", "add_surrogate");
+  registerMooseObjectTask("add_surrogate", SurrogateModel, false);
+  addTaskDependency("add_surrogate", "add_trainer");
+
+  // Adds action for loading Surrogate data
+  registerTask("load_surrogate_data", true);
+  addTaskDependency("load_surrogate_data", "add_surrogate");
+
+  // General StochasticTools action
+  registerTask("auto_create_mesh", false);
+  registerTask("auto_create_problem", false);
+  registerTask("auto_create_executioner", false);
+  registerSyntaxTask("StochasticToolsAction", "StochasticTools", "auto_create_mesh");
+  registerSyntaxTask("StochasticToolsAction", "StochasticTools", "auto_create_problem");
+  registerSyntaxTask("StochasticToolsAction", "StochasticTools", "auto_create_executioner");
+
+  // StochasticResults
+  registerTask("declare_stochastic_results_vectors", true);
+  addTaskDependency("declare_stochastic_results_vectors", "add_vector_postprocessor");
 }
 
 void

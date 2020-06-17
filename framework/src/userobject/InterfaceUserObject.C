@@ -12,14 +12,13 @@
 #include "MooseTypes.h"
 #include "Assembly.h"
 
-template <>
 InputParameters
-validParams<InterfaceUserObject>()
+InterfaceUserObject::validParams()
 {
-  InputParameters params = validParams<UserObject>();
-  params += validParams<BoundaryRestrictableRequired>();
-  params += validParams<TwoMaterialPropertyInterface>();
-  params += validParams<TransientInterface>();
+  InputParameters params = UserObject::validParams();
+  params += BoundaryRestrictableRequired::validParams();
+  params += TwoMaterialPropertyInterface::validParams();
+  params += TransientInterface::validParams();
   params.addClassDescription("Basic UO class to perform computation across an interface");
 
   // Need one layer of ghosting
@@ -35,9 +34,7 @@ InterfaceUserObject::InterfaceUserObject(const InputParameters & parameters)
     TwoMaterialPropertyInterface(this, Moose::EMPTY_BLOCK_IDS, boundaryIDs()),
     NeighborCoupleable(this, false, false),
     MooseVariableDependencyInterface(),
-    UserObjectInterface(this),
     TransientInterface(this),
-    PostprocessorInterface(this),
     _mesh(_subproblem.mesh()),
     _q_point(_assembly.qPointsFace()),
     _qrule(_assembly.qRuleFace()),
@@ -45,6 +42,7 @@ InterfaceUserObject::InterfaceUserObject(const InputParameters & parameters)
     _coord(_assembly.coordTransformation()),
     _normals(_assembly.normals()),
     _current_elem(_assembly.elem()),
+    _current_elem_volume(_assembly.elemVolume()),
     _current_side(_assembly.side()),
     _current_side_elem(_assembly.sideElem()),
     _current_side_volume(_assembly.sideElemVolume()),
@@ -60,5 +58,5 @@ InterfaceUserObject::InterfaceUserObject(const InputParameters & parameters)
 const Real &
 InterfaceUserObject::getNeighborElemVolume()
 {
-  return _assembly.neighborVolume();
+  return _current_neighbor_volume;
 }

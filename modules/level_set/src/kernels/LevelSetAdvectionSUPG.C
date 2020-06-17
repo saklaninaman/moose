@@ -9,26 +9,28 @@
 
 #include "LevelSetAdvectionSUPG.h"
 
-registerADMooseObject("LevelSetApp", LevelSetAdvectionSUPG);
+registerMooseObject("LevelSetApp", LevelSetAdvectionSUPG);
 
-defineADValidParams(
-    LevelSetAdvectionSUPG,
-    ADKernelGrad,
-    params.addClassDescription(
-        "SUPG stablization term for the advection portion of the level set equation.");
-    params += validParams<LevelSetVelocityInterface<>>(););
+InputParameters
+LevelSetAdvectionSUPG::validParams()
+{
+  InputParameters params = ADKernelGrad::validParams();
+  params.addClassDescription(
+      "SUPG stablization term for the advection portion of the level set equation.");
+  params.addRequiredCoupledVar("velocity", "Velocity vector variable.");
+  return params;
+}
 
-template <ComputeStage compute_stage>
-LevelSetAdvectionSUPG<compute_stage>::LevelSetAdvectionSUPG(const InputParameters & parameters)
-  : LevelSetVelocityInterface<ADKernelGrad<compute_stage>>(parameters)
+LevelSetAdvectionSUPG::LevelSetAdvectionSUPG(const InputParameters & parameters)
+  : ADKernelGrad(parameters), _velocity(adCoupledVectorValue("velocity"))
 {
 }
 
-template <ComputeStage compute_stage>
-ADVectorResidual
-LevelSetAdvectionSUPG<compute_stage>::precomputeQpResidual()
+ADRealVectorValue
+LevelSetAdvectionSUPG::precomputeQpResidual()
 {
-  computeQpVelocity();
-  ADReal tau = _current_elem->hmin() / (2 * _velocity.norm());
-  return (tau * _velocity) * (_velocity * _grad_u[_qp]);
+  ADReal tau =
+      _current_elem->hmin() /
+      (2 * (_velocity[_qp] + RealVectorValue(libMesh::TOLERANCE * libMesh::TOLERANCE)).norm());
+  return (tau * _velocity[_qp]) * (_velocity[_qp] * _grad_u[_qp]);
 }

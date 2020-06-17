@@ -11,11 +11,6 @@
 
 #include "InterfaceKernel.h"
 
-class EqualGradientLagrangeInterface;
-
-template <>
-InputParameters validParams<EqualGradientLagrangeInterface>();
-
 /**
  * InterfaceKernel to enforce a Lagrange-Multiplier based componentwise
  * continuity of a variable gradient.
@@ -23,6 +18,8 @@ InputParameters validParams<EqualGradientLagrangeInterface>();
 class EqualGradientLagrangeInterface : public InterfaceKernel
 {
 public:
+  static InputParameters validParams();
+
   EqualGradientLagrangeInterface(const InputParameters & parameters);
 
 protected:
@@ -37,4 +34,3 @@ protected:
 
   const unsigned int _lambda_jvar;
 };
-

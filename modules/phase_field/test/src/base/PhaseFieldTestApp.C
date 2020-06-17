@@ -15,11 +15,10 @@
 
 #include "GaussContForcing.h"
 
-template <>
 InputParameters
-validParams<PhaseFieldTestApp>()
+PhaseFieldTestApp::validParams()
 {
-  InputParameters params = validParams<PhaseFieldApp>();
+  InputParameters params = PhaseFieldApp::validParams();
   return params;
 }
 

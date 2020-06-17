@@ -51,12 +51,16 @@
     variable = temp
     master = 3
     slave = 2
+    emissivity_master = 0
+    emissivity_slave = 0
   [../]
   [./awesomium_contact]
     type = GapHeatTransfer
     variable = awesomium
     master = 3
     slave = 2
+    emissivity_master = 0
+    emissivity_slave = 0
     gap_conductivity = 10
     appended_property_name = _awesomium
   [../]
@@ -100,25 +104,25 @@
 
 [BCs]
   [./temp_far_left]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     boundary = 1
     variable = temp
     function = temp
   [../]
   [./temp_far_right]
-    type = PresetBC
+    type = DirichletBC
     boundary = 4
     variable = temp
     value = 100
   [../]
   [./awesomium_far_left]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     boundary = 1
     variable = awesomium
     function = temp
   [../]
   [./awesomium_far_right]
-    type = PresetBC
+    type = DirichletBC
     boundary = 4
     variable = awesomium
     value = 100

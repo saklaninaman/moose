@@ -11,11 +11,10 @@
 
 registerMooseObject("PhaseFieldTestApp", VoronoiICAux);
 
-template <>
 InputParameters
-validParams<VoronoiICAux>()
+VoronoiICAux::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   params.addRequiredParam<UserObjectName>("polycrystal_ic_uo", "Optional: Polycrystal IC object");
   return params;
 }

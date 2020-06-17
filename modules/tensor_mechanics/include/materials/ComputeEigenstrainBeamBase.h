@@ -11,17 +11,14 @@
 
 #include "Material.h"
 
-class ComputeEigenstrainBeamBase;
-
-template <>
-InputParameters validParams<ComputeEigenstrainBeamBase>();
-
 /**
  * ComputeEigenstrainBeamBase is the base class for beam eigenstrain vectors
  */
 class ComputeEigenstrainBeamBase : public Material
 {
 public:
+  static InputParameters validParams();
+
   ComputeEigenstrainBeamBase(const InputParameters & parameters);
 
 protected:
@@ -43,4 +40,3 @@ protected:
   /// Restartable data to check for the zeroth and first time steps for thermal calculations
   bool & _step_zero;
 };
-

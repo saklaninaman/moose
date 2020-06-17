@@ -19,7 +19,7 @@
 InputParameters
 PolycrystalVoronoiVoidIC::actionParameters()
 {
-  InputParameters params = validParams<MultiSmoothCircleIC>();
+  InputParameters params = ::validParams<MultiSmoothCircleIC>();
 
   params.addRequiredParam<unsigned int>("op_num", "Number of order parameters");
 
@@ -31,9 +31,8 @@ PolycrystalVoronoiVoidIC::actionParameters()
 
 registerMooseObject("PhaseFieldApp", PolycrystalVoronoiVoidIC);
 
-template <>
 InputParameters
-validParams<PolycrystalVoronoiVoidIC>()
+PolycrystalVoronoiVoidIC::validParams()
 {
   InputParameters params = PolycrystalVoronoiVoidIC::actionParameters();
   MooseEnum structure_options("grains voids");

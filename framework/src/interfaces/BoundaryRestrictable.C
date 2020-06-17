@@ -13,10 +13,12 @@
 #include "MooseMesh.h"
 #include "MooseObject.h"
 
-template <>
+defineLegacyParams(BoundaryRestrictable);
+
 InputParameters
-validParams<BoundaryRestrictable>()
+BoundaryRestrictable::validParams()
 {
+
   // Create instance of InputParameters
   InputParameters params = emptyInputParameters();
 
@@ -35,15 +37,13 @@ validParams<BoundaryRestrictable>()
 // Standard constructor
 BoundaryRestrictable::BoundaryRestrictable(const MooseObject * moose_object, bool nodal)
   : _bnd_feproblem(moose_object->isParamValid("_fe_problem_base")
-                       ? moose_object->getParamTempl<FEProblemBase *>("_fe_problem_base")
+                       ? moose_object->getParam<FEProblemBase *>("_fe_problem_base")
                        : NULL),
-    _bnd_mesh(moose_object->isParamValid("_mesh")
-                  ? moose_object->getParamTempl<MooseMesh *>("_mesh")
-                  : NULL),
-    _bnd_dual_restrictable(moose_object->getParamTempl<bool>("_dual_restrictable")),
+    _bnd_mesh(moose_object->isParamValid("_mesh") ? moose_object->getParam<MooseMesh *>("_mesh")
+                                                  : NULL),
+    _bnd_dual_restrictable(moose_object->getParam<bool>("_dual_restrictable")),
     _block_ids(_empty_block_ids),
-    _bnd_tid(moose_object->isParamValid("_tid") ? moose_object->getParamTempl<THREAD_ID>("_tid")
-                                                : 0),
+    _bnd_tid(moose_object->isParamValid("_tid") ? moose_object->getParam<THREAD_ID>("_tid") : 0),
     _bnd_material_data(_bnd_feproblem->getMaterialData(Moose::BOUNDARY_MATERIAL_DATA, _bnd_tid)),
     _bnd_nodal(nodal)
 {
@@ -55,15 +55,13 @@ BoundaryRestrictable::BoundaryRestrictable(const MooseObject * moose_object,
                                            const std::set<SubdomainID> & block_ids,
                                            bool nodal)
   : _bnd_feproblem(moose_object->isParamValid("_fe_problem_base")
-                       ? moose_object->getParamTempl<FEProblemBase *>("_fe_problem_base")
+                       ? moose_object->getParam<FEProblemBase *>("_fe_problem_base")
                        : NULL),
-    _bnd_mesh(moose_object->isParamValid("_mesh")
-                  ? moose_object->getParamTempl<MooseMesh *>("_mesh")
-                  : NULL),
-    _bnd_dual_restrictable(moose_object->getParamTempl<bool>("_dual_restrictable")),
+    _bnd_mesh(moose_object->isParamValid("_mesh") ? moose_object->getParam<MooseMesh *>("_mesh")
+                                                  : NULL),
+    _bnd_dual_restrictable(moose_object->getParam<bool>("_dual_restrictable")),
     _block_ids(block_ids),
-    _bnd_tid(moose_object->isParamValid("_tid") ? moose_object->getParamTempl<THREAD_ID>("_tid")
-                                                : 0),
+    _bnd_tid(moose_object->isParamValid("_tid") ? moose_object->getParam<THREAD_ID>("_tid") : 0),
     _bnd_material_data(_bnd_feproblem->getMaterialData(Moose::BOUNDARY_MATERIAL_DATA, _bnd_tid)),
     _bnd_nodal(nodal)
 {
@@ -74,7 +72,7 @@ void
 BoundaryRestrictable::initializeBoundaryRestrictable(const MooseObject * moose_object)
 {
   // The name and id of the object
-  const std::string & name = moose_object->getParamTempl<std::string>("_object_name");
+  const std::string & name = moose_object->getParam<std::string>("_object_name");
 
   // If the mesh pointer is not defined, but FEProblemBase is, get it from there
   if (_bnd_feproblem != NULL && _bnd_mesh == NULL)
@@ -89,7 +87,7 @@ BoundaryRestrictable::initializeBoundaryRestrictable(const MooseObject * moose_o
   if (moose_object->isParamValid("boundary"))
   {
     // Extract the blocks from the input
-    _boundary_names = moose_object->getParamTempl<std::vector<BoundaryName>>("boundary");
+    _boundary_names = moose_object->getParam<std::vector<BoundaryName>>("boundary");
 
     // Get the IDs from the supplied names
     std::vector<BoundaryID> vec_ids = _bnd_mesh->getBoundaryIDs(_boundary_names, true);
@@ -105,9 +103,10 @@ BoundaryRestrictable::initializeBoundaryRestrictable(const MooseObject * moose_o
   // Produce error if the object is not allowed to be both block and boundary restricted
   if (!_bnd_dual_restrictable && !_bnd_ids.empty() && !_block_ids.empty())
     if (!_block_ids.empty() && _block_ids.find(Moose::ANY_BLOCK_ID) == _block_ids.end())
-      mooseError("Attempted to restrict the object '",
-                 name,
-                 "' to a boundary, but the object is already restricted by block(s)");
+      moose_object->paramError("boundary",
+                               "Attempted to restrict the object '",
+                               name,
+                               "' to a boundary, but the object is already restricted by block(s)");
 
   // Store ANY_BOUNDARY_ID if empty
   if (_bnd_ids.empty())
@@ -144,8 +143,7 @@ BoundaryRestrictable::initializeBoundaryRestrictable(const MooseObject * moose_o
     if (!diff.empty())
     {
       std::ostringstream msg;
-      msg << "The object '" << name << "' contains the following " << message_ptr
-          << " ids that do not exist on the mesh:";
+      msg << "the following " << message_ptr << " ids do not exist on the mesh:";
       for (const auto & id : diff)
         msg << " " << id;
 
@@ -157,7 +155,7 @@ BoundaryRestrictable::initializeBoundaryRestrictable(const MooseObject * moose_o
                "Try setting \"Mesh/construct_side_set_from_node_set=true\" if you see this error.\n"
                "Note: If you are running with adaptivity you should prefer using side sets.";
 
-      mooseError(msg.str());
+      moose_object->paramError("boundary", msg.str());
     }
   }
 }
@@ -304,7 +302,8 @@ BoundaryRestrictable::hasBoundaryMaterialPropertyHelper(const std::string & prop
     // If boundary materials exist, populated the set of properties that were declared
     if (warehouse.hasActiveBoundaryObjects(id))
     {
-      const std::vector<std::shared_ptr<Material>> & mats = warehouse.getActiveBoundaryObjects(id);
+      const std::vector<std::shared_ptr<MaterialBase>> & mats =
+          warehouse.getActiveBoundaryObjects(id);
       for (const auto & mat : mats)
       {
         const std::set<std::string> & mat_props = mat->getSuppliedItems();

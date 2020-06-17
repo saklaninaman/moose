@@ -11,11 +11,10 @@
 
 registerMooseObject("NavierStokesApp", NSMassUnspecifiedNormalFlowBC);
 
-template <>
 InputParameters
-validParams<NSMassUnspecifiedNormalFlowBC>()
+NSMassUnspecifiedNormalFlowBC::validParams()
 {
-  InputParameters params = validParams<NSMassBC>();
+  InputParameters params = NSMassBC::validParams();
   params.addClassDescription("This class implements the mass equation boundary term with the "
                              "rho*(u.n) boundary integral computed implicitly.");
   return params;

@@ -11,17 +11,14 @@
 
 #include "PorousFlowCapillaryPressure.h"
 
-class PorousFlowCapillaryPressureBW;
-
-template <>
-InputParameters validParams<PorousFlowCapillaryPressureBW>();
-
 /**
  * Capillary pressure of Broadbridge and White.
  */
 class PorousFlowCapillaryPressureBW : public PorousFlowCapillaryPressure
 {
 public:
+  static InputParameters validParams();
+
   PorousFlowCapillaryPressureBW(const InputParameters & parameters);
 
   virtual Real capillaryPressureCurve(Real saturation, unsigned qp = 0) const override;
@@ -42,4 +39,3 @@ protected:
   /// BWs lambda_s parameter multiplied by fluid density * gravity (>0)
   const Real _las;
 };
-

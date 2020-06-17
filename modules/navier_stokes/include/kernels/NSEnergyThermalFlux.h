@@ -13,10 +13,6 @@
 #include "NSTemperatureDerivs.h"
 
 // ForwardDeclarations
-class NSEnergyThermalFlux;
-
-template <>
-InputParameters validParams<NSEnergyThermalFlux>();
 
 /**
  * This class is responsible for computing residuals and Jacobian
@@ -26,6 +22,8 @@ InputParameters validParams<NSEnergyThermalFlux>();
 class NSEnergyThermalFlux : public NSKernel
 {
 public:
+  static InputParameters validParams();
+
   NSEnergyThermalFlux(const InputParameters & parameters);
 
 protected:
@@ -62,4 +60,3 @@ private:
   // the ctor.
   std::vector<const VariableGradient *> _gradU;
 };
-

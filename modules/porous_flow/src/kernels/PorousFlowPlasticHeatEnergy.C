@@ -14,11 +14,10 @@
 
 registerMooseObject("PorousFlowApp", PorousFlowPlasticHeatEnergy);
 
-template <>
 InputParameters
-validParams<PorousFlowPlasticHeatEnergy>()
+PorousFlowPlasticHeatEnergy::validParams()
 {
-  InputParameters params = validParams<PlasticHeatEnergy>();
+  InputParameters params = PlasticHeatEnergy::validParams();
   params.addParam<bool>("strain_at_nearest_qp",
                         false,
                         "When calculating nodal porosity that depends on strain, use the strain at "

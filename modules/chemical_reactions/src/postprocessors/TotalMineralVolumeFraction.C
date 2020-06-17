@@ -11,11 +11,10 @@
 
 registerMooseObject("ChemicalReactionsApp", TotalMineralVolumeFraction);
 
-template <>
 InputParameters
-validParams<TotalMineralVolumeFraction>()
+TotalMineralVolumeFraction::validParams()
 {
-  InputParameters params = validParams<ElementAverageValue>();
+  InputParameters params = ElementAverageValue::validParams();
   params.addRequiredParam<Real>("molar_volume", "Molar volume of coupled mineral species");
   params.addClassDescription("Total volume fraction of coupled mineral species");
   return params;

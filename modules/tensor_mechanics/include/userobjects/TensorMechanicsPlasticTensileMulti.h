@@ -12,11 +12,6 @@
 #include "TensorMechanicsPlasticModel.h"
 #include "TensorMechanicsHardeningModel.h"
 
-class TensorMechanicsPlasticTensileMulti;
-
-template <>
-InputParameters validParams<TensorMechanicsPlasticTensileMulti>();
-
 /**
  * FiniteStrainTensileMulti implements rate-independent associative tensile failure
  * with hardening/softening in the finite-strain framework, using planar (non-smoothed) surfaces
@@ -24,6 +19,8 @@ InputParameters validParams<TensorMechanicsPlasticTensileMulti>();
 class TensorMechanicsPlasticTensileMulti : public TensorMechanicsPlasticModel
 {
 public:
+  static InputParameters validParams();
+
   TensorMechanicsPlasticTensileMulti(const InputParameters & parameters);
 
   virtual unsigned int numberSurfaces() const override;
@@ -221,4 +218,3 @@ private:
     plane = 2
   };
 };
-

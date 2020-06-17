@@ -9,26 +9,25 @@
 
 #pragma once
 
-#include "PresetNodalBC.h"
+#include "DirichletBCBase.h"
 
 // MOOSE includes
 #include "ColumnMajorMatrix.h"
 
 // Forward Declarations
-class DisplacementAboutAxis;
 class Function;
 
-template <>
-InputParameters validParams<DisplacementAboutAxis>();
 void addDisplacementAboutAxisParams(InputParameters & params);
 
 /**
  * Implements a boundary condition that enforces rotational displacement around
  * an axis on a boundary.
  */
-class DisplacementAboutAxis : public PresetNodalBC
+class DisplacementAboutAxis : public DirichletBCBase
 {
 public:
+  static InputParameters validParams();
+
   DisplacementAboutAxis(const InputParameters & parameters);
 
 protected:

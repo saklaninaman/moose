@@ -11,11 +11,10 @@
 
 registerMooseObject("TensorMechanicsApp", VolumeDeformGradCorrectedStress);
 
-template <>
 InputParameters
-validParams<VolumeDeformGradCorrectedStress>()
+VolumeDeformGradCorrectedStress::validParams()
 {
-  InputParameters params = validParams<Material>();
+  InputParameters params = Material::validParams();
   params.addClassDescription(
       "Transforms stress with volumetric term from previous configuration to this configuration");
   params.addRequiredParam<MaterialPropertyName>("pre_stress_name",
@@ -23,9 +22,9 @@ validParams<VolumeDeformGradCorrectedStress>()
   params.addRequiredParam<MaterialPropertyName>("deform_grad_name",
                                                 "Name of deformation gradient variable");
   params.addParam<MaterialPropertyName>("pre_jacobian_name",
-                                        "Name of jacobian variable from previous config.");
+                                        "Name of Jacobian variable from previous config.");
   params.addRequiredParam<MaterialPropertyName>("stress_name", "Name of stress variable");
-  params.addParam<MaterialPropertyName>("jacobian_name", "Name of jacobian variable");
+  params.addParam<MaterialPropertyName>("jacobian_name", "Name of Jacobian variable");
   return params;
 }
 
