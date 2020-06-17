@@ -5,6 +5,10 @@
 
 [GlobalParams]
   displacements = 'disp_x disp_y disp_z'
+ Varies linearly between the two nodes in an element
+ Varies linearly between the two ends of the domain
+ Is constant in each element
+ Is constant over the whole domain
 []
 
 [Variables]
@@ -28,10 +32,6 @@
     family = LAGRANGE
   [../]
   [./temp]
-    order = FIRST
-    family = LAGRANGE
-  [../]
-  [./radiation]
     order = FIRST
     family = LAGRANGE
   [../]
